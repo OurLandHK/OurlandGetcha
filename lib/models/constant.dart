@@ -1,0 +1,1 @@
+const String _app_name = "我地.佳招";
