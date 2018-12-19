@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:ourland_native/widgets/map/index.dart';
 
 class ChatMap extends StatefulWidget {
   @override
@@ -82,8 +83,7 @@ class _ChatMapState extends State<ChatMap> {
       widgets = new List();
     } else {
       widgets = [
-        new Image.network(
-            "https://maps.googleapis.com/maps/api/staticmap?center=${_currentLocation.latitude},${_currentLocation.longitude}&zoom=18&size=640x400&key=AIzaSyB9zmMt3yKs_cIs-mPrFesuZIflJP5KFJU")
+        new GoogleMapWidget(_currentLocation.latitude, _currentLocation.longitude)
       ];
     }
 
