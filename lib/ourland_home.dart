@@ -22,7 +22,7 @@ class _OurlandHomeState extends State<OurlandHome>
   void initState() {
     // TODO: implement initState
     super.initState();
-    _tabController = new TabController(vsync: this, initialIndex: 1, length: 4);
+    _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
   }
 
   
@@ -38,7 +38,9 @@ class _OurlandHomeState extends State<OurlandHome>
           indicatorColor: Colors.white,
           tabs: <Widget>[
           //  new Tab(icon: new Icon(Icons.camera_alt)),
-            new Tab(text: "NearBy"),
+            new Tab(
+              text: "NearBy",
+            ),
             new Tab(
               text: "Home",
             ),
