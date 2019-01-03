@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:ourland_native/pages/sendmessage.dart';
 import 'package:ourland_native/pages/camera_screen.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
@@ -17,15 +18,21 @@ const String _app_name = "我地.佳招";
 class _OurlandHomeState extends State<OurlandHome>
     with SingleTickerProviderStateMixin {
   TabController _tabController;
+  String uid = '';
 
   @override
   void initState() {
-    // TODO: implement initState
+    this.uid = '';
+    FirebaseAuth.instance.currentUser().then((val) {
+      setState(() {
+        this.uid = val.uid;
+      });
+    }).catchError((e) {
+      print(e);
+    });
     super.initState();
     _tabController = new TabController(vsync: this, initialIndex: 1, length: 4);
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
