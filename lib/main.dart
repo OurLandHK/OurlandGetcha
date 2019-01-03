@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:camera/camera.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/ourland_home.dart';
+import 'package:ourland_native/pages/registration_screen.dart';
 
 List<CameraDescription> cameras;
 
@@ -26,7 +27,6 @@ final ThemeData kDefaultTheme = new ThemeData(
   accentColor: Colors.orangeAccent[400],
 );
 
-const String _app_name = "我地.佳招";
 
 void main() {
   availableCameras().then((rv) {
@@ -35,16 +35,19 @@ void main() {
   });
 }
 
-
 class OurlandApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: _app_name,
+      title: APP_NAME,
       theme: defaultTargetPlatform == TargetPlatform.iOS
           ? kIOSTheme
           : kDefaultTheme,
-      home: new OurlandHome(cameras),
+      home: new PhoneAuthenticationScreen(),
+      routes: <String, WidgetBuilder> {
+        '/auth': (BuildContext context) => new PhoneAuthenticationScreen(),
+        '/home': (BuildContext context) => new OurlandHome(cameras)
+      }
     );
   }
 }
