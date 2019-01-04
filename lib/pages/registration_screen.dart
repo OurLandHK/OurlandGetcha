@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/services/user_service.dart';
 
 class PhoneAuthenticationScreen extends StatefulWidget {
   @override
@@ -9,11 +11,15 @@ class PhoneAuthenticationScreen extends StatefulWidget {
 }
 
 class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
+  UserService userService = new UserService();
+
   String username;
   String address;
   String phoneNumber;
+  String avatarUrl = 'assets/images/default-avatar.jpg';
   String smsCode;
   String verificationId;
+
 
   Future<void> verifyPhone() async {
     final PhoneCodeAutoRetrievalTimeout autoRetrieve = (String verId) {
@@ -63,8 +69,10 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 onPressed: () {
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pushReplacementNamed('/home');
+                      userService.createUser(user.uid, this.username, this.avatarUrl, this.address).then( (_) {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      });
                     } else {
                       Navigator.of(context).pop();
                       signIn();
@@ -154,8 +162,8 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                renderAvatar(),
-                renderSizeBox(),
+//                renderAvatar(),
+//                renderSizeBox(),
                 renderUsernameField(),
                 renderSizeBox(),
                 renderPhoneNumberField(),
