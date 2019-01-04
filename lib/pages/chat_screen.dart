@@ -19,7 +19,7 @@ const String _app_name = "我地.佳招";
 final facebookLogin = new FacebookLogin();
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
-final reference = FirebaseDatabase.instance.reference().child('messages');
+final messageReference = FirebaseDatabase.instance.reference().child('messages');
 
 
 
@@ -120,6 +120,15 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     setState(() {
       _messages.insert(0, message);
     });
+
+//    var _result = await messageReference.child(1)set({
+//      name: 'name here',
+//      message: text,
+//      time : 'time here',
+//      avatarUrl:'avatar here'
+//    });
+
+
     message.animationController.forward();
   }
 
