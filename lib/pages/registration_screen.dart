@@ -12,6 +12,7 @@ class PhoneAuthenticationScreen extends StatefulWidget {
 
 class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   UserService userService = new UserService();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   String username;
   String address;
@@ -21,7 +22,19 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   String verificationId;
 
 
-  Future<void> verifyPhone() async {
+  void verify(context) {
+    if(this.username == null) {
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_USERNAME_NULL_TEXT)));
+    } else if(this.phoneNumber == null) {
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
+    } else if(this.phoneNumber.startsWith('+') == false){
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT)));
+    } else{
+      verifyPhone(context);
+    }
+  }
+
+  Future<void> verifyPhone(context) async {
     final PhoneCodeAutoRetrievalTimeout autoRetrieve = (String verId) {
       this.verificationId = verId;
     };
@@ -38,7 +51,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     };
 
     final PhoneVerificationFailed veriFailed = (AuthException exception) {
-      print('${exception.message}');
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(exception.message)));
     };
 
     await FirebaseAuth.instance.verifyPhoneNumber(
@@ -71,13 +84,11 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                     if (user != null) {
                       userService.createUser(user.uid, this.username, this.avatarUrl, this.address).then((user) {
                         if(user == null) {
-                          final snackBar = SnackBar(
-                              content: Text(REG_ADDRESS_HINT_TEXT)
-                          );
-                          Scaffold.of(context).showSnackBar(snackBar);
+                          _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
                         } else {
                           Navigator.of(context).pop();
-                          Navigator.of(context).pushReplacementNamed('/home');
+                          //Navigator.of(context).pushReplacementNamed('/home');
+                          signIn(context);
                         }
                       });
                     } else {
@@ -96,9 +107,14 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     FirebaseAuth.instance
         .signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
         .then((user) {
-      Navigator.of(context).pushReplacementNamed('/home');
+          if(user != null) {
+            Navigator.of(context).pushReplacementNamed('/home');
+          } else {
+            _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
+          }
     }).catchError((e) {
       print(e);
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
     });
   }
 
@@ -146,9 +162,9 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     );
   }
 
-  renderSubmitButton() {
+  renderSubmitButton(context) {
     return RaisedButton(
-        onPressed: verifyPhone,
+        onPressed: () => verify(context),
         child: Text(REG_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
@@ -163,6 +179,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      key: _scaffoldKey,
       body: new Center(
         child: Container(
             padding: EdgeInsets.all(25.0),
@@ -177,7 +194,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 renderSizeBox(),
                 renderAddressField(),
                 renderSizeBox(),
-                renderSubmitButton()
+                renderSubmitButton(context)
               ],
             )),
       ),
