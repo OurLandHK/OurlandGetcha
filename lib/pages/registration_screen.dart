@@ -65,17 +65,24 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
             contentPadding: EdgeInsets.all(10.0),
             actions: <Widget>[
               new FlatButton(
-                child: Text('Done'),
+                child: Text(SMS_CODE_DIALOG_BUTTON_TEXT),
                 onPressed: () {
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
-                      userService.createUser(user.uid, this.username, this.avatarUrl, this.address).then( (_) {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pushReplacementNamed('/home');
+                      userService.createUser(user.uid, this.username, this.avatarUrl, this.address).then((user) {
+                        if(user == null) {
+                          final snackBar = SnackBar(
+                              content: Text(REG_ADDRESS_HINT_TEXT)
+                          );
+                          Scaffold.of(context).showSnackBar(snackBar);
+                        } else {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushReplacementNamed('/home');
+                        }
                       });
                     } else {
                       Navigator.of(context).pop();
-                      signIn();
+                      signIn(context);
                     }
                   });
                 },
@@ -85,7 +92,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         });
   }
 
-  signIn() {
+  signIn(context) {
     FirebaseAuth.instance
         .signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
         .then((user) {
@@ -97,13 +104,13 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
 
   renderAvatar() {
     return Container(
-      width: 190.0,
-      height: 190.0,
+      width: 80.0,
+      height: 80.0,
       decoration: new BoxDecoration(
           shape: BoxShape.circle,
           image: new DecorationImage(
               fit: BoxFit.fill,
-              image: new ExactAssetImage('assets/images/default-avatar.jpg')
+              image: new ExactAssetImage(DEFAULT_AVATAR_IMAGE_PATH)
           )
       )
     );
@@ -162,8 +169,8 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-//                renderAvatar(),
-//                renderSizeBox(),
+                renderAvatar(),
+                renderSizeBox(),
                 renderUsernameField(),
                 renderSizeBox(),
                 renderPhoneNumberField(),
