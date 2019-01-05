@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:ourland_native/pages/sendmessage.dart';
 import 'package:ourland_native/pages/camera_screen.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
+import 'package:ourland_native/models/constant.dart';
 //import 'package:ourland_native/pages/status_screen.dart';
 
 class OurlandHome extends StatefulWidget {
@@ -46,13 +47,13 @@ class _OurlandHomeState extends State<OurlandHome>
           tabs: <Widget>[
           //  new Tab(icon: new Icon(Icons.camera_alt)),
             new Tab(
-              text: "NearBy",
+              text: LABEL_NEARBY,
             ),
             new Tab(
-              text: "Home",
+              text: LABEL_REGION0,
             ),
             new Tab(
-              text: "Office",
+              text: LABEL_REGION1,
             ),
           ],
         ),
@@ -68,9 +69,9 @@ class _OurlandHomeState extends State<OurlandHome>
         controller: _tabController,
         children: <Widget>[
           //new CameraScreen(widget.cameras),
-          new ChatScreen(true),
-          new ChatScreen(true),
-          new ChatScreen(true),
+          new ChatScreen(parentId: "", parentTitle: LABEL_NEARBY,),
+          new ChatScreen(parentId: "", parentTitle: LABEL_REGION0,),
+          new ChatScreen(parentId: "", parentTitle: LABEL_REGION1,),
           //new StatusScreen(),
           //new CallsScreen(),
         ],

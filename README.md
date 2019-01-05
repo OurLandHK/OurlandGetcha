@@ -1,5 +1,10 @@
 # OurlandGetcha
-OurlandSearch's Native IOS/Andrioid version written with Flutter and Firebase
+
+## Description:
+* OurlandSearch's Native IOS/Andrioid version written with Flutter and Firebase
+* A location base chat app made by Flutter and Firebase.
+* Support login with phone, post to current location, send text, image and sticker, update avatar and profile.
+
 
 ## Getting Started
 
@@ -31,3 +36,22 @@ flutter run
 3. Enable `Maps SDK for iOS`
 4. Under `Credentials`, click `Create Credential` and choose `API Key`
 5. Replace YOUR_API_KEY_HERE with the key in AndroidManifest.xml and AppDelegate.m 
+
+### Firebase setting
+1. Rules at Storage:
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if true && request.resource.contentType.matches('image/.*') && request.auth != null;
+    }
+  }
+}
+2. Rules at Database:
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write : if true; 
+    }
+  }
+}
