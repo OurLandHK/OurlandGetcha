@@ -12,3 +12,4 @@ const String VAL_USERNAME_NULL_TEXT = 'Please enter username';
 const String VAL_PHONE_NUMBER_NULL_TEXT = 'Please enter phone number';
 const String VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT = 'The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+][country code][subscriber number including area code]. [ Invalid format. ]';
 
+const String FIRESTORE_USER_AVATAR_IMG_PATH = "images/userAvatarImages/";

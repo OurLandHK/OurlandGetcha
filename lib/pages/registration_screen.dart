@@ -25,8 +25,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   File avatarImage;
 
   Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
-
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
     setState(() {
       avatarImage = image;
     });
@@ -92,7 +91,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 onPressed: () {
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
-                      userService.createUser(user.uid, this.username, this.avatarUrl, this.address).then((user) {
+                      userService.createUser(user.uid, this.username, this.avatarImage, this.address).then((user) {
                         if(user == null) {
                           _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
                         } else {
@@ -138,7 +137,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               shape: BoxShape.circle,
               image: new DecorationImage(
                 fit: BoxFit.fill,
-                image: new ExactAssetImage(DEFAULT_AVATAR_IMAGE_PATH),
+                image: avatarImage == null ? new ExactAssetImage(DEFAULT_AVATAR_IMAGE_PATH) : new ExactAssetImage(avatarImage.path),
               )
           )
       )
