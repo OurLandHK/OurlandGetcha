@@ -35,6 +35,7 @@ class ChatModel {
       var indexData = {
             'created': sendMessageTime,
             'lastUpdate': sendMessageTime,
+            'id': sendMessageTimeString,
             'content': content,
             'type': type,
             'geotopleft' : new GeoPoint(position.latitude, position.longitude),
@@ -42,6 +43,7 @@ class ChatModel {
       };
       var chatData = {
             'created': sendMessageTime,
+            'id': sendMessageTimeString,
             'geo': new GeoPoint(position.latitude, position.longitude),
             'content': content,
             'type': type
