@@ -48,6 +48,10 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         timeout: const Duration(seconds: 5),
         verificationCompleted: verifiedSuccess,
         verificationFailed: veriFailed);
+    // Hack for workaround the user setup in emulator
+    // /*
+    Navigator.of(context).pushReplacementNamed('/home');
+    // */
   }
 
   Future<bool> smsCodeDialog(BuildContext context) {
@@ -115,7 +119,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         onChanged: (value) {
           this.username = value;
         },
-        keyboardType: TextInputType.number
+        keyboardType: TextInputType.text
     );
   }
 
@@ -125,7 +129,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         onChanged: (value) {
           this.phoneNumber = value;
         },
-        keyboardType: TextInputType.number
+        keyboardType: TextInputType.phone
     );
   }
 
@@ -135,7 +139,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         onChanged: (value) {
           this.address = value;
         },
-        keyboardType: TextInputType.number
+        keyboardType: TextInputType.text
     );
   }
 

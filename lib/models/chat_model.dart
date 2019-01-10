@@ -1,47 +1,73 @@
-class ChatModel {
-  final String name;
-  final String message;
-  final String time;
-  final String avatarUrl;
+import 'package:geolocator/geolocator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-  ChatModel({this.name, this.message, this.time, this.avatarUrl});
+class ChatModel {
+  String parentID;
+
+  ChatModel(this.parentID);
+
+  Stream<QuerySnapshot> getMessageSnap(Position position, int distanceInKM) {
+    Stream<QuerySnapshot> rv;
+    if(this.parentID.length != 0) {
+      rv = Firestore.instance
+            .collection('chat')
+            .document(this.parentID)
+            .collection("messages")
+            .orderBy('created', descending: true)
+            .limit(20)
+            .snapshots();
+    } else {
+      // add checking for distanceInKm
+      rv = Firestore.instance
+            .collection('index')
+            .orderBy('created', descending: true)
+            .snapshots();
+    }
+    return rv;
+  }
+
+  void sendMessage(Position position, String content, int type) {
+      print('SendMessage ${position}');
+      var chatReference;
+      var indexReference;
+      var sendMessageTime = DateTime.now();
+      String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
+      var indexData = {
+            'created': sendMessageTime,
+            'lastUpdate': sendMessageTime,
+            'id': sendMessageTimeString,
+            'content': content,
+            'type': type,
+            'geotopleft' : new GeoPoint(position.latitude, position.longitude),
+            'geobottomright' :new GeoPoint(position.latitude, position.longitude),
+      };
+      var chatData = {
+            'created': sendMessageTime,
+            'id': sendMessageTimeString,
+            'geo': new GeoPoint(position.latitude, position.longitude),
+            'content': content,
+            'type': type
+      };
+      if(this.parentID.length == 0) {
+        indexReference = Firestore.instance
+          .collection('index')
+          .document(sendMessageTimeString);
+        chatReference = Firestore.instance
+          .collection('chat')
+          .document(sendMessageTimeString).collection("messages").document(sendMessageTimeString);
+      } else {
+        indexReference = Firestore.instance
+          .collection('index')
+          .document(this.parentID);
+        chatReference = Firestore.instance
+          .collection('chat')
+          .document(this.parentID).collection("messages").document(sendMessageTimeString);
+      }
+
+      Firestore.instance.runTransaction((transaction) async {
+        await transaction.set(indexReference, indexData);
+        await transaction.set(chatReference, chatData);
+      });
+  }
 }
 
-List<ChatModel> dummyData = [
-  new ChatModel(
-      name: "Pawan Kumar",
-      message: "Hey Flutter, You are so amazing !",
-      time: "15:30",
-      avatarUrl:
-          "http://www.usanetwork.com/sites/usanetwork/files/styles/629x720/public/suits_cast_harvey.jpg?itok=fpTOeeBb"),
-  new ChatModel(
-      name: "Harvey Spectre",
-      message: "Hey I have hacked whatsapp!",
-      time: "17:30",
-      avatarUrl:
-          "http://www.usanetwork.com/sites/usanetwork/files/styles/629x720/public/suits_cast_harvey.jpg?itok=fpTOeeBb"),
-  new ChatModel(
-      name: "Mike Ross",
-      message: "Wassup !",
-      time: "5:00",
-      avatarUrl:
-          "http://www.usanetwork.com/sites/usanetwork/files/styles/629x720/public/suits_cast_harvey.jpg?itok=fpTOeeBb"),
-  new ChatModel(
-      name: "Rachel",
-      message: "I'm good!",
-      time: "10:30",
-      avatarUrl:
-          "http://www.usanetwork.com/sites/usanetwork/files/styles/629x720/public/suits_cast_harvey.jpg?itok=fpTOeeBb"),
-  new ChatModel(
-      name: "Barry Allen",
-      message: "I'm the fastest man alive!",
-      time: "12:30",
-      avatarUrl:
-          "http://www.usanetwork.com/sites/usanetwork/files/styles/629x720/public/suits_cast_harvey.jpg?itok=fpTOeeBb"),
-  new ChatModel(
-      name: "Joe West",
-      message: "Hey Flutter, You are so cool !",
-      time: "15:30",
-      avatarUrl:
-          "http://www.usanetwork.com/sites/usanetwork/files/styles/629x720/public/suits_cast_harvey.jpg?itok=fpTOeeBb"),
-];
