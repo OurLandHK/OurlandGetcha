@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PhoneAuthenticationScreen extends StatefulWidget {
   @override
@@ -12,16 +15,49 @@ class PhoneAuthenticationScreen extends StatefulWidget {
 
 class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   UserService userService = new UserService();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   String username;
   String address;
   String phoneNumber;
-  String avatarUrl = 'assets/images/default-avatar.jpg';
   String smsCode;
   String verificationId;
+  File avatarImage;
+  SharedPreferences prefs;
 
+  @override
+  void initState() {
+    super.initState();
+    checkAuth();
+  }
 
-  Future<void> verifyPhone() async {
+  checkAuth() async {
+    prefs = await SharedPreferences.getInstance();
+    if(prefs.getString(PREF_USER_UUID) != null) {
+       Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
+
+  Future getImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      avatarImage = image;
+    });
+  }
+
+  void verify(context) {
+    if(this.username == null) {
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_USERNAME_NULL_TEXT)));
+    } else if(this.phoneNumber == null) {
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
+    } else if(this.phoneNumber.startsWith('+') == false){
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT)));
+    } else{
+      verifyPhone(context);
+    }
+  }
+
+  Future<void> verifyPhone(context) async {
     final PhoneCodeAutoRetrievalTimeout autoRetrieve = (String verId) {
       this.verificationId = verId;
     };
@@ -38,20 +74,16 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     };
 
     final PhoneVerificationFailed veriFailed = (AuthException exception) {
-      print('${exception.message}');
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(exception.message)));
     };
 
     await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: this.phoneNumber,
         codeAutoRetrievalTimeout: autoRetrieve,
         codeSent: smsCodeSent,
-        timeout: const Duration(seconds: 5),
+        timeout: const Duration(seconds: 60),
         verificationCompleted: verifiedSuccess,
         verificationFailed: veriFailed);
-    // Hack for workaround the user setup in emulator
-    // /*
-    Navigator.of(context).pushReplacementNamed('/home');
-    // */
   }
 
   Future<bool> smsCodeDialog(BuildContext context) {
@@ -69,17 +101,22 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
             contentPadding: EdgeInsets.all(10.0),
             actions: <Widget>[
               new FlatButton(
-                child: Text('Done'),
+                child: Text(SMS_CODE_DIALOG_BUTTON_TEXT),
                 onPressed: () {
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
-                      userService.createUser(user.uid, this.username, this.avatarUrl, this.address).then( (_) {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pushReplacementNamed('/home');
+                      userService.register(user.uid, this.username, this.avatarImage, this.address).then((user) {
+                        if(user == null) {
+                          _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
+                        } else {
+                          prefs.setString(PREF_USER_UUID, user.uuid);
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushReplacementNamed('/home');
+                        }
                       });
                     } else {
                       Navigator.of(context).pop();
-                      signIn();
+                      signIn(context);
                     }
                   });
                 },
@@ -89,25 +126,34 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         });
   }
 
-  signIn() {
+  signIn(context) {
     FirebaseAuth.instance
         .signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
         .then((user) {
-      Navigator.of(context).pushReplacementNamed('/home');
+          if(user != null) {
+            prefs.setString(PREF_USER_UUID, user.uid);
+            Navigator.of(context).pushReplacementNamed('/home');
+          } else {
+            _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
+          }
     }).catchError((e) {
       print(e);
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
     });
   }
 
   renderAvatar() {
-    return Container(
-      width: 190.0,
-      height: 190.0,
-      decoration: new BoxDecoration(
-          shape: BoxShape.circle,
-          image: new DecorationImage(
-              fit: BoxFit.fill,
-              image: new ExactAssetImage('assets/images/default-avatar.jpg')
+    return GestureDetector(
+      onTap: getImage,
+      child: Container(
+          width: 80.0,
+          height: 80.0,
+          decoration: new BoxDecoration(
+              shape: BoxShape.circle,
+              image: new DecorationImage(
+                fit: BoxFit.fill,
+                image: avatarImage == null ? new ExactAssetImage(DEFAULT_AVATAR_IMAGE_PATH) : new ExactAssetImage(avatarImage.path),
+              )
           )
       )
     );
@@ -143,9 +189,9 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     );
   }
 
-  renderSubmitButton() {
+  renderSubmitButton(context) {
     return RaisedButton(
-        onPressed: verifyPhone,
+        onPressed: () => verify(context),
         child: Text(REG_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
@@ -160,21 +206,22 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      key: _scaffoldKey,
       body: new Center(
         child: Container(
             padding: EdgeInsets.all(25.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-//                renderAvatar(),
-//                renderSizeBox(),
+                renderAvatar(),
+                renderSizeBox(),
                 renderUsernameField(),
                 renderSizeBox(),
                 renderPhoneNumberField(),
                 renderSizeBox(),
                 renderAddressField(),
                 renderSizeBox(),
-                renderSubmitButton()
+                renderSubmitButton(context)
               ],
             )),
       ),
