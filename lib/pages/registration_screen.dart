@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PhoneAuthenticationScreen extends StatefulWidget {
   @override
@@ -19,10 +20,23 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   String username;
   String address;
   String phoneNumber;
-  String avatarUrl = 'assets/images/default-avatar.jpg';
   String smsCode;
   String verificationId;
   File avatarImage;
+  SharedPreferences prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    checkAuth();
+  }
+
+  checkAuth() async {
+    prefs = await SharedPreferences.getInstance();
+    if(prefs.getString(PREF_USER_UUID) != null) {
+       Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
 
   Future getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.gallery);
@@ -67,7 +81,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         phoneNumber: this.phoneNumber,
         codeAutoRetrievalTimeout: autoRetrieve,
         codeSent: smsCodeSent,
-        timeout: const Duration(seconds: 5),
+        timeout: const Duration(seconds: 60),
         verificationCompleted: verifiedSuccess,
         verificationFailed: veriFailed);
   }
@@ -91,13 +105,13 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 onPressed: () {
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
-                      userService.createUser(user.uid, this.username, this.avatarImage, this.address).then((user) {
+                      userService.register(user.uid, this.username, this.avatarImage, this.address).then((user) {
                         if(user == null) {
                           _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
                         } else {
+                          prefs.setString(PREF_USER_UUID, user.uuid);
                           Navigator.of(context).pop();
-                          //Navigator.of(context).pushReplacementNamed('/home');
-                          signIn(context);
+                          Navigator.of(context).pushReplacementNamed('/home');
                         }
                       });
                     } else {
@@ -117,6 +131,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         .signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
         .then((user) {
           if(user != null) {
+            prefs.setString(PREF_USER_UUID, user.uid);
             Navigator.of(context).pushReplacementNamed('/home');
           } else {
             _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
@@ -150,7 +165,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         onChanged: (value) {
           this.username = value;
         },
-        keyboardType: TextInputType.number
+        keyboardType: TextInputType.text
     );
   }
 
@@ -160,7 +175,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         onChanged: (value) {
           this.phoneNumber = value;
         },
-        keyboardType: TextInputType.number
+        keyboardType: TextInputType.text
     );
   }
 
@@ -170,7 +185,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         onChanged: (value) {
           this.address = value;
         },
-        keyboardType: TextInputType.number
+        keyboardType: TextInputType.text
     );
   }
 
