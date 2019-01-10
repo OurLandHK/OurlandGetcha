@@ -12,7 +12,6 @@ class ChatMap extends StatefulWidget {
 // https://pub.dartlang.org/packages/geolocator
 
 class _ChatMapState extends State<ChatMap> {
-  Position _startLocation;
   Position _currentLocation;
 
   StreamSubscription<Position> _positionStream;
@@ -22,9 +21,6 @@ class _ChatMapState extends State<ChatMap> {
   GeolocationStatus geolocationStatus = GeolocationStatus.denied;
   String error;
 
-  bool currentWidget = true;
-
-  Image image1;
 
   @override
   void initState() {
@@ -69,7 +65,7 @@ class _ChatMapState extends State<ChatMap> {
     //if (!mounted) return;
 
     setState(() {
-        _startLocation = location;
+        _currentLocation = location;
     });
 
   }
@@ -86,11 +82,6 @@ class _ChatMapState extends State<ChatMap> {
         new GoogleMapWidget(_currentLocation.latitude, _currentLocation.longitude)
       ];
     }
-
-    widgets.add(new Center(
-        child: new Text(_startLocation != null
-            ? 'Start location: $_startLocation\n'
-            : 'Error: $error\n')));
 
     widgets.add(new Center(
         child: new Text(_currentLocation != null

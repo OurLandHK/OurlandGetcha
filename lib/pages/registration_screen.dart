@@ -175,7 +175,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         onChanged: (value) {
           this.phoneNumber = value;
         },
-        keyboardType: TextInputType.text
+        keyboardType: TextInputType.phone
     );
   }
 
