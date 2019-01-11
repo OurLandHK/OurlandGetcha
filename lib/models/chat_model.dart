@@ -32,7 +32,22 @@ class ChatModel {
       var indexReference;
       var sendMessageTime = DateTime.now();
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
-      var indexData = {
+      if(this.parentID.length == 0) {
+        indexReference = Firestore.instance
+          .collection('index')
+          .document(sendMessageTimeString);
+        chatReference = Firestore.instance
+          .collection('chat')
+          .document(sendMessageTimeString).collection("messages").document(sendMessageTimeString);
+      } else {
+        indexReference = Firestore.instance
+          .collection('index')
+          .document(this.parentID);
+        chatReference = Firestore.instance
+          .collection('chat')
+          .document(this.parentID).collection("messages").document(sendMessageTimeString);
+      }
+      Map indexData = {
             'created': sendMessageTime,
             'lastUpdate': sendMessageTime,
             'id': sendMessageTimeString,
@@ -41,7 +56,7 @@ class ChatModel {
             'geotopleft' : new GeoPoint(position.latitude, position.longitude),
             'geobottomright' :new GeoPoint(position.latitude, position.longitude),
       };
-      var chatData = {
+      Map chatData = {
             'created': sendMessageTime,
             'id': sendMessageTimeString,
             'geo': new GeoPoint(position.latitude, position.longitude),

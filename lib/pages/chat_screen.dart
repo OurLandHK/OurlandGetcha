@@ -69,7 +69,7 @@ class ChatScreen extends StatefulWidget {
   State createState() => new ChatScreenState(parentId: this.parentId, parentTitle: this.parentTitle);
 }
 
-class ChatScreenState extends State<ChatScreen> {
+class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   ChatScreenState({Key key, @required this.parentId, @required this.parentTitle});
 
   String parentId;
@@ -275,7 +275,7 @@ class ChatScreenState extends State<ChatScreen> {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new ChatScreen(parentId: messageId, parentTitle: parentTitle);
+            return new Chat(parentId: messageId, parentTitle: parentTitle);
           },
         ),
       );
