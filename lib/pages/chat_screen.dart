@@ -16,7 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+//import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -218,7 +218,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
       setState(() {
         isLoading = false;
       });
-      Fluttertoast.showToast(msg: 'This file is not an image');
+      //Fluttertoast.showToast(msg: 'This file is not an image');
     });
   }
 
@@ -229,7 +229,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
       chatModel.sendMessage(this._currentLocation, content, type);
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
-      Fluttertoast.showToast(msg: 'Nothing to send');
+      //Fluttertoast.showToast(msg: 'Nothing to send');
     }
   }
 
