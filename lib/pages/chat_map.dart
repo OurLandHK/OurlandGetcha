@@ -5,94 +5,32 @@ import 'package:geolocator/geolocator.dart';
 import 'package:ourland_native/widgets/map/index.dart';
 
 class ChatMap extends StatefulWidget {
+  final Position mapCenter;
+
+  ChatMap({Key key, @required this.mapCenter}) : super(key: key);
+
   @override
-  _ChatMapState createState() => new _ChatMapState();
+  _ChatMapState createState() => new _ChatMapState(mapCenter: this.mapCenter);
 }
 
 // https://pub.dartlang.org/packages/geolocator
 
 class _ChatMapState extends State<ChatMap> {
-  Position _currentLocation;
-
-  StreamSubscription<Position> _positionStream;
-
-  Geolocator _geolocator = new Geolocator();
-  LocationOptions locationOptions = new LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
-  GeolocationStatus geolocationStatus = GeolocationStatus.denied;
-  String error;
-
-
+  final Position mapCenter;
+  
   @override
+  _ChatMapState({Key key, @required this.mapCenter});
+
   void initState() {
     super.initState();
-
-    initPlatformState();
-
-    _positionStream = _geolocator.getPositionStream(locationOptions).listen(
-      (Position position) {
-        if(position != null) {
-          setState(() {
-            _currentLocation = position;
-          });
-        }
-      });
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  initPlatformState() async {
-    Position location;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-
-    try {
-      geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
-      location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
-
-
-      error = null;
-    } on PlatformException catch (e) {
-      if (e.code == 'PERMISSION_DENIED') {
-        error = 'Permission denied';
-      } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
-        error = 'Permission denied - please ask the user to enable it from the app settings';
-      }
-
-      location = null;
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    //if (!mounted) return;
-
-    setState(() {
-        _currentLocation = location;
-    });
-
   }
 
   @override
   Widget build(BuildContext context) {
     List<Widget> widgets;
-
-
-    if (_currentLocation == null) {
-      widgets = new List();
-    } else {
-      widgets = [
-        new GoogleMapWidget(_currentLocation.latitude, _currentLocation.longitude)
+    widgets = [
+        new GoogleMapWidget(this.mapCenter.latitude, this.mapCenter.longitude)
       ];
-    }
-
-    widgets.add(new Center(
-        child: new Text(_currentLocation != null
-            ? 'Continuous location: $_currentLocation\n'
-            : 'Error: $error\n')));
-
-    widgets.add(new Center(
-      child: new Text(geolocationStatus == GeolocationStatus.granted
-            ? 'Has permission : Yes' 
-            : "Has permission : No")));
-
     return new Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
