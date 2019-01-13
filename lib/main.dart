@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/ourland_home.dart';
 import 'package:ourland_native/pages/registration_screen.dart';
@@ -31,8 +32,14 @@ final ThemeData kDefaultTheme = new ThemeData(
 void main() {
   availableCameras().then((rv) {
     cameras = rv;
+    initFirestoreSettings();
     runApp(new OurlandApp());
   });
+}
+
+void initFirestoreSettings() async {
+  Firestore firestore = Firestore();
+  await firestore.settings(timestampsInSnapshotsEnabled: true);
 }
 
 class OurlandApp extends StatelessWidget {
