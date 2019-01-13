@@ -16,7 +16,6 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
-//import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,11 +27,11 @@ import '../widgets/chat_message.dart';
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final messageReference = FirebaseDatabase.instance.reference().child('messages');
+final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class Chat extends StatelessWidget {
   final String parentId;
   final String parentTitle;
-
   Chat({Key key, @required this.parentId, @required this.parentTitle}) : super(key: key);
 
   @override
@@ -44,16 +43,17 @@ class Chat extends StatelessWidget {
     if(parentId.length != 0) {
       Widget rv1 = rv;
       rv = new Scaffold(
-        appBar: new AppBar(
-          title: new Text(
-            this.parentTitle, 
-            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+          key: _scaffoldKey,
+          appBar: new AppBar(
+            title: new Text(
+              this.parentTitle,
+              style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+            ),
+            centerTitle: true,
+            elevation: 0.7,
           ),
-          centerTitle: true,
-          elevation: 0.7,
-        ),
-        body: rv1,
-      );
+          body: rv1,
+        );
     } 
     return rv; 
   }
@@ -218,7 +218,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
       setState(() {
         isLoading = false;
       });
-      //Fluttertoast.showToast(msg: 'This file is not an image');
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_FILE_NOT_IMG)));
     });
   }
 
@@ -229,7 +229,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
       chatModel.sendMessage(this._currentLocation, content, type);
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
-      //Fluttertoast.showToast(msg: 'Nothing to send');
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_NTH_TO_SEND)));
     }
   }
 
