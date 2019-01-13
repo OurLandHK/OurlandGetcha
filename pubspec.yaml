@@ -25,7 +25,6 @@ dependencies:
   geolocator: '^2.1.1'  
   camera:
   google_maps_flutter:
-  fluttertoast:
   shared_preferences:
   cached_network_image:
   intl:
