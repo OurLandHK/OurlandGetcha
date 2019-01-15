@@ -123,7 +123,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
           setState(() {
             print('Poisition ${position}');
             _currentLocation = position;
-            chatMap = new ChatMap();
+            chatMap = new ChatMap(mapCenter: _currentLocation);
           });
         }
       });
@@ -158,7 +158,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     setState(() {
         print('Location: ${location}');
         _currentLocation = location;
-        chatMap = new ChatMap();
+        chatMap = new ChatMap(mapCenter: _currentLocation);
     });
 
   }
