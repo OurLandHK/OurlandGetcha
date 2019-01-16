@@ -234,10 +234,33 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   }
 
 
-  Widget buildItem(String messageId, DocumentSnapshot document, Function _onTap) {
+  Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
     Widget rv;
-    rv = new ChatMessage(messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
+    if(this.parentId.length != 0) {
+      rv = new ChatMessage(messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
+    } else {
+      return FutureBuilder<Widget>(
+        future: buildFutureItem(messageId, _onTap), // a previously-obtained Future<String> or null
+        builder: (context, AsyncSnapshot<Widget> snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.active:
+            case ConnectionState.waiting:
+              return new CircularProgressIndicator();
+            case ConnectionState.done:
+              return snapshot.data;
+          }
+          return null; // unreachable
+        },
+      );
+    }
     return rv;
+  }
+
+  Future<Widget> buildFutureItem(String messageId, Function _onTap, ) async {
+      return this.chatModel.getMessage(messageId).then((value) {
+        return new ChatMessage(messageBody: value, parentId: this.parentId, messageId: messageId, onTap: _onTap);
+      });
   }
 
   bool isLastMessageLeft(int index) {
@@ -291,7 +314,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
                 child: this.chatMap,
               ),
               // List of messages
-              buildListMessage(_onTap),
+              buildListMessage(_onTap, context),
 
               // Sticker
               (isShowSticker ? buildSticker() : Container()),
@@ -496,7 +519,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     );
   }
 
-  Widget buildListMessage(Function _onTap) {
+  Widget buildListMessage(Function _onTap, BuildContext context) {
     return Flexible(
       child: groupChatId == ''
           ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
@@ -510,7 +533,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
                   listMessage = snapshot.data.documents;
                   return ListView.builder(
                     padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) => buildItem(this.parentId, snapshot.data.documents[index], _onTap),
+                    itemBuilder: (context, index) => buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context),
                     itemCount: snapshot.data.documents.length,
                     reverse: true,
                     controller: listScrollController,
@@ -521,207 +544,3 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     );
   }
 }
-/*
-
-class ChatScreen extends StatefulWidget {                 
-  bool root;
-  ChatScreen(this.root);   
-  @override                         
-                      
-  ChatScreenState createState() => new ChatScreenState();                    
-} 
-
-// Add the ChatScreenState class definition in main.dart.
-
-class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
-  final List<ChatMessage> _messages = <ChatMessage>[]; 
-  final TextEditingController _textController = new TextEditingController();
-  bool _isComposing = false;
-                  
-  @override                                                        
-  Widget build(BuildContext context) {
-    var rv = null;
-    var rv1 = new Container(                                             //modified
-      child: new Column(                                           //modified
-        children: <Widget>[
-            new Container( 
-            decoration: new BoxDecoration(
-              color: Theme.of(context).cardColor),
-            child: new ChatMap(),
-          ),
-          new Flexible( 
-            child: new ListView.builder( 
-              padding: new EdgeInsets.all(8.0),
-              reverse: true, 
-              itemBuilder:  (BuildContext _context, int i) {
-                if (i.isOdd) {
-                  return const Divider();
-                }
-                final int index = i ~/ 2;
-                return _messages[index];
-              },
-              itemCount: _messages.length * 2, 
-            ), 
-          ), 
-          new Divider(height: 1.0), 
-          new Container( 
-            decoration: new BoxDecoration(
-              color: Theme.of(context).cardColor),
-            child: _buildTextComposer(), 
-          ),
-        ], 
-      ), 
-      decoration: Theme.of(context).platform == TargetPlatform.iOS 
-        ? new BoxDecoration(                
-            border: new Border(  
-              top: new BorderSide(color: Colors.grey[200]),     
-            ),                                                   
-          ) 
-        : null
-    );
-    if(!widget.root) {
-      rv = new Scaffold(
-        appBar: new AppBar(
-          title: new Text(_app_name),
-          elevation: 0.7,
-        ),
-        body: rv1,
-      );
-    } else {
-      rv = rv1;
-    }
-    return rv; 
-  }
-  void _onTap() {
-    print("onTap");
-    Navigator.of(context).push(
-      new MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          return new ChatScreen(false);
-        },
-      ),
-    );
-  }
-
-
-  void _handleSubmitted(String text) {
-    _textController.clear();
-    setState(() {  
-      _isComposing = false; 
-    }); 
-    ChatMessage message = new ChatMessage(
-      text: text, 
-      animationController: new AnimationController( 
-        duration: new Duration(milliseconds: 700),
-        vsync: this,
-      ),
-      onTap: _onTap,
-    );
-    setState(() {
-      _messages.insert(0, message);
-    });
-
-//    var _result = await messageReference.child(1)set({
-//      name: 'name here',
-//      message: text,
-//      time : 'time here',
-//      avatarUrl:'avatar here'
-//    });
-
-
-    message.animationController.forward();
-  }
-
-  Widget _buildTextComposer(){
-    return new IconTheme(  
-      data: new IconThemeData(color: Theme.of(context).accentColor),
-      child: new Container(                                     //modified
-        margin: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: new Row(
-          children: <Widget>[
-            new Flexible( 
-              child: new TextField(
-                controller: _textController,
-                onChanged: (String text) { 
-                  setState(() {   
-                    _isComposing = text.length > 0; 
-                  }); 
-                }, 
-                onSubmitted: _handleSubmitted,
-                decoration: new InputDecoration.collapsed(
-                  hintText: "Send a message"),
-              ),
-            ),
-            new Container( 
-              margin: new EdgeInsets.symmetric(horizontal: 4.0), 
-              child: Theme.of(context).platform == TargetPlatform.iOS ? 
-              new CupertinoButton(
-                child: new Text("Send"),
-                onPressed: _isComposing  
-                    ? () =>  _handleSubmitted(_textController.text)
-                    : null,) : 
-              new IconButton(
-                icon: new Icon(Icons.send), 
-                onPressed: _isComposing
-                  ? () => _handleSubmitted(_textController.text)
-                  : null,
-              )
-            ),  
-          ], 
-        ),
-      ),
-    );
-  }
-  @override
-  void dispose() {    
-    for (ChatMessage message in _messages)  
-      message.animationController.dispose(); 
-    super.dispose(); 
-  }   
-}
-
-@override
-
-class ChatMessage extends StatelessWidget {
-  ChatMessage({this.text, this.animationController, this.onTap});
-  final String text;
-  final AnimationController animationController; 
-  final Function onTap;
-  @override
-  Widget build(BuildContext context) {
-    return new SizeTransition(  
-      sizeFactor: new CurvedAnimation( 
-        parent: animationController, curve: Curves.easeOut), 
-      axisAlignment: 0.0,  
-      child: new Container(
-        margin: const EdgeInsets.symmetric(vertical: 10.0),
-        child: new GestureDetector(
-          onTap: onTap,
-          child: new Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              new Container(
-                margin: const EdgeInsets.only(right: 16.0),
-                child: new CircleAvatar(child: new Text(_user_name[0])),
-              ),
-              new Expanded(                                               //new
-                child: new Column(                                   //modified
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    new Text(_user_name, style: Theme.of(context).textTheme.subhead),
-                    new Container(
-                      margin: const EdgeInsets.only(top: 5.0),
-                      child: new Text(text),
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
-        ),
-      )
-    );
-  }
-}
-
-*/

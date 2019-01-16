@@ -28,6 +28,23 @@ class ChatModel {
     return rv;
   }
 
+  Future<Map<String, dynamic>> getMessage(String messageId) {
+    String _parentID = messageId;
+    if(this.parentID.length != 0) {
+      _parentID = this.parentID;
+    }
+    var chatReference = Firestore.instance
+            .collection('chat')
+            .document(_parentID).collection("messages").document(messageId);
+    return chatReference.get().then((onValue) {
+      if(onValue.exists) {
+        return onValue.data;
+      } else {
+        return null;
+      }
+    });
+  }
+
   void sendMessage(Position position, String content, int type) {
     print('SendMessage ${position}');
     var chatReference;
@@ -39,8 +56,6 @@ class ChatModel {
             'created': sendMessageTime,
             'lastUpdate': sendMessageTime,
             'id': sendMessageTimeString,
-            'content': content,
-            'type': type,
             'geotopleft' : new GeoPoint(position.latitude, position.longitude),
             'geobottomright' :new GeoPoint(position.latitude, position.longitude),
       };
@@ -71,6 +86,7 @@ class ChatModel {
   }
 
   void sendChildMessage(Position position, String content, int type, var sendMessageTime) {
+      print(this.parentID);
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
       DocumentReference chatReference;
       DocumentReference indexReference;
@@ -78,26 +94,32 @@ class ChatModel {
         .collection('index')
         .document(this.parentID);
       indexReference.get().then((indexDataSnap) {
-        var indexData = indexDataSnap.data;
-        indexData['lastUpdate'] = sendMessageTime;
-        GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
-        Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(indexData['geotopleft'], indexData['geobottomright'], dest);
-        indexData['geotopleft'] = enlargeBox['topLeft'];
-        indexData['geobottomright'] = enlargeBox['bottomRight'];
-        var chatData = {
-              'created': sendMessageTime,
-              'id': sendMessageTimeString,
-              'geo': new GeoPoint(position.latitude, position.longitude),
-              'content': content,
-              'type': type
+        if(indexDataSnap.exists) {
+          var indexData = indexDataSnap.data;
+          indexData['lastUpdate'] = sendMessageTime;
+          GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
+          Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(indexData['geotopleft'], indexData['geobottomright'], dest);
+          indexData['geotopleft'] = enlargeBox['topLeft'];
+          indexData['geobottomright'] = enlargeBox['bottomRight'];
+          var chatData = {
+                'created': sendMessageTime,
+                'id': sendMessageTimeString,
+                'geo': new GeoPoint(position.latitude, position.longitude),
+                'content': content,
+                'type': type
+          };
+          chatReference = Firestore.instance
+            .collection('chat')
+            .document(this.parentID).collection("messages").document(sendMessageTimeString);
+          try{
+            Firestore.instance.runTransaction((transaction) async {
+              await transaction.set(indexReference, indexData);
+              await transaction.set(chatReference, chatData);
+            });         
+          } catch (exception) {
+            print(exception);
+          } 
         };
-        chatReference = Firestore.instance
-          .collection('chat')
-          .document(this.parentID).collection("messages").document(sendMessageTimeString);
-        Firestore.instance.runTransaction((transaction) async {
-          await transaction.set(indexReference, indexData);
-          await transaction.set(chatReference, chatData);
-        });
       });
   }
 }

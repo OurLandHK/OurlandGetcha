@@ -12,7 +12,7 @@ import '../models/constant.dart';
 class ChatMessage extends StatelessWidget {
   final String parentId;
   final String messageId;
-  final DocumentSnapshot messageBody;
+  final Map<String, dynamic> messageBody;
   final Function onTap;
 
   ChatMessage({Key key, @required this.parentId, @required this.messageId, @required this.messageBody, @required this.onTap}) : super(key: key);
@@ -25,6 +25,7 @@ class ChatMessage extends StatelessWidget {
     }
     Widget rv;
     Container messageWidget;
+    print(this.messageId);
     switch(messageBody['type']) {
       case 0:
         messageWidget = Container(
@@ -100,7 +101,7 @@ class ChatMessage extends StatelessWidget {
     Container timeWidget = Container(
                     child: Text(
                       DateFormat('dd MMM kk:mm')
-                          .format(messageBody['created']),
+                          .format( new DateTime.fromMicrosecondsSinceEpoch(messageBody['created'].microsecondsSinceEpoch)),
                       style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
                     ),
                     margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
