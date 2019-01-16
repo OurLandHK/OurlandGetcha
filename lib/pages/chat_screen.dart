@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as Img;
+
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,7 +18,6 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
@@ -204,9 +205,31 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   }
 
   Future uploadFile() async {
+    File uploadImage = imageFile;
+
+    
+    Img.Image image = Img.decodeImage(uploadImage.readAsBytesSync());
+
+    bool newImage = false;
+    if(image.width > 1280) {
+      image = Img.copyResize(image, 1280);
+      newImage = true;
+    } else {
+      if(image.height > 1280) {
+        int width = (image.width * 1280 / image.height).round();
+        image = Img.copyResize(image, width, 1280);  
+        newImage = true;     
+      }
+    }
+
+    if(newImage) {
+      uploadImage = new File('temp.png')
+        ..writeAsBytesSync(Img.encodePng(image));
+    }
+
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
     StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
-    StorageUploadTask uploadTask = reference.putFile(imageFile);
+    StorageUploadTask uploadTask = reference.putFile(uploadImage);
     StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
     storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
       imageUrl = downloadUrl;
