@@ -24,6 +24,7 @@ dependencies:
   firebase_storage:
   geolocator: '^2.1.1'  
   camera:
+  image:
   google_maps_flutter:
   shared_preferences:
   cached_network_image:
