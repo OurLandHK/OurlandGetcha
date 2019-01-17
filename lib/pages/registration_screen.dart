@@ -136,6 +136,20 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     });
   }
 
+  renderAppLogo() {
+    return Container(
+      width: 120.0,
+      height: 120.0,
+      margin: const EdgeInsets.only(bottom: 40.0),
+      decoration: new BoxDecoration(
+      image: new DecorationImage(
+      fit: BoxFit.fill,
+        image: new ExactAssetImage(APP_LOGO_IMAGE_PATH),
+      )
+     )
+    );
+  }
+
 
   renderPhoneNumberField() {
     return TextField(
@@ -171,6 +185,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                renderAppLogo(),
                 renderPhoneNumberField(),
                 renderSizeBox(),
                 renderSubmitButton(context)
