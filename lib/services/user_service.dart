@@ -38,16 +38,18 @@ class UserService {
     });
   }
 
-  Future userExist(uuid) async{
+  Future<dynamic> userExist(uuid) async{
     final TransactionHandler th = (Transaction tx) async {
       // check if user exists
       QuerySnapshot _query = await userCollection.where("uuid", isEqualTo: uuid).getDocuments();
       // create one if not
-      return _query.documents.length == 0 ? false : true;
+      Map<String,dynamic> map = new Map<String,dynamic>();
+      map['userExist'] = _query.documents.length == 1 ? true : false;
+      return map;
     };
 
-    return Firestore.instance.runTransaction(th).then((userExist) {
-      return userExist;
+    return Firestore.instance.runTransaction(th).then((map) {
+      return map['userExist'];
     }).catchError((error) {
       print('error: $error');
       return false;
