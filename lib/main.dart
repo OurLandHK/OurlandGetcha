@@ -9,13 +9,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/constant.dart';
-import 'package:ourland_native/ourland_home.dart';
 import 'package:ourland_native/pages/registration_screen.dart';
 
-List<CameraDescription> cameras;
 
 final ThemeData kIOSTheme = new ThemeData(
   primarySwatch: Colors.orange,
@@ -30,11 +27,8 @@ final ThemeData kDefaultTheme = new ThemeData(
 
 
 void main() {
-  availableCameras().then((rv) {
-    cameras = rv;
-    initFirestoreSettings();
-    runApp(new OurlandApp());
-  });
+  initFirestoreSettings();
+  runApp(new OurlandApp());
 }
 
 void initFirestoreSettings() async {
@@ -50,11 +44,7 @@ class OurlandApp extends StatelessWidget {
       theme: defaultTargetPlatform == TargetPlatform.iOS
           ? kIOSTheme
           : kDefaultTheme,
-      home: new PhoneAuthenticationScreen(),
-      routes: <String, WidgetBuilder> {
-        '/auth': (BuildContext context) => new PhoneAuthenticationScreen(),
-        '/home': (BuildContext context) => new OurlandHome(cameras)
-      }
+      home: new PhoneAuthenticationScreen()
     );
   }
 }

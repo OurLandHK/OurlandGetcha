@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ourland_native/ourland_home.dart';
 
 class PhoneAuthenticationScreen extends StatefulWidget {
   @override
@@ -17,13 +18,9 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   UserService userService = new UserService();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-  String username;
-  String address;
   String phoneNumber;
   String smsCode;
   String verificationId;
-  File avatarImage;
-  SharedPreferences prefs;
 
   @override
   void initState() {
@@ -32,27 +29,22 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   }
 
   checkAuth() async {
-    prefs = await SharedPreferences.getInstance();
-    if(prefs.getString(PREF_USER_UUID) != null) {
-       Navigator.of(context).pushReplacementNamed('/home');
+    FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    if (user != null) {
+      Navigator.of(context).pushReplacement(
+          new MaterialPageRoute(
+              builder: (context) => OurlandHome(user)
+          )
+      );
     }
   }
 
-  Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      avatarImage = image;
-    });
-  }
-
-  void verify(context) {
-    if(this.username == null) {
-      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_USERNAME_NULL_TEXT)));
-    } else if(this.phoneNumber == null) {
+  verifyPhoneFeild(context) {
+    if(this.phoneNumber == null) {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
     } else if(this.phoneNumber.startsWith('+') == false){
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT)));
-    } else{
+    } else {
       verifyPhone(context);
     }
   }
@@ -81,7 +73,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         phoneNumber: this.phoneNumber,
         codeAutoRetrievalTimeout: autoRetrieve,
         codeSent: smsCodeSent,
-        timeout: const Duration(seconds: 60),
+        timeout: const Duration(seconds: 5),
         verificationCompleted: verifiedSuccess,
         verificationFailed: veriFailed);
   }
@@ -97,6 +89,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               onChanged: (value) {
                 this.smsCode = value;
               },
+              keyboardType: TextInputType.phone
             ),
             contentPadding: EdgeInsets.all(10.0),
             actions: <Widget>[
@@ -105,16 +98,24 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 onPressed: () {
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
-                      userService.register(user.uid, this.username, this.avatarImage, this.address).then((user) {
-                        if(user == null) {
-                          _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
-                        } else {
-                          prefs.setString(PREF_USER_UUID, user.uuid);
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pushReplacementNamed('/home');
-                        }
-                      });
-                    } else {
+                        userService.userExist(user.uid).then((userExist) {
+                          if(userExist == true) {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pushReplacement(
+                              new MaterialPageRoute(
+                                builder: (context) => OurlandHome(user)
+                              )
+                            );
+                          } else {
+                            Navigator.of(context).push(
+                              new MaterialPageRoute(
+                              builder: (context) => RegistrationScreen(user)
+                              )
+                            );
+                          }
+                        });
+                    }
+                    else {
                       Navigator.of(context).pop();
                       signIn(context);
                     }
@@ -131,8 +132,22 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         .signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
         .then((user) {
           if(user != null) {
-            prefs.setString(PREF_USER_UUID, user.uid);
-            Navigator.of(context).pushReplacementNamed('/home');
+              userService.userExist(user.uid).then((userExist) {
+                if(userExist == true) {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => OurlandHome(user)
+                    )
+                  );
+                } else {
+                  Navigator.of(context).push(
+                    new MaterialPageRoute(
+                    builder: (context) => RegistrationScreen(user)
+                   )
+                  );
+                }
+              });
           } else {
             _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
           }
@@ -142,32 +157,20 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     });
   }
 
-  renderAvatar() {
-    return GestureDetector(
-      onTap: getImage,
-      child: Container(
-          width: 80.0,
-          height: 80.0,
-          decoration: new BoxDecoration(
-              shape: BoxShape.circle,
-              image: new DecorationImage(
-                fit: BoxFit.fill,
-                image: avatarImage == null ? new ExactAssetImage(DEFAULT_AVATAR_IMAGE_PATH) : new ExactAssetImage(avatarImage.path),
-              )
-          )
+  renderAppLogo() {
+    return Container(
+      width: 120.0,
+      height: 120.0,
+      margin: const EdgeInsets.only(bottom: 40.0),
+      decoration: new BoxDecoration(
+      image: new DecorationImage(
+      fit: BoxFit.fill,
+        image: new ExactAssetImage(APP_LOGO_IMAGE_PATH),
       )
+     )
     );
   }
 
-  renderUsernameField() {
-    return TextField(
-        decoration: InputDecoration(hintText: REG_USERNAME_HINT_TEXT),
-        onChanged: (value) {
-          this.username = value;
-        },
-        keyboardType: TextInputType.text
-    );
-  }
 
   renderPhoneNumberField() {
     return TextField(
@@ -179,19 +182,9 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     );
   }
 
-  renderAddressField() {
-    return TextField(
-        decoration: InputDecoration(hintText: REG_ADDRESS_HINT_TEXT),
-        onChanged: (value) {
-          this.address = value;
-        },
-        keyboardType: TextInputType.text
-    );
-  }
-
   renderSubmitButton(context) {
     return RaisedButton(
-        onPressed: () => verify(context),
+        onPressed: () => verifyPhoneFeild(context),
         child: Text(REG_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
@@ -213,18 +206,147 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                renderAvatar(),
-                renderSizeBox(),
-                renderUsernameField(),
-                renderSizeBox(),
+                renderAppLogo(),
                 renderPhoneNumberField(),
                 renderSizeBox(),
-                renderAddressField(),
                 renderSizeBox(),
                 renderSubmitButton(context)
               ],
             )),
       ),
     );
+  }
+}
+
+class RegistrationScreen extends StatefulWidget {
+  final FirebaseUser user;
+
+  RegistrationScreen(this.user) {
+    if (user  == null) {
+      throw new ArgumentError("[RegistrationScreen] firebase user cannot be null.");
+    }
+  }
+
+  @override
+  _RegistrationScreenState createState() => new _RegistrationScreenState();
+}
+
+class _RegistrationScreenState extends State<RegistrationScreen> {
+
+  UserService userService = new UserService();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  String username;
+  String address;
+  String phoneNumber;
+  String smsCode;
+  String verificationId;
+  File avatarImage;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future getImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      avatarImage = image;
+    });
+  }
+
+  renderSizeBox() {
+    return SizedBox(height: 10.0);
+  }
+
+  renderAvatar() {
+    return GestureDetector(
+        onTap: getImage,
+        child: Container(
+            width: 80.0,
+            height: 80.0,
+            decoration: new BoxDecoration(
+                shape: BoxShape.circle,
+                image: new DecorationImage(
+                    fit: BoxFit.fill,
+                    image: avatarImage == null ? new ExactAssetImage(DEFAULT_AVATAR_IMAGE_PATH) : new ExactAssetImage(avatarImage.path),
+                    )
+            )
+        )
+    );
+  }
+
+  renderUsernameField() {
+    return TextField(
+        decoration: InputDecoration(hintText: REG_USERNAME_HINT_TEXT),
+        onChanged: (value) {
+          this.username = value;
+        },
+        keyboardType: TextInputType.text
+    );
+  }
+
+  renderAddressField() {
+    return TextField(
+        decoration: InputDecoration(hintText: REG_ADDRESS_HINT_TEXT),
+        onChanged: (value) {
+          this.address = value;
+        },
+        keyboardType: TextInputType.text
+    );
+  }
+
+  renderSubmitButton(context) {
+    return RaisedButton(
+        onPressed: () => validateInput(context),
+        child: Text(REG_BUTTON_TEXT),
+        textColor: Colors.white,
+        elevation: 7.0,
+        color: Colors.blue
+    );
+  }
+
+  validateInput(context) {
+      if(this.username == null) {
+        _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_USERNAME_NULL_TEXT)));
+      } else{
+        register(context);
+      }
+  }
+
+  register(context) {
+    userService.register(widget.user.uid, this.username, this.avatarImage, this.address).then((user) {
+      if(user == null) {
+        _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
+      } else {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+                builder: (context) => OurlandHome(user)
+            )
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+        key: _scaffoldKey,
+        body: new Center(
+            child: Container(
+                padding: EdgeInsets.all(25.0),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      renderAvatar(),
+                      renderSizeBox(),
+                      renderUsernameField(),
+                      renderSizeBox(),
+                      renderAddressField(),
+                      renderSubmitButton(context)
+                    ]
+                )),
+            ),
+        );
   }
 }

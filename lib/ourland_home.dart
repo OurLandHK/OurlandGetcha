@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:ourland_native/pages/sendmessage.dart';
+import 'package:camera/camera.dart';
 import 'package:ourland_native/pages/camera_screen.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/models/constant.dart';
 //import 'package:ourland_native/pages/status_screen.dart';
 
 class OurlandHome extends StatefulWidget {
-  var cameras;
-  OurlandHome(this.cameras);
+  final FirebaseUser user;
+
+  OurlandHome(this.user) {
+    if (user  == null) {
+      throw new ArgumentError("[OurlandHome] firebase user cannot be null.");
+    }
+  }
 
   @override
   _OurlandHomeState createState() => new _OurlandHomeState();
@@ -16,10 +22,10 @@ class OurlandHome extends StatefulWidget {
 
 const String _app_name = "我地.佳招";
 
-class _OurlandHomeState extends State<OurlandHome>
-    with SingleTickerProviderStateMixin {
+class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStateMixin {
   TabController _tabController;
   String uid = '';
+  List<CameraDescription> cameras;
 
   @override
   void initState() {
@@ -31,6 +37,11 @@ class _OurlandHomeState extends State<OurlandHome>
     }).catchError((e) {
       print(e);
     });
+
+    availableCameras().then((rv) {
+      cameras = rv;
+    });
+
     super.initState();
     _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
   }
