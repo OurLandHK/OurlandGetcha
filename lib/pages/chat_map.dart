@@ -6,43 +6,50 @@ import 'package:ourland_native/widgets/map/index.dart';
 
 class ChatMap extends StatefulWidget {
   Position mapCenter;
+  _ChatMapState state;
+
 
   ChatMap({Key key, @required this.mapCenter}) : super(key: key);
+
   void updateCenter(Position _mapCenter) {
     print('ChatMap called ${_mapCenter}');
-    this.createState().updateCenter(_mapCenter);
+    mapCenter = _mapCenter;
+    if(state != null && state.googleMapWidget != null) {
+      state.googleMapWidget.updateMapCenter(_mapCenter);
+    } 
   }
 
   @override
-  _ChatMapState createState() => new _ChatMapState(mapCenter: this.mapCenter);
+  _ChatMapState createState() {
+    state = new _ChatMapState(mapCenter: this.mapCenter);
+    return state;
+  }
 }
 
 // https://pub.dartlang.org/packages/geolocator
 
 class _ChatMapState extends State<ChatMap> {
   Position mapCenter;
+  GoogleMapWidget googleMapWidget;
   
   @override
   _ChatMapState({Key key, @required this.mapCenter});
 
   void initState() {
     super.initState();
-  }
-
-  void updateCenter(Position _mapCenter) {
-    print('ChatMapState called ${_mapCenter}');
-    this.mapCenter = _mapCenter;
+    this.googleMapWidget = new GoogleMapWidget(mapCenter.latitude, mapCenter.longitude);
   }
 
   @override
   Widget build(BuildContext context) {
-    /*
-    Widget rv = new GoogleMapWidget(this.mapCenter.latitude, this.mapCenter.longitude);
-    return rv;
-    */
+
+    Widget rv = this.googleMapWidget;
+    if(rv == null) {
+      rv = new CircularProgressIndicator();
+    }
     List<Widget> widgets;
     widgets = [
-        GoogleMapWidget(this.mapCenter.latitude, this.mapCenter.longitude)
+        rv
       ];
     return new Column(
       crossAxisAlignment: CrossAxisAlignment.start,
