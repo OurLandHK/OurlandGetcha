@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ourland_native/ourland_home.dart';
 
 class PhoneAuthenticationScreen extends StatefulWidget {
   @override
@@ -20,7 +21,6 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   String phoneNumber;
   String smsCode;
   String verificationId;
-  SharedPreferences prefs;
 
   @override
   void initState() {
@@ -29,9 +29,23 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   }
 
   checkAuth() async {
-    prefs = await SharedPreferences.getInstance();
-    if(prefs.getString(PREF_USER_UUID) != null) {
-       //Navigator.of(context).pushReplacementNamed('/home');
+    FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    if (user != null) {
+      Navigator.of(context).pushReplacement(
+          new MaterialPageRoute(
+              builder: (context) => OurlandHome(user)
+          )
+      );
+    }
+  }
+
+  verifyPhoneFeild(context) {
+    if(this.phoneNumber == null) {
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
+    } else if(this.phoneNumber.startsWith('+') == false){
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT)));
+    } else {
+      verifyPhone(context);
     }
   }
 
@@ -59,7 +73,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         phoneNumber: this.phoneNumber,
         codeAutoRetrievalTimeout: autoRetrieve,
         codeSent: smsCodeSent,
-        timeout: const Duration(seconds: 60),
+        timeout: const Duration(seconds: 5),
         verificationCompleted: verifiedSuccess,
         verificationFailed: veriFailed);
   }
@@ -75,6 +89,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               onChanged: (value) {
                 this.smsCode = value;
               },
+              keyboardType: TextInputType.phone
             ),
             contentPadding: EdgeInsets.all(10.0),
             actions: <Widget>[
@@ -84,14 +99,17 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                   FirebaseAuth.instance.currentUser().then((user) {
                     if (user != null) {
                         userService.userExist(user.uid).then((userExist) {
-                          if(userExist) {
-                            prefs.setString(PREF_USER_UUID, user.uid);
+                          if(userExist == true) {
                             Navigator.of(context).pop();
-                            Navigator.of(context).pushReplacementNamed('/home');
+                            Navigator.of(context).pushReplacement(
+                              new MaterialPageRoute(
+                                builder: (context) => OurlandHome(user)
+                              )
+                            );
                           } else {
                             Navigator.of(context).push(
                               new MaterialPageRoute(
-                              builder: (context) => new RegistrationScreen(user)
+                              builder: (context) => RegistrationScreen(user)
                               )
                             );
                           }
@@ -115,14 +133,17 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         .then((user) {
           if(user != null) {
               userService.userExist(user.uid).then((userExist) {
-                if(userExist) {
-                  prefs.setString(PREF_USER_UUID, user.uid);
+                if(userExist == true) {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pushReplacementNamed('/home');
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => OurlandHome(user)
+                    )
+                  );
                 } else {
                   Navigator.of(context).push(
                     new MaterialPageRoute(
-                    builder: (context) => new RegistrationScreen(user)
+                    builder: (context) => RegistrationScreen(user)
                    )
                   );
                 }
@@ -163,7 +184,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
 
   renderSubmitButton(context) {
     return RaisedButton(
-        onPressed: () => verifyPhone(context),
+        onPressed: () => verifyPhoneFeild(context),
         child: Text(REG_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
@@ -187,6 +208,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               children: <Widget>[
                 renderAppLogo(),
                 renderPhoneNumberField(),
+                renderSizeBox(),
                 renderSizeBox(),
                 renderSubmitButton(context)
               ],
@@ -220,7 +242,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String smsCode;
   String verificationId;
   File avatarImage;
-  SharedPreferences prefs;
 
   @override
   void initState() {
@@ -288,10 +309,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   validateInput(context) {
       if(this.username == null) {
         _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_USERNAME_NULL_TEXT)));
-      } else if(this.phoneNumber == null) {
-        _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
-      } else if(this.phoneNumber.startsWith('+') == false){
-        _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT)));
       } else{
         register(context);
       }
@@ -302,8 +319,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       if(user == null) {
         _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
       } else {
-        prefs.setString(PREF_USER_UUID, user.uuid);
-        Navigator.of(context).pushReplacementNamed('/home');
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+                builder: (context) => OurlandHome(user)
+            )
+        );
       }
     });
   }
