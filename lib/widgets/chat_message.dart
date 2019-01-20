@@ -12,16 +12,18 @@ import '../models/constant.dart';
 class ChatMessage extends StatelessWidget {
   final String parentId;
   final String messageId;
+  GeoPoint geoTopLeft;
+  GeoPoint geoBottomRight;
   final Map<String, dynamic> messageBody;
   final Function onTap;
 
-  ChatMessage({Key key, @required this.parentId, @required this.messageId, @required this.messageBody, @required this.onTap}) : super(key: key);
+  ChatMessage({Key key, @required this.parentId, @required this.messageId, @required this.messageBody, @required this.onTap, this.geoTopLeft, this.geoBottomRight}) : super(key: key);
 
   Widget build(BuildContext context) {
 
     void _onTap() {
       print("onTap");
-      this.onTap(this.messageBody['id'], this.messageBody['content']);
+      this.onTap(this.messageBody['id'], this.messageBody['content'], this.geoTopLeft, this.geoBottomRight);
     }
     Widget rv;
     Container messageWidget;

@@ -35,4 +35,8 @@ class GeoHelper {
     rv['bottomRight'] = new GeoPoint(bottom, right);
     return rv;
   }
+
+  static GeoPoint boxCenter(GeoPoint topLeft, GeoPoint bottomRight) {
+    return GeoPoint((topLeft.latitude + bottomRight.latitude) / 2, (topLeft.longitude + bottomRight.longitude) / 2);
+  }
 }
