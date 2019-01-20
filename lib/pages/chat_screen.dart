@@ -24,6 +24,7 @@ import 'package:ourland_native/models/constant.dart';
 import '../models/chat_model.dart';
 import './chat_map.dart';
 import '../widgets/chat_message.dart';
+import 'package:ourland_native/widgets/map/index.dart';
 
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -121,11 +122,13 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     _positionStream = _geolocator.getPositionStream(locationOptions).listen(
       (Position position) {
         if(position != null) {
-          setState(() {
-            print('Poisition ${position}');
-            _currentLocation = position;
-            chatMap = new ChatMap(mapCenter: _currentLocation);
-          });
+          print('initState Poisition ${position}');
+          _currentLocation = position;
+          if(this.chatMap == null) {
+            this.chatMap = new ChatMap(mapCenter: _currentLocation);
+          } else {
+            this.chatMap.updateCenter(_currentLocation);
+          }
         }
       });
   }
@@ -157,9 +160,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     //if (!mounted) return;
 
     setState(() {
-        print('Location: ${location}');
-        _currentLocation = location;
-        chatMap = new ChatMap(mapCenter: _currentLocation);
+        print('initPlatformStateLocation: ${location}');
+        if(location != null) {
+          _currentLocation = location;
+          chatMap = new ChatMap(mapCenter: _currentLocation);
+        }
     });
 
   }
@@ -326,16 +331,20 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
         ),
       );
     }
+    //this.chatMap.mapCenter = this._currentLocation; 
     return WillPopScope(
       child: Stack(
         children: <Widget>[
           Column(
             children: <Widget>[
+              
               new Container( 
                 decoration: new BoxDecoration(
                   color: Theme.of(context).cardColor),
-                child: this.chatMap,
+                // child: GoogleMapWidget(this._currentLocation.latitude, this._currentLocation.longitude),
+                  child: this.chatMap,
               ),
+              
               // List of messages
               buildListMessage(_onTap, context),
 
@@ -364,7 +373,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi1', 2),
                 child: new Image.asset(
-                  'images/mimi1.gif',
+                  'assets/images/mimi1.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -373,7 +382,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi2', 2),
                 child: new Image.asset(
-                  'images/mimi2.gif',
+                  'assets/images/mimi2.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -382,7 +391,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi3', 2),
                 child: new Image.asset(
-                  'images/mimi3.gif',
+                  'assets/images/mimi3.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -396,7 +405,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi4', 2),
                 child: new Image.asset(
-                  'images/mimi4.gif',
+                  'assets/images/mimi4.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -405,7 +414,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi5', 2),
                 child: new Image.asset(
-                  'images/mimi5.gif',
+                  'assets/images/mimi5.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -414,7 +423,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi6', 2),
                 child: new Image.asset(
-                  'images/mimi6.gif',
+                  'assets/images/mimi6.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -428,7 +437,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi7', 2),
                 child: new Image.asset(
-                  'images/mimi7.gif',
+                  'assets/images/mimi7.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -437,7 +446,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi8', 2),
                 child: new Image.asset(
-                  'images/mimi8.gif',
+                  'assets/images/mimi8.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -446,7 +455,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               FlatButton(
                 onPressed: () => onSendMessage('mimi9', 2),
                 child: new Image.asset(
-                  'images/mimi9.gif',
+                  'assets/images/mimi9.gif',
                   width: 50.0,
                   height: 50.0,
                   fit: BoxFit.cover,
@@ -556,7 +565,13 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
                   listMessage = snapshot.data.documents;
                   return ListView.builder(
                     padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) => buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context),
+                    itemBuilder: (context, index) {
+//                      if(index == 0) {
+//                        return this.chatMap;
+//                      } else {
+                        return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
+//                      }
+                    },
                     itemCount: snapshot.data.documents.length,
                     reverse: true,
                     controller: listScrollController,
