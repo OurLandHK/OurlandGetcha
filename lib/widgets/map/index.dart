@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
@@ -10,10 +10,21 @@ class GoogleMapWidget extends StatefulWidget {
 
   GoogleMapWidget(this.latitude, this.longitude);
 
-  void updateMapCenter (Position center) {
-    print('GoogleMapWidget called ${center}');
+  void updateMapCenter (GeoPoint center) {
+//    print('GoogleMapWidget called ${center}');
      state.mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
         target: center == null ? LatLng(0, 0) : LatLng(center.latitude, center.longitude), zoom: 15.0)));
+  }
+
+  void addMarker (GeoPoint location, String label) {
+    print('addMarker ${label}');
+    final markerOptions = MarkerOptions(
+              position: LatLng(location.latitude, location.longitude),
+              infoWindowText: InfoWindowText(label, null),
+//              icon: BitmapDescriptor.fromAsset('images/flutter.png',),
+//              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+              );
+    state.mapController.addMarker(markerOptions);
   }
 
   @override

@@ -124,10 +124,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
         if(position != null) {
           print('initState Poisition ${position}');
           _currentLocation = position;
-          if(this.chatMap == null) {
-            this.chatMap = new ChatMap(mapCenter: _currentLocation);
+          GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+          if(this.chatMap == null) {        
+            this.chatMap = new ChatMap(mapCenter: mapCenter);
           } else {
-            this.chatMap.updateCenter(_currentLocation);
+            this.chatMap.updateCenter(mapCenter);
           }
         }
       });
@@ -163,7 +164,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
         print('initPlatformStateLocation: ${location}');
         if(location != null) {
           _currentLocation = location;
-          chatMap = new ChatMap(mapCenter: _currentLocation);
+          GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+          chatMap = new ChatMap(mapCenter: mapCenter);
         }
     });
 
@@ -265,6 +267,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
     Widget rv;
     if(this.parentId.length != 0) {
+      GeoPoint location = document['geo'];
+      this.chatMap.addLocation(location, document['content'], document['type'], "Test");
       rv = new ChatMessage(messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
     } else {
       return FutureBuilder<Widget>(
@@ -287,6 +291,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
   Future<Widget> buildFutureItem(String messageId, Function _onTap, ) async {
       return this.chatModel.getMessage(messageId).then((value) {
+        GeoPoint location = value['geo'];
+        this.chatMap.addLocation(location, value['content'], value['type'], "Test");
         return new ChatMessage(messageBody: value, parentId: this.parentId, messageId: messageId, onTap: _onTap);
       });
   }
