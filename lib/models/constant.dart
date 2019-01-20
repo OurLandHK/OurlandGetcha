@@ -27,6 +27,10 @@ const String LABEL_NEARBY = "NearBy";
 const String LABEL_REGION0 = "Home";
 const String LABEL_REGION1 = "Office";
 
+const String MENU_ITEM_SETTINGS = "Settings";
+const String MENU_ITEM_ABOUT = "About";
+const String MENU_ITEM_LOGOUT = "Logout";
+
 final themeColor = Color(0xfff5a623);
 final primaryColor = Color(0xff203152);
 final greyColor = Color(0xffaeaeae);

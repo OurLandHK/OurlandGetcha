@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:camera/camera.dart';
 import 'package:ourland_native/pages/camera_screen.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
+import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
 //import 'package:ourland_native/pages/status_screen.dart';
 
@@ -73,7 +74,7 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
           new Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5.0),
           ),
-          new Icon(Icons.more_vert)
+          PopupMenu()
         ],
       ),
       body: new TabBarView(
