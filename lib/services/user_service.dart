@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 final CollectionReference userCollection = Firestore.instance.collection('users');
 
@@ -63,5 +64,9 @@ class UserService {
     final StorageReference firebaseStorageRef =  FirebaseStorage.instance.ref().child(imagePath).child(imageFile);
     final StorageUploadTask task = firebaseStorageRef.putFile(avatarImage);
     return await (await task.onComplete).ref.getDownloadURL();
+  }
+
+  Future<void> logout() async {
+    return FirebaseAuth.instance.signOut();
   }
 }
