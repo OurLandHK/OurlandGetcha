@@ -36,14 +36,16 @@ class Chat extends StatelessWidget {
   final String parentId;
   final String parentTitle;
   final GeoPoint fixLocation;
-  Chat({Key key, @required this.parentId, @required this.parentTitle, this.fixLocation}) : super(key: key);
+  final GeoPoint messageLocation;
+  Chat({Key key, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     Widget rv = new ChatScreen(
         parentId: this.parentId,
         parentTitle: this.parentTitle,
-        fixLocation: this.fixLocation
+        fixLocation: this.fixLocation,
+        messageLocation: this.messageLocation
       );
     if(parentId.length != 0) {
       Widget rv1 = rv;
@@ -68,15 +70,16 @@ class ChatScreen extends StatefulWidget {
   final String parentId;
   final String parentTitle;
   final GeoPoint fixLocation;
+  final GeoPoint messageLocation;
 
-  ChatScreen({Key key, @required this.parentId, @required this.parentTitle, this.fixLocation}) : super(key: key);
+  ChatScreen({Key key, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
 
   @override
-  State createState() => new ChatScreenState(parentId: this.parentId, parentTitle: this.parentTitle, fixLocation: this.fixLocation);
+  State createState() => new ChatScreenState(parentId: this.parentId, parentTitle: this.parentTitle, fixLocation: this.fixLocation, messageLocation: this.messageLocation);
 }
 
 class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
-  ChatScreenState({Key key, @required this.parentId, @required this.parentTitle, @required this.fixLocation});
+  ChatScreenState({Key key, @required this.parentId, @required this.parentTitle, @required this.fixLocation, this.messageLocation});
 
   String parentId;
   String parentTitle;
@@ -96,6 +99,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
   // use to get current location
   Position _currentLocation;
+  GeoPoint messageLocation;
 
   StreamSubscription<Position> _positionStream;
 
@@ -129,6 +133,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             print('initState Poisition ${position}');
             _currentLocation = position;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+            this.messageLocation = mapCenter;
             if(this.chatMap == null) {        
               this.chatMap = new ChatMap(mapCenter: mapCenter);
             } else {
@@ -139,6 +144,9 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     } else {
       print('FixLocation ${this.fixLocation.latitude} , ${this.fixLocation.longitude}');
       this.chatMap = new ChatMap(mapCenter: this.fixLocation);
+      if(this.messageLocation == null) {
+        this.messageLocation = this.fixLocation;
+      }
     }
   }
 
@@ -151,8 +159,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
       try {
         geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
         location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
-
-
         error = null;
       } on PlatformException catch (e) {
         if (e.code == 'PERMISSION_DENIED') {
@@ -174,6 +180,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
           if(location != null) {
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+            this.messageLocation = mapCenter;
             chatMap = new ChatMap(mapCenter: mapCenter);
           }
       });
@@ -222,30 +229,31 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
   Future uploadFile() async {
     File uploadImage = imageFile;
-
+    List<int> blob = uploadImage.readAsBytesSync();
     
-    Img.Image image = Img.decodeImage(uploadImage.readAsBytesSync());
+    Img.Image originImage = Img.decodeImage(blob);
+    Img.Image image = originImage;
 
     bool newImage = false;
-    if(image.width > 1280) {
-      image = Img.copyResize(image, 1280);
+    if(originImage.width > 1280) {
+      image = Img.copyResize(originImage, 1280);
       newImage = true;
     } else {
-      if(image.height > 1280) {
-        int width = (image.width * 1280 / image.height).round();
-        image = Img.copyResize(image, width, 1280);  
+      if(originImage.height > 1280) {
+        int width = (originImage.width * 1280 / originImage.height).round();
+        image = Img.copyResize(originImage, width, 1280);  
         newImage = true;     
       }
     }
 
     if(newImage) {
-      uploadImage = new File('temp.png')
-        ..writeAsBytesSync(Img.encodePng(image));
+  //    uploadImage = new File('temp.png').writeAsBytesSync(Img.encodePng(image));
+//      blob = new Img.PngEncoder({level: 3}).encodeImage(image);
+      blob = new Img.JpegEncoder(quality: 75).encodeImage(image);
     }
-
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
     StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
-    StorageUploadTask uploadTask = reference.putFile(uploadImage);
+    StorageUploadTask uploadTask = reference.putData(blob);
     StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
     storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
       imageUrl = downloadUrl;
@@ -265,7 +273,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
       textEditingController.clear();  
-      chatModel.sendMessage(this._currentLocation, content, type);
+      chatModel.sendMessage(this.messageLocation, content, type);
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_NTH_TO_SEND)));
@@ -338,11 +346,15 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   Widget build(BuildContext context) {
     void _onTap(String messageId, String parentTitle, GeoPoint topLeft, GeoPoint bottomRight) {
       print("onTap");
+      GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+      if(this.fixLocation != null) {
+        _messageLocation = this.fixLocation;
+      }
       GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new Chat(parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter);
+            return new Chat(parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter, messageLocation: _messageLocation);
           },
         ),
       );
