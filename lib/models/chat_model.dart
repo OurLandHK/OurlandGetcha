@@ -45,7 +45,7 @@ class ChatModel {
     });
   }
 
-  void sendMessage(Position position, String content, int type) {
+  void sendMessage(GeoPoint position, String content, int type) {
     print('SendMessage ${position}');
     var chatReference;
     var indexReference;
@@ -85,7 +85,7 @@ class ChatModel {
     }
   }
 
-  void sendChildMessage(Position position, String content, int type, var sendMessageTime) {
+  void sendChildMessage(GeoPoint position, String content, int type, var sendMessageTime) {
       print(this.parentID);
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
       DocumentReference chatReference;
