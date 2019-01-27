@@ -4,13 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/widgets/map/index.dart';
+import 'package:ourland_native/models/constant.dart';
 
 class ChatMap extends StatefulWidget {
   GeoPoint mapCenter;
+  double height;
   _ChatMapState state;
 
 
-  ChatMap({Key key, @required this.mapCenter}) : super(key: key);
+  ChatMap({Key key, @required this.mapCenter, @required this.height}) : super(key: key);
 
   void addLocation(GeoPoint location, String content, int contentType, String username) {
     String label = "";
@@ -37,7 +39,7 @@ class ChatMap extends StatefulWidget {
 
   @override
   _ChatMapState createState() {
-    state = new _ChatMapState(mapCenter: this.mapCenter);
+    state = new _ChatMapState();
     return state;
   }
 }
@@ -45,15 +47,14 @@ class ChatMap extends StatefulWidget {
 // https://pub.dartlang.org/packages/geolocator
 
 class _ChatMapState extends State<ChatMap> {
-  GeoPoint mapCenter;
   GoogleMapWidget googleMapWidget;
   
   @override
-  _ChatMapState({Key key, @required this.mapCenter});
+  _ChatMapState({Key key});
 
   void initState() {
     super.initState();
-    this.googleMapWidget = new GoogleMapWidget(mapCenter.latitude, mapCenter.longitude);
+    this.googleMapWidget = new GoogleMapWidget(widget.mapCenter.latitude, widget.mapCenter.longitude, widget.height);
   }
 
   @override

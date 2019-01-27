@@ -1,7 +1,8 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../helper/geo_helper.dart';
+import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/helper/geo_helper.dart';
 
 class ChatModel {
   String parentID;
@@ -10,7 +11,7 @@ class ChatModel {
 
   Stream<QuerySnapshot> getMessageSnap(Position position, int distanceInKM) {
     Stream<QuerySnapshot> rv;
-    if(this.parentID.length != 0) {
+    if(this.parentID.compareTo(TOPIC_ROOT_ID) !=0) {
       rv = Firestore.instance
             .collection('chat')
             .document(this.parentID)
@@ -30,7 +31,7 @@ class ChatModel {
 
   Future<Map<String, dynamic>> getMessage(String messageId) {
     String _parentID = messageId;
-    if(this.parentID.length != 0) {
+    if(this.parentID.compareTo(TOPIC_ROOT_ID) !=0) {
       _parentID = this.parentID;
     }
     var chatReference = Firestore.instance
@@ -51,7 +52,7 @@ class ChatModel {
     var indexReference;
     var sendMessageTime = DateTime.now();
     String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
-    if(this.parentID.length == 0) {
+    if(this.parentID.length == TOPIC_ROOT_ID.length) {
       var indexData = {
             'created': sendMessageTime,
             'lastUpdate': sendMessageTime,
