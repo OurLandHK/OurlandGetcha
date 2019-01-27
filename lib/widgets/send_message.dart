@@ -38,7 +38,9 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
   GeoPoint messageLocation;
   ScrollController listScrollController;
 
-  SendMessageState({Key key, @required this.chatModel, @required this.messageLocation, @required this.listScrollController});
+  SendMessageState({Key key, @required this.chatModel, @required this.messageLocation, @required this.listScrollController}) {
+    print('SendMessageState ${this.messageLocation}');
+  }
 
   SharedPreferences prefs;
 
@@ -143,19 +145,17 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_NTH_TO_SEND)));
     }
   }
-
+  // TODO handle BackPress to dismiss sticker
+/*
   Future<bool> onBackPress() {
     if (isShowSticker) {
       setState(() {
         isShowSticker = false;
       });
-    } else {
-      Navigator.pop(context);
-    }
-
+    } 
     return Future.value(false);
   }
-
+*/
   Widget buildSticker() {
     return Container(
       child: Column(
@@ -330,7 +330,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
           height: 50.0,
           decoration: new BoxDecoration(
               border: new Border(top: new BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
-        );
+        )
       ]
     );
   }

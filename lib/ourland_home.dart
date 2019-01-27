@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:ourland_native/pages/sendmessage.dart';
 import 'package:camera/camera.dart';
 import 'package:ourland_native/pages/camera_screen.dart';
-import 'package:ourland_native/pages/chat_screen.dart';
+import 'package:ourland_native/pages/topic_screen.dart';
 import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
 //import 'package:ourland_native/pages/status_screen.dart';
@@ -81,9 +81,9 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
         controller: _tabController,
         children: <Widget>[
           //new CameraScreen(widget.cameras),
-          new ChatScreen(parentId: "", parentTitle: LABEL_NEARBY,),
-          new ChatScreen(parentId: "", parentTitle: LABEL_REGION0,),
-          new ChatScreen(parentId: "", parentTitle: LABEL_REGION1,),
+          new TopicScreen(),
+          new TopicScreen(),
+          new TopicScreen(),
           //new StatusScreen(),
           //new CallsScreen(),
         ],

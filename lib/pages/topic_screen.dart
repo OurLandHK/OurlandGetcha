@@ -14,74 +14,34 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
-import '../models/chat_model.dart';
-import './chat_map.dart';
-import '../widgets/chat_message.dart';
-import '../helper/geo_helper.dart';
-import '../widgets/send_message.dart';
+import 'package:ourland_native/pages/chat_screen.dart';
+import 'package:ourland_native/models/chat_model.dart';
+import 'package:ourland_native/pages/chat_map.dart';
+import 'package:ourland_native/widgets/chat_message.dart';
+import 'package:ourland_native/helper/geo_helper.dart';
+import 'package:ourland_native/widgets/send_message.dart';
 
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-class Chat extends StatelessWidget {
-  final String parentId;
-  final String parentTitle;
+class TopicScreen extends StatefulWidget {
   final GeoPoint fixLocation;
-  final GeoPoint messageLocation;
-  Chat({Key key, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
+
+  TopicScreen({Key key, this.fixLocation}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    Widget rv = new ChatScreen(
-        parentId: this.parentId,
-        parentTitle: this.parentTitle,
-        fixLocation: this.fixLocation,
-        messageLocation: this.messageLocation
-      );
-    if(parentId.length != 0) {
-      Widget rv1 = rv;
-      rv = new Scaffold(
-          key: _scaffoldKey,
-          appBar: new AppBar(
-            title: new Text(
-              this.parentTitle,
-              style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
-            ),
-            centerTitle: true,
-            elevation: 0.7,
-          ),
-          body: rv1,
-        );
-    } 
-    return rv; 
-  }
+  State createState() => new TopicScreenState(fixLocation: this.fixLocation);
 }
 
-class ChatScreen extends StatefulWidget {
-  final String parentId;
-  final String parentTitle;
-  final GeoPoint fixLocation;
-  final GeoPoint messageLocation;
-
-  ChatScreen({Key key, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
-
-  @override
-  State createState() => new ChatScreenState(parentId: this.parentId, parentTitle: this.parentTitle, fixLocation: this.fixLocation, messageLocation: this.messageLocation);
-}
-
-class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
-  ChatScreenState({Key key, @required this.parentId, @required this.parentTitle, @required this.fixLocation, this.messageLocation});
-
-  String parentId;
-  String parentTitle;
+class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin  {
+  TopicScreenState({Key key, @required this.fixLocation});
   GeoPoint fixLocation;
   String id;
   ChatModel chatModel;
   ChatMap chatMap;
 
   var listMessage;
-  String groupChatId;
   SharedPreferences prefs;
 
   bool isLoading;
@@ -105,7 +65,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-    chatModel = new ChatModel(this.parentId);
+    chatModel = new ChatModel(TOPIC_ROOT_ID);
     chatMap = null; 
 
     isLoading = false;
@@ -167,7 +127,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(mapCenter: mapCenter);
+            chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
           }
       });
     }
@@ -184,21 +144,32 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   readLocal() async {
     prefs = await SharedPreferences.getInstance();
     id = prefs.getString('id') ?? '';
-    if (id.hashCode <= parentId.hashCode) {
-      groupChatId = '$id-$parentId';
-    } else {
-      groupChatId = '$parentId-$id';
-    }
-
     setState(() {});
   }
 
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
-    Widget rv;
-    GeoPoint location = document['geo'];
-    this.chatMap.addLocation(location, document['content'], document['type'], "Test");
-    rv = new ChatMessage(messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
-    return rv;
+    return FutureBuilder<Widget>(
+      future: buildFutureItem(messageId, document['geotopleft'], document['geobottomright'], _onTap), // a previously-obtained Future<String> or null
+      builder: (context, AsyncSnapshot<Widget> snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.active:
+          case ConnectionState.waiting:
+            return new CircularProgressIndicator();
+          case ConnectionState.done:
+            return snapshot.data;
+        }
+        return null; // unreachable
+      },
+    );
+  }
+
+  Future<Widget> buildFutureItem(String messageId, GeoPoint topLeft, GeoPoint bottomRight, Function _onTap) async {
+      return this.chatModel.getMessage(messageId).then((value) {
+        GeoPoint location = value['geo'];
+        this.chatMap.addLocation(location, value['content'], value['type'], "Test");
+        return new ChatMessage(messageBody: value, parentId: TOPIC_ROOT_ID, messageId: messageId, geoTopLeft: topLeft, geoBottomRight: bottomRight, onTap: _onTap);
+      });
   }
 
   bool isLastMessageLeft(int index) {
@@ -215,11 +186,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     } else {
       return false;
     }
-  }
-
-  Future<bool> onBackPress() {
-    Navigator.pop(context);
-    return Future.value(false);
   }
 
   @override
@@ -239,34 +205,30 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
         ),
       );
     }
-    //this.chatMap.mapCenter = this._currentLocation; 
-    return WillPopScope(
-      child: Stack(
-        children: <Widget>[
-          Column(
-            children: <Widget>[
-              
-              new Container( 
-                decoration: new BoxDecoration(
-                  color: Theme.of(context).cardColor),
-                // child: GoogleMapWidget(this._currentLocation.latitude, this._currentLocation.longitude),
-                  child: this.chatMap,
-              ),
-              
-              // List of messages
-              buildListMessage(_onTap, context),
-              // Input content
-              (this.messageLocation != null) ?
-                new SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
-            ],
-          ),
 
-          // Loading
-          buildLoading()
-        ],
-      ),
-      onWillPop: onBackPress,
-    );
+    return Stack(
+      children: <Widget>[
+        Column(
+          children: <Widget>[    
+            new Container( 
+              decoration: new BoxDecoration(
+                color: Theme.of(context).cardColor),
+              // child: GoogleMapWidget(this._currentLocation.latitude, this._currentLocation.longitude),
+                child: this.chatMap,
+            ),
+            
+            // List of messages
+            buildListMessage(_onTap, context),
+            // Input content
+            (this.messageLocation != null) ? 
+              SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
+          ],
+        ),
+
+        // Loading
+        buildLoading()
+      ],
+    ); 
   }
 
   Widget buildLoading() {
@@ -282,34 +244,29 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     );
   }
 
+
   Widget buildListMessage(Function _onTap, BuildContext context) {
     return Flexible(
-      child: groupChatId == ''
-          ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
-          : StreamBuilder(
-              stream: this.chatModel.getMessageSnap(this._currentLocation, 1),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(
-                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
-                } else {
-                  listMessage = snapshot.data.documents;
-                  return ListView.builder(
-                    padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) {
-//                      if(index == 0) {
-//                        return this.chatMap;
-//                      } else {
-                        return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
-//                      }
-                    },
-                    itemCount: snapshot.data.documents.length,
-                    reverse: true,
-                    controller: listScrollController,
-                  );
-                }
+      child: StreamBuilder(
+        stream: this.chatModel.getMessageSnap(this._currentLocation, 1),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
+          } else {
+            listMessage = snapshot.data.documents;
+            return ListView.builder(
+              padding: EdgeInsets.all(10.0),
+              itemBuilder: (context, index) {
+                return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
               },
-            ),
+              itemCount: snapshot.data.documents.length,
+              reverse: false,
+              controller: listScrollController,
+            );
+          }
+        },
+      ),
     );
   }
 }

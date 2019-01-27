@@ -6,9 +6,10 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class GoogleMapWidget extends StatefulWidget {
   final double latitude;
   final double longitude;
+  final double height;
   _GoogleMapWidgetState state;
 
-  GoogleMapWidget(this.latitude, this.longitude);
+  GoogleMapWidget(this.latitude, this.longitude ,@required this.height);
 
   void updateMapCenter (GeoPoint center) {
 //    print('GoogleMapWidget called ${center}');
@@ -17,7 +18,7 @@ class GoogleMapWidget extends StatefulWidget {
   }
 
   void addMarker (GeoPoint location, String label) {
-    print('addMarker ${label}');
+//    print('addMarker ${label}');
     final markerOptions = MarkerOptions(
               position: LatLng(location.latitude, location.longitude),
               infoWindowText: InfoWindowText(label, null),
@@ -46,7 +47,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
           Center(
             child: SizedBox(
               width: double.infinity,
-              height: 240.0,
+              height: widget.height,
               child: GoogleMap(
                 onMapCreated: _onMapCreated,
                 options: GoogleMapOptions(

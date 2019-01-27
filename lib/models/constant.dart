@@ -31,6 +31,10 @@ const String MENU_ITEM_SETTINGS = "Settings";
 const String MENU_ITEM_ABOUT = "About";
 const String MENU_ITEM_LOGOUT = "Logout";
 
+const String TOPIC_ROOT_ID = "";
+
+const double MAP_HEIGHT = 240.0;
+
 final themeColor = Color(0xfff5a623);
 final primaryColor = Color(0xff203152);
 final greyColor = Color(0xffaeaeae);

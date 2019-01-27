@@ -22,12 +22,12 @@ class ChatMessage extends StatelessWidget {
   Widget build(BuildContext context) {
 
     void _onTap() {
-      print("onTap");
+      //print("onTap");
       this.onTap(this.messageBody['id'], this.messageBody['content'], this.geoTopLeft, this.geoBottomRight);
     }
     Widget rv;
     Container messageWidget;
-    print(this.messageId);
+    //print(this.messageId);
     switch(messageBody['type']) {
       case 0:
         messageWidget = Container(
@@ -109,7 +109,7 @@ class ChatMessage extends StatelessWidget {
                     margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
                   );
     Widget content = row;
-    if(this.parentId.length == 0) {
+    if(this.parentId.length == TOPIC_ROOT_ID.length) {
       content = new GestureDetector(
               onTap: _onTap,
               child: row
