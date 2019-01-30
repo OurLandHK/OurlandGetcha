@@ -33,15 +33,7 @@ class Chat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget rv = new ChatScreen(
-        parentId: this.parentId,
-        parentTitle: this.parentTitle,
-        fixLocation: this.fixLocation,
-        messageLocation: this.messageLocation
-      );
-    if(parentId.length != 0) {
-      Widget rv1 = rv;
-      rv = new Scaffold(
+    return new Scaffold(
           key: _scaffoldKey,
           appBar: new AppBar(
             title: new Text(
@@ -51,10 +43,13 @@ class Chat extends StatelessWidget {
             centerTitle: true,
             elevation: 0.7,
           ),
-          body: rv1,
+          body: new ChatScreen(
+            parentId: this.parentId,
+            parentTitle: this.parentTitle,
+            fixLocation: this.fixLocation,
+            messageLocation: this.messageLocation
+          ),
         );
-    } 
-    return rv; 
   }
 }
 
@@ -167,7 +162,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(mapCenter: mapCenter);
+            chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
           }
       });
     }

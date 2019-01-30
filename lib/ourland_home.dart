@@ -8,6 +8,7 @@ import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/widgets/send_message.dart';
+import 'package:ourland_native/pages/send_topic_screen.dart';
 
 class OurlandHome extends StatefulWidget {
   final FirebaseUser user;
@@ -50,6 +51,15 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    void sendMessageClick(GeoPoint messageLocation) {
+      Navigator.of(context).push(
+        new MaterialPageRoute<void>(
+          builder: (BuildContext context) {
+            return new SendTopicScreen(messageLocation: messageLocation);
+          },
+        ),
+      );
+    }
     return new Scaffold(
       appBar: new AppBar(
         title: new Text(_app_name),
@@ -96,7 +106,7 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
           Icons.message,
           color: Colors.white,
         ),
-        onPressed: () => print("open chats"),
+        onPressed: () => sendMessageClick(null),
       ),
     );
   }

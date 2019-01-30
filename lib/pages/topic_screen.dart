@@ -193,7 +193,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     void _onTap(String messageId, String parentTitle, GeoPoint topLeft, GeoPoint bottomRight) {
-      print("onTap");
+      //print("onTap");
       GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
       if(this.fixLocation != null) {
         _messageLocation = this.fixLocation;
@@ -208,51 +208,16 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       );
     }
 
-    //return buildScrollView(_onTap, context);
-    
     return Stack(
       children: <Widget>[
         buildScrollView(_onTap, context),     
-        /*Column(
-          children: <Widget>[
-            buildScrollView(_onTap, context),
-            (this.messageLocation != null) ? 
-              SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(), 
-          ],
-        ),*/
-        // Loading
         buildLoading(),
       ],
     );
-    
-    /*
-
-    return Stack(
-      children: <Widget>[
-        Column(
-          children: <Widget>[    
-            new Container( 
-              decoration: new BoxDecoration(
-                color: Theme.of(context).cardColor),
-              // child: GoogleMapWidget(this._currentLocation.latitude, this._currentLocation.longitude),
-                child: this.chatMap,
-            ),
-            
-            // List of messages
-            buildListMessage(_onTap, context),
-            // Input content
-            (this.messageLocation != null) ? 
-              SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
-          ],
-        ),
-
-        // Loading
-        buildLoading()
-      ],
-    ); 
-    */
+/*            (this.messageLocation != null) ? 
+              SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(), 
+*/
   }
-
   Widget buildLoading() {
     return Positioned(
       child: isLoading
@@ -263,32 +228,6 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
               color: Colors.white.withOpacity(0.8),
             )
           :  new Container()
-    );
-  }
-
-
-  Widget buildListMessage(Function _onTap, BuildContext context) {
-    return Flexible(
-      child: StreamBuilder(
-        stream: this.chatModel.getMessageSnap(this._currentLocation, 1),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(
-                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
-          } else {
-            listMessage = snapshot.data.documents;
-            return ListView.builder(
-              padding: EdgeInsets.all(10.0),
-              itemBuilder: (context, index) {
-                return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
-              },
-              itemCount: snapshot.data.documents.length,
-              reverse: false,
-              controller: listScrollController,
-            );
-          }
-        },
-      ),
     );
   }
 
