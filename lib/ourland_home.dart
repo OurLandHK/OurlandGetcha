@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-//import 'package:ourland_native/pages/sendmessage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:camera/camera.dart';
 import 'package:ourland_native/pages/camera_screen.dart';
 import 'package:ourland_native/pages/topic_screen.dart';
 import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
-//import 'package:ourland_native/pages/status_screen.dart';
+import 'package:ourland_native/models/chat_model.dart';
+import 'package:ourland_native/widgets/send_message.dart';
 
 class OurlandHome extends StatefulWidget {
   final FirebaseUser user;
@@ -88,14 +89,15 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
           //new CallsScreen(),
         ],
       ),
-/*      floatingActionButton: new FloatingActionButton(
+      //persistentFooterButtons: <Widget>[SendMessage(chatModel: ChatModel(TOPIC_ROOT_ID), listScrollController: null, messageLocation: new GeoPoint(22.4, 114)),],
+      floatingActionButton: new FloatingActionButton(
         backgroundColor: Theme.of(context).accentColor,
         child: new Icon(
           Icons.message,
           color: Colors.white,
         ),
         onPressed: () => print("open chats"),
-      ),*/
+      ),
     );
   }
 }

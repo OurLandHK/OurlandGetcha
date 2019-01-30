@@ -148,6 +148,8 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   }
 
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
+    //return new Text(messageId);
+    
     return FutureBuilder<Widget>(
       future: buildFutureItem(messageId, document['geotopleft'], document['geobottomright'], _onTap), // a previously-obtained Future<String> or null
       builder: (context, AsyncSnapshot<Widget> snapshot) {
@@ -206,6 +208,25 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       );
     }
 
+    //return buildScrollView(_onTap, context);
+    
+    return Stack(
+      children: <Widget>[
+        buildScrollView(_onTap, context),     
+        /*Column(
+          children: <Widget>[
+            buildScrollView(_onTap, context),
+            (this.messageLocation != null) ? 
+              SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(), 
+          ],
+        ),*/
+        // Loading
+        buildLoading(),
+      ],
+    );
+    
+    /*
+
     return Stack(
       children: <Widget>[
         Column(
@@ -229,6 +250,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         buildLoading()
       ],
     ); 
+    */
   }
 
   Widget buildLoading() {
@@ -240,7 +262,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
               ),
               color: Colors.white.withOpacity(0.8),
             )
-          : Container(),
+          :  new Container()
     );
   }
 
@@ -267,6 +289,76 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
           }
         },
       ),
+    );
+  }
+
+  Widget buildScrollView(Function _onTap, BuildContext context) {
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(
+          expandedHeight: MAP_HEIGHT,
+          pinned: true,
+          floating: true,
+          snap: true,
+          // Add Filter later
+          
+          actions: <Widget>[
+            // snack bar
+          ],
+          
+          flexibleSpace: FlexibleSpaceBar(
+            title: (this.messageLocation != null) ? Text('GPS: ${this.messageLocation.latitude}, ${this.messageLocation.longitude}') : null,
+            background: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                (this.chatMap != null) ? this.chatMap : new Container(),
+                // This gradient ensures that the toolbar icons are distinct
+                // against the background image.
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment(0.0, -1.0),
+                      end: Alignment(0.0, -0.4),
+                      colors: <Color>[Color(0x60000000), Color(0x00000000)],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        buildSilverListMessage(_onTap, context),
+        /*
+        (this.messageLocation != null) ? 
+              SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),            
+        */
+      ],
+    );
+  }
+
+    Widget buildSilverListMessage(Function _onTap, BuildContext context) {
+    return StreamBuilder(
+      stream: this.chatModel.getMessageSnap(this._currentLocation, 1),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          listMessage = snapshot.data.documents;
+          return SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+                return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
+              },
+              childCount: snapshot.data.documents.length,
+            ),
+          );
+        } else {
+          return SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
+              },
+              childCount: 1,
+            ),
+          );
+        }
+      },
     );
   }
 }
