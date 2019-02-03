@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:camera/camera.dart';
-import 'package:ourland_native/pages/camera_screen.dart';
+//import 'package:camera/camera.dart';
+//import 'package:ourland_native/pages/camera_screen.dart';
 import 'package:ourland_native/pages/topic_screen.dart';
 import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
@@ -28,7 +28,7 @@ const String _app_name = "我地.佳招";
 class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStateMixin {
   TabController _tabController;
   String uid = '';
-  List<CameraDescription> cameras;
+//  List<CameraDescription> cameras;
 
   @override
   void initState() {
@@ -40,11 +40,11 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
     }).catchError((e) {
       print(e);
     });
-
+/*
     availableCameras().then((rv) {
       cameras = rv;
     });
-
+*/
     super.initState();
     _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
   }

@@ -8,7 +8,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 
-import 'package:cached_network_image/cached_network_image.dart';
+//import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,12 +55,30 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   final ScrollController listScrollController = new ScrollController();
   final FocusNode focusNode = new FocusNode();
 
+  List<DropdownMenuItem<String>> _tagDropDownMenuItems;
+  List<DropdownMenuItem<String>> _locationDropDownMenuItems;
+  String _firstTag;
+  String _currentLocationSelection;
+  bool _isShowGeo;
+  bool _isSubmitDisable;
+  Text _buttonText;
+
   @override
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
     chatModel = new ChatModel(TOPIC_ROOT_ID);
     chatMap = null; 
+    _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION);
+    _firstTag = _tagDropDownMenuItems[0].value;
+    
+    
+    _buttonText = new Text(MISSING_TOPIC);
+    _isShowGeo = false;
+    _isSubmitDisable = true;
+
+    _locationDropDownMenuItems = getDropDownMenuItems([LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1]);
+    _currentLocationSelection = _locationDropDownMenuItems[0].value;
 
     initPlatformState();
     if(this.messageLocation == null) {
@@ -72,7 +90,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
             if(this.chatMap == null) {        
-              this.chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
+              this.chatMap = new ChatMap(mapCenter: mapCenter, height: CREATE_TOPIC_MAP_HEIGHT);
             } else {
               this.chatMap.updateCenter(mapCenter);
             }
@@ -80,9 +98,21 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         });
     } else {
       print('messageLocation ${this.messageLocation.latitude} , ${this.messageLocation.longitude}');
-      this.chatMap = new ChatMap(mapCenter: this.messageLocation, height: MAP_HEIGHT);
+      this.chatMap = new ChatMap(mapCenter: this.messageLocation, height: CREATE_TOPIC_MAP_HEIGHT);
     }
   }
+
+  List<DropdownMenuItem<String>> getDropDownMenuItems(List<String> labelList) {
+    List<DropdownMenuItem<String>> items = new List();
+    for (String label in labelList) {
+      items.add(new DropdownMenuItem(
+          value: label,
+          child: new Text(label)
+      ));
+    }
+    return items;
+  }
+
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
@@ -115,7 +145,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
+            chatMap = new ChatMap(mapCenter: mapCenter, height: CREATE_TOPIC_MAP_HEIGHT);
           }
       });
     }
@@ -132,6 +162,28 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   Future<bool> onBackPress() {
     Navigator.pop(context);
     return Future.value(false);
+  }
+
+  void updateLocation(String locationSelection) {
+    setState(() {
+      _currentLocationSelection = locationSelection;          
+    // TODO 
+      switch (_currentLocationSelection) {
+        case LABEL_NEARBY:
+          this.messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+          break;
+        case LABEL_REGION0:
+        case LABEL_REGION1:
+          this.messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+          break;
+      }
+      GeoPoint mapCenter = this.messageLocation;
+      if(this.chatMap == null) {        
+        this.chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
+      } else {
+        this.chatMap.updateCenter(mapCenter);
+      }
+    });
   }
 
   @override
@@ -171,6 +223,22 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
+                  Row(
+                    children: <Widget> [
+                      Expanded(child: new Text(LABEL_IN)),
+                      Expanded(child: new DropdownButton(
+                        value: _currentLocationSelection,
+                        items: _locationDropDownMenuItems,
+                        onChanged: updateLocation,
+                      )),
+                      Expanded(child: new Text(LABEL_HAS)),
+                      Expanded(child: new DropdownButton(
+                        value: _firstTag,
+                        items: _tagDropDownMenuItems,
+                        onChanged: (String value) {_firstTag = value;},
+                      )),
+                    ]
+                  ),
                   const SizedBox(height: 24.0),
                   TextFormField(
                     textCapitalization: TextCapitalization.words,
@@ -178,8 +246,8 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                       border: UnderlineInputBorder(),
                       filled: true,
                       icon: Icon(Icons.person),
-                      hintText: 'What do people call you?',
-                      labelText: 'Name *',
+                      hintText: HINT_TOPIC,
+                      labelText: LABEL_TOPIC,
                     ),
                     onSaved: (String value) { parentTitle = value; },
                 // validator: _validateName,
@@ -188,12 +256,28 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                   TextFormField(
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Tell us about yourself (e.g., write down what you do or what hobbies you have)',
-                      helperText: 'Keep it short, this is just a demo.',
-                      labelText: 'Life story',
+                      hintText: HINT_DEATIL,
+                      helperText: HELPER_DETAIL,
+                      labelText: LABEL_DETAIL,
                     ),
                     maxLines: 3,
+                    onSaved: (String value) { parentTitle = value; },
                   ),
+                  Row(
+                    children: <Widget> [
+                        Switch.adaptive(
+                          value: _isShowGeo,
+                          onChanged: (bool value) {
+                              _isShowGeo = value;
+                          }
+                        ),
+                        Text(LABEL_MUST_SHOW_GEO)
+                    ]
+                  ),
+                  RaisedButton(
+                    child: _buttonText,
+                    onPressed: _isSubmitDisable ? null : null,
+                  )
                 ],
               )
             )
