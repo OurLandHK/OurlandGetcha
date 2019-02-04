@@ -85,7 +85,7 @@ class ChatMessage extends StatelessWidget {
       default:
         messageWidget = Container(
                               child: new Image.asset(
-                                'images/${messageBody['content']}.gif',
+                                'assets/images/${messageBody['content']}.gif',
                                 width: 100.0,
                                 height: 100.0,
                                 fit: BoxFit.cover,

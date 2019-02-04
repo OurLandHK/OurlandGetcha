@@ -128,8 +128,11 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   }
 
   signIn(context) {
-    FirebaseAuth.instance
-        .signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
+     final AuthCredential credential = PhoneAuthProvider.getCredential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    FirebaseAuth.instance.signInWithCredential(credential)
         .then((user) {
           if(user != null) {
               userService.userExist(user.uid).then((userExist) {

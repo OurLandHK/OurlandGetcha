@@ -50,13 +50,11 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
               height: widget.height,
               child: GoogleMap(
                 onMapCreated: _onMapCreated,
-                options: GoogleMapOptions(
-                    myLocationEnabled: true,
-                    cameraPosition: new CameraPosition(
-                      target: LatLng(widget.latitude, widget.longitude),
-                      zoom: 15.0,
-                    )
-                )
+                myLocationEnabled: true,
+                initialCameraPosition:  new CameraPosition(
+                  target: LatLng(widget.latitude, widget.longitude),
+                  zoom: 15.0,
+                ),
               ),
             ),
           ),

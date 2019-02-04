@@ -31,9 +31,23 @@ const String MENU_ITEM_SETTINGS = "Settings";
 const String MENU_ITEM_ABOUT = "About";
 const String MENU_ITEM_LOGOUT = "Logout";
 
+const String LABEL_IN = "在";
+const String LABEL_HAS = "有";
+const List<String> TAG_SELECTION =  ["吹水", "活動", "優惠", "美食", "秘境", "維修"];
+const String LABEL_TOPIC = "Topic";
+const String HINT_TOPIC = "Topic Hint";
+const String LABEL_DETAIL = "Detail";
+const String HINT_DEATIL = "Detail Hint";
+const String HELPER_DETAIL = "Hash Tag Support";
+const String LABEL_MUST_SHOW_GEO = "Reply need to show location";
+const String MISSING_TOPIC = "Missing Topic";
+const String MORE_DETAIL = "More Detail is Better";
+
+
 const String TOPIC_ROOT_ID = "";
 
-const double MAP_HEIGHT = 240.0;
+const double MAP_HEIGHT = 200.0;
+const double CREATE_TOPIC_MAP_HEIGHT = 150.0;
 
 final themeColor = Color(0xfff5a623);
 final primaryColor = Color(0xff203152);
