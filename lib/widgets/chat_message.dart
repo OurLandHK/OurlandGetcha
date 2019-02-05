@@ -5,19 +5,20 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:intl/intl.dart';
-import '../pages/chat_screen.dart';
+import 'package:ourland_native/models/user_model.dart';
 import '../models/constant.dart';
 
 
 class ChatMessage extends StatelessWidget {
   final String parentId;
   final String messageId;
+  final User user;
   GeoPoint geoTopLeft;
   GeoPoint geoBottomRight;
   final Map<String, dynamic> messageBody;
   final Function onTap;
 
-  ChatMessage({Key key, @required this.parentId, @required this.messageId, @required this.messageBody, @required this.onTap, this.geoTopLeft, this.geoBottomRight}) : super(key: key);
+  ChatMessage({Key key, @required this.user, @required this.parentId, @required this.messageId, @required this.messageBody, @required this.onTap, this.geoTopLeft, this.geoBottomRight}) : super(key: key);
 
   Widget build(BuildContext context) {
 

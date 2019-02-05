@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:camera/camera.dart';
-//import 'package:ourland_native/pages/camera_screen.dart';
 import 'package:ourland_native/pages/topic_screen.dart';
 import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
-import 'package:ourland_native/models/chat_model.dart';
-import 'package:ourland_native/widgets/send_message.dart';
+import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/pages/send_topic_screen.dart';
 
 class OurlandHome extends StatefulWidget {
-  final FirebaseUser user;
+  final User user;
 
   OurlandHome(this.user) {
     if (user  == null) {
@@ -33,13 +31,7 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
   @override
   void initState() {
     this.uid = '';
-    FirebaseAuth.instance.currentUser().then((val) {
-      setState(() {
-        this.uid = val.uid;
-      });
-    }).catchError((e) {
-      print(e);
-    });
+
 /*
     availableCameras().then((rv) {
       cameras = rv;
@@ -55,7 +47,7 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new SendTopicScreen(messageLocation: messageLocation);
+            return new SendTopicScreen(messageLocation: messageLocation, user: widget.user);
           },
         ),
       );
@@ -92,9 +84,9 @@ class _OurlandHomeState extends State<OurlandHome> with SingleTickerProviderStat
         controller: _tabController,
         children: <Widget>[
           //new CameraScreen(widget.cameras),
-          new TopicScreen(),
-          new TopicScreen(),
-          new TopicScreen(),
+          new TopicScreen(user: widget.user),
+          new TopicScreen(user: widget.user),
+          new TopicScreen(user: widget.user),
           //new StatusScreen(),
           //new CallsScreen(),
         ],
