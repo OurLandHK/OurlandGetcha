@@ -22,7 +22,7 @@ class UserService {
 
   Future<User> createUser(String uuid, String username, File avatarImage, String avatarUrl, String address) async {
     final TransactionHandler createTransaction = (Transaction tx) async {
-      final DocumentSnapshot ds = await tx.get(userCollection.document());
+      final DocumentSnapshot ds = await tx.get(userCollection.document(uuid));
 
       DateTime now = new DateTime.now();
       final User user = new User(uuid, username, avatarUrl, address, now, now);
@@ -36,6 +36,18 @@ class UserService {
     }).catchError((error) {
       print('error: $error');
       return null;
+    });
+  }
+
+  Future<User> getUser(String uuid) async{
+    var userReference = userCollection.document(uuid);
+    return userReference.get().then((onValue) {
+      if(onValue.exists) {
+        User user = User.fromMap(onValue.data);
+        return user;
+      } else {
+        return null;
+      }
     });
   }
 

@@ -53,6 +53,23 @@ class User {
     return map;
   }
 
+  Map<String, dynamic> toBasicMap() {
+    var map = new Map<String, dynamic>();
+    if (_uuid != null) {
+      map['uuid'] = _uuid;
+    }
+
+    if (_username != null) {
+      map['user'] = _username;
+    }
+
+    if (_avatarUrl != null) {
+      map['avatarUrl'] = _avatarUrl;
+    }
+    return map;
+  }
+
+
   User.fromMap(Map<String, dynamic> map) {
     this._uuid = map['uuid'];
     this._username = map['user'];

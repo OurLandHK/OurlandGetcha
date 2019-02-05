@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/ourland_home.dart';
+import 'package:ourland_native/models/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PhoneAuthenticationScreen extends StatefulWidget {
   @override
@@ -29,13 +29,16 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   }
 
   checkAuth() async {
-    FirebaseUser user = await FirebaseAuth.instance.currentUser();
-    if (user != null) {
-      Navigator.of(context).pushReplacement(
-          new MaterialPageRoute(
-              builder: (context) => OurlandHome(user)
-          )
-      );
+    FirebaseUser fbuser = await FirebaseAuth.instance.currentUser();
+    if (fbuser != null) {
+      UserService userService = new UserService();
+      userService.getUser(fbuser.uid).then((user) {
+        Navigator.of(context).pushReplacement(
+            new MaterialPageRoute(
+                builder: (context) => OurlandHome(user)
+            )
+        );
+      });
     }
   }
 
@@ -96,10 +99,10 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               new FlatButton(
                 child: Text(SMS_CODE_DIALOG_BUTTON_TEXT),
                 onPressed: () {
-                  FirebaseAuth.instance.currentUser().then((user) {
-                    if (user != null) {
-                        userService.userExist(user.uid).then((userExist) {
-                          if(userExist == true) {
+                  FirebaseAuth.instance.currentUser().then((fbuser) {
+                    if (fbuser != null) {
+                        userService.getUser(fbuser.uid).then((user) {
+                          if(user != null) {
                             Navigator.of(context).pop();
                             Navigator.of(context).pushReplacement(
                               new MaterialPageRoute(
@@ -109,7 +112,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                           } else {
                             Navigator.of(context).push(
                               new MaterialPageRoute(
-                              builder: (context) => RegistrationScreen(user)
+                              builder: (context) => RegistrationScreen(fbuser)
                               )
                             );
                           }
@@ -128,15 +131,20 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   }
 
   signIn(context) {
+    //print("${verificationId} + ${smsCode}");
+    /*
      final AuthCredential credential = PhoneAuthProvider.getCredential(
       verificationId: verificationId,
       smsCode: smsCode,
     );
     FirebaseAuth.instance.signInWithCredential(credential)
-        .then((user) {
-          if(user != null) {
-              userService.userExist(user.uid).then((userExist) {
-                if(userExist == true) {
+    */
+    FirebaseAuth.instance.signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
+        .then((fbuser) {
+          print("${fbuser}");
+          if(fbuser != null) {
+              userService.getUser(fbuser.uid).then((user) {
+                if(user != null) {
                   Navigator.of(context).pop();
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
@@ -146,7 +154,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 } else {
                   Navigator.of(context).push(
                     new MaterialPageRoute(
-                    builder: (context) => RegistrationScreen(user)
+                    builder: (context) => RegistrationScreen(fbuser)
                    )
                   );
                 }
