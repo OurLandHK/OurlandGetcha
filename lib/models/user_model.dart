@@ -75,7 +75,7 @@ class User {
     this._username = map['user'];
     this._avatarUrl = map['avatarUrl'];
     this._address = map['address'];
-    this._createdAt = map['createdAt'];
-    this._updatedAt = map['updatedAt'];
+    this._createdAt = map['createdAt'].toDate();
+    this._updatedAt = map['updatedAt'].toDate();
   }
 }
