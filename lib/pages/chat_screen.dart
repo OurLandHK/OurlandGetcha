@@ -14,6 +14,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/models/user_model.dart';
 import '../models/chat_model.dart';
 import './chat_map.dart';
 import '../widgets/chat_message.dart';
@@ -29,7 +30,8 @@ class Chat extends StatelessWidget {
   final String parentTitle;
   final GeoPoint fixLocation;
   final GeoPoint messageLocation;
-  Chat({Key key, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
+  final User user;
+  Chat({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,7 @@ class Chat extends StatelessWidget {
             elevation: 0.7,
           ),
           body: new ChatScreen(
+            user: this.user,
             parentId: this.parentId,
             parentTitle: this.parentTitle,
             fixLocation: this.fixLocation,
@@ -58,8 +61,9 @@ class ChatScreen extends StatefulWidget {
   final String parentTitle;
   final GeoPoint fixLocation;
   final GeoPoint messageLocation;
+  final User user;
 
-  ChatScreen({Key key, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
+  ChatScreen({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
 
   @override
   State createState() => new ChatScreenState(parentId: this.parentId, parentTitle: this.parentTitle, fixLocation: this.fixLocation, messageLocation: this.messageLocation);
@@ -100,7 +104,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-    chatModel = new ChatModel(this.parentId);
+    chatModel = new ChatModel(this.parentId, widget.user);
     chatMap = null; 
 
     isLoading = false;
@@ -192,7 +196,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     Widget rv;
     GeoPoint location = document['geo'];
     this.chatMap.addLocation(location, document['content'], document['type'], "Test");
-    rv = new ChatMessage(messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
+    rv = new ChatMessage(user: widget.user, messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
     return rv;
   }
 
@@ -229,7 +233,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new Chat(parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter, messageLocation: _messageLocation);
+            return new Chat(user: widget.user, parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter, messageLocation: _messageLocation);
           },
         ),
       );

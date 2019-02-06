@@ -14,6 +14,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/models/user_model.dart';
 import '../models/chat_model.dart';
 import './chat_map.dart';
 import '../widgets/send_message.dart';
@@ -24,7 +25,8 @@ final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class SendTopicScreen extends StatefulWidget {
   final GeoPoint messageLocation;
-  SendTopicScreen({Key key,this.messageLocation}) : super(key: key);
+  final User user;
+  SendTopicScreen({Key key, @required this.messageLocation, @required this.user}) : super(key: key);
 
   @override
   State createState() => new SendTopicState(messageLocation: this.messageLocation);
@@ -32,8 +34,6 @@ class SendTopicScreen extends StatefulWidget {
 
 class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixin  {
   SendTopicState({Key key, this.messageLocation});
-
-  String parentTitle;
   String id;
   ChatModel chatModel;
   ChatMap chatMap;
@@ -57,7 +57,11 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
 
   List<DropdownMenuItem<String>> _tagDropDownMenuItems;
   List<DropdownMenuItem<String>> _locationDropDownMenuItems;
+
+  String _parentTitle;
+  String _desc;
   String _firstTag;
+  int _type;
   String _currentLocationSelection;
   bool _isShowGeo;
   bool _isSubmitDisable;
@@ -67,7 +71,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-    chatModel = new ChatModel(TOPIC_ROOT_ID);
+    chatModel = new ChatModel(TOPIC_ROOT_ID, widget.user);
     chatMap = null; 
     _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION);
     _firstTag = _tagDropDownMenuItems[0].value;
@@ -75,7 +79,10 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     
     _buttonText = new Text(MISSING_TOPIC);
     _isShowGeo = false;
-    _isSubmitDisable = true;
+    _desc = "";
+    _parentTitle = "";
+    _type = 0;
+    _isSubmitDisable = false;
 
     _locationDropDownMenuItems = getDropDownMenuItems([LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1]);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
@@ -188,23 +195,13 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
 
   @override
   Widget build(BuildContext context) {
-/*    
-    void _onTap(String messageId, String parentTitle, GeoPoint topLeft, GeoPoint bottomRight) {
-      print("onTap");
-      GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-      if(this.fixLocation != null) {
-        _messageLocation = this.fixLocation;
-      }
-      GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
-      Navigator.of(context).push(
-        new MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return new Chat(parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter, messageLocation: _messageLocation);
-          },
-        ),
-      );
-    }
- */
+
+    void sendMessage() {
+      List<String> tags = [this._firstTag];
+      chatModel.sendTopicMessage(this.messageLocation, this._parentTitle, tags, this._desc, this._type, this._isShowGeo);
+      onBackPress();
+    };
+
     Widget body = new WillPopScope(
       child: Column(
         children: <Widget>[              
@@ -235,7 +232,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                       Expanded(child: new DropdownButton(
                         value: _firstTag,
                         items: _tagDropDownMenuItems,
-                        onChanged: (String value) {_firstTag = value;},
+                        onChanged: (String value) {setState(() {_firstTag = value;});},
                       )),
                     ]
                   ),
@@ -249,7 +246,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                       hintText: HINT_TOPIC,
                       labelText: LABEL_TOPIC,
                     ),
-                    onSaved: (String value) { parentTitle = value; },
+                    onSaved: (String value) {setState(() { this._parentTitle = value;}); },
                 // validator: _validateName,
                   ),
                   const SizedBox(height: 24.0),
@@ -261,7 +258,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                       labelText: LABEL_DETAIL,
                     ),
                     maxLines: 3,
-                    onSaved: (String value) { parentTitle = value; },
+                    onSaved: (String value) { setState(() { this._desc = value;}); },
                   ),
                   Row(
                     children: <Widget> [
@@ -276,7 +273,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                   ),
                   RaisedButton(
                     child: _buttonText,
-                    onPressed: _isSubmitDisable ? null : null,
+                    onPressed: _isSubmitDisable ? null : sendMessage,
                   )
                 ],
               )

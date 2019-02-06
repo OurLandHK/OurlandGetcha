@@ -139,7 +139,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
     // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
       textEditingController.clear();  
-      chatModel.sendMessage(this.messageLocation, content, type);
+      chatModel.sendChildMessage(this.messageLocation, content, type);
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_NTH_TO_SEND)));

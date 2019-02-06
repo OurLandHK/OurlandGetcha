@@ -14,6 +14,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/pages/chat_map.dart';
@@ -23,12 +24,12 @@ import 'package:ourland_native/widgets/send_message.dart';
 
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
-final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class TopicScreen extends StatefulWidget {
   final GeoPoint fixLocation;
+  final User user;
 
-  TopicScreen({Key key, this.fixLocation}) : super(key: key);
+  TopicScreen({Key key, @required this.user, this.fixLocation}) : super(key: key);
 
   @override
   State createState() => new TopicScreenState(fixLocation: this.fixLocation);
@@ -65,7 +66,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-    chatModel = new ChatModel(TOPIC_ROOT_ID);
+    chatModel = new ChatModel(TOPIC_ROOT_ID, widget.user);
     chatMap = null; 
 
     isLoading = false;
@@ -170,7 +171,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       return this.chatModel.getMessage(messageId).then((value) {
         GeoPoint location = value['geo'];
         this.chatMap.addLocation(location, value['content'], value['type'], "Test");
-        return new ChatMessage(messageBody: value, parentId: TOPIC_ROOT_ID, messageId: messageId, geoTopLeft: topLeft, geoBottomRight: bottomRight, onTap: _onTap);
+        return new ChatMessage(messageBody: value, parentId: TOPIC_ROOT_ID, messageId: messageId, geoTopLeft: topLeft, geoBottomRight: bottomRight, onTap: _onTap, user: widget.user);
       });
   }
 
@@ -202,7 +203,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new Chat(parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter, messageLocation: _messageLocation);
+            return new Chat(user: widget.user, parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter, messageLocation: _messageLocation);
           },
         ),
       );

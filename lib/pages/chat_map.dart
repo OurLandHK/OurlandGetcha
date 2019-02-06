@@ -1,10 +1,7 @@
-import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/widgets/map/index.dart';
-import 'package:ourland_native/models/constant.dart';
 
 class ChatMap extends StatefulWidget {
   GeoPoint mapCenter;
