@@ -45,6 +45,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   GeoPoint messageLocation;
 
   StreamSubscription<Position> _positionStream;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Geolocator _geolocator = new Geolocator();
   LocationOptions locationOptions = new LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
@@ -77,12 +78,12 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     _firstTag = _tagDropDownMenuItems[0].value;
     
     
-    _buttonText = new Text(MISSING_TOPIC);
+    _buttonText = new Text(LABEL_MISSING_TOPIC);
     _isShowGeo = false;
     _desc = "";
     _parentTitle = "";
     _type = 0;
-    _isSubmitDisable = false;
+    _isSubmitDisable = true;
 
     _locationDropDownMenuItems = getDropDownMenuItems([LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1]);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
@@ -195,13 +196,6 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
 
   @override
   Widget build(BuildContext context) {
-
-    void sendMessage() {
-      List<String> tags = [this._firstTag];
-      chatModel.sendTopicMessage(this.messageLocation, this._parentTitle, tags, this._desc, this._type, this._isShowGeo);
-      onBackPress();
-    };
-
     Widget body = new WillPopScope(
       child: Column(
         children: <Widget>[              
@@ -211,81 +205,13 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             child: (this.chatMap != null) ? this.chatMap : new Container(),
           ),
           new Form(
-//               key: _formKey,
-//               autovalidate: _autovalidate,
-//               onWillPop: _warnUserAboutInvalidData,
-            child: SingleChildScrollView(
-//                dragStartBehavior: DragStartBehavior.down,
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Row(
-                    children: <Widget> [
-                      Expanded(child: new Text(LABEL_IN)),
-                      Expanded(child: new DropdownButton(
-                        value: _currentLocationSelection,
-                        items: _locationDropDownMenuItems,
-                        onChanged: updateLocation,
-                      )),
-                      Expanded(child: new Text(LABEL_HAS)),
-                      Expanded(child: new DropdownButton(
-                        value: _firstTag,
-                        items: _tagDropDownMenuItems,
-                        onChanged: (String value) {setState(() {_firstTag = value;});},
-                      )),
-                    ]
-                  ),
-                  const SizedBox(height: 24.0),
-                  TextFormField(
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      border: UnderlineInputBorder(),
-                      filled: true,
-                      icon: Icon(Icons.person),
-                      hintText: HINT_TOPIC,
-                      labelText: LABEL_TOPIC,
-                    ),
-                    onSaved: (String value) {setState(() { this._parentTitle = value;}); },
-                // validator: _validateName,
-                  ),
-                  const SizedBox(height: 24.0),
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: HINT_DEATIL,
-                      helperText: HELPER_DETAIL,
-                      labelText: LABEL_DETAIL,
-                    ),
-                    maxLines: 3,
-                    onSaved: (String value) { setState(() { this._desc = value;}); },
-                  ),
-                  Row(
-                    children: <Widget> [
-                        Switch.adaptive(
-                          value: _isShowGeo,
-                          onChanged: (bool value) {
-                              _isShowGeo = value;
-                          }
-                        ),
-                        Text(LABEL_MUST_SHOW_GEO)
-                    ]
-                  ),
-                  RaisedButton(
-                    child: _buttonText,
-                    onPressed: _isSubmitDisable ? null : sendMessage,
-                  )
-                ],
-              )
-            )
+             key: _formKey,
+             autovalidate: true,
+//           onWillPop: _warnUserAboutInvalidData,
+            child: formUI()
           )
-/*                    // Input content
-          (this.messageLocation != null) ?
-            new SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
-            */
         ],
       ),
-
       onWillPop: onBackPress,
     );
     return new Scaffold(
@@ -301,8 +227,117 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
       body: SafeArea(
         top: false,
         bottom: false,
-        child:body
+        child: body
       ),
     ); 
+  }
+
+  Widget formUI() {
+    String validation(String label, String value) {
+      String rv;
+      switch(label) {
+        case LABEL_TOPIC:
+          if(value.isEmpty) {
+            _isSubmitDisable = true;
+            _buttonText = Text(LABEL_MISSING_TOPIC);
+            rv = LABEL_MISSING_TOPIC;
+          } else {
+            _isSubmitDisable = false;
+            _formKey.currentState.save();
+          }
+          break;
+        case LABEL_DETAIL:
+          if(!value.isEmpty) {
+            if(!_isSubmitDisable) {
+              _buttonText = Text(LABEL_SEND);
+            }
+          } else {
+            _formKey.currentState.save();
+            if(!_isSubmitDisable) {
+              _buttonText = Text(LABEL_MORE_DETAIL);
+            }
+          }
+          break;        
+      }
+      return rv;
+    }
+    void sendMessage() {
+      if (_formKey.currentState.validate()) {
+  //    If all data are correct then save data to out variables
+        _formKey.currentState.save();
+        List<String> tags = [this._firstTag];
+        chatModel.sendTopicMessage(this.messageLocation, this._parentTitle, tags, this._desc, this._type, this._isShowGeo);
+        onBackPress();
+      }
+    };
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget> [
+              Expanded(child: new Text(LABEL_IN)),
+              Expanded(child: new DropdownButton(
+                value: _currentLocationSelection,
+                items: _locationDropDownMenuItems,
+                onChanged: updateLocation,
+              )),
+              Expanded(child: new Text(LABEL_HAS)),
+              Expanded(child: new DropdownButton(
+                value: _firstTag,
+                items: _tagDropDownMenuItems,
+                onChanged: (String value) {setState(() {_firstTag = value;});},
+              )),
+            ]
+          ),
+          const SizedBox(height: 24.0),
+          TextFormField(
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              border: UnderlineInputBorder(),
+              filled: true,
+              icon: Icon(Icons.person),
+              hintText: HINT_TOPIC,
+              labelText: LABEL_TOPIC,
+            ),
+            validator: (value) {
+              validation(LABEL_TOPIC, value);
+            },
+            onSaved: (String value) {this._parentTitle = value;},
+        // validator: _validateName,
+          ),
+          const SizedBox(height: 24.0),
+          TextFormField(
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: HINT_DEATIL,
+              helperText: HELPER_DETAIL,
+              labelText: LABEL_DETAIL,
+            ),
+            maxLines: 3,
+            validator: (value) {
+              validation(LABEL_DETAIL, value);
+            },
+            onSaved: (String value) {this._desc = value;},
+          ),
+          Row(
+            children: <Widget> [
+                Switch.adaptive(
+                  value: _isShowGeo,
+                  onChanged: (bool value) {
+                      _isShowGeo = value;
+                  }
+                ),
+                Text(LABEL_MUST_SHOW_GEO)
+            ]
+          ),
+          RaisedButton(
+            child: _buttonText,
+            onPressed: _isSubmitDisable ? null : sendMessage,
+          )
+        ],
+      )
+    );
   }
 }
