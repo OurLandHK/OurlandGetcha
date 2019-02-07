@@ -43,6 +43,7 @@ const String LABEL_MUST_SHOW_GEO = "Reply need to show location";
 const String LABEL_MISSING_TOPIC = "Missing Topic";
 const String LABEL_MORE_DETAIL = "More Detail is Better";
 const String LABEL_SEND = "Send";
+const String LABEL_NOBODY = "沒有人";
 
 
 const String TOPIC_ROOT_ID = "";

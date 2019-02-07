@@ -18,9 +18,8 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/pages/chat_map.dart';
-import 'package:ourland_native/widgets/chat_message.dart';
+import 'package:ourland_native/widgets/Topic_message.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
-import 'package:ourland_native/widgets/send_message.dart';
 
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -149,30 +148,11 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   }
 
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
-    //return new Text(messageId);
-    
-    return FutureBuilder<Widget>(
-      future: buildFutureItem(messageId, document['geotopleft'], document['geobottomright'], _onTap), // a previously-obtained Future<String> or null
-      builder: (context, AsyncSnapshot<Widget> snapshot) {
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-          case ConnectionState.active:
-          case ConnectionState.waiting:
-            return new CircularProgressIndicator();
-          case ConnectionState.done:
-            return snapshot.data;
-        }
-        return null; // unreachable
-      },
-    );
-  }
-
-  Future<Widget> buildFutureItem(String messageId, GeoPoint topLeft, GeoPoint bottomRight, Function _onTap) async {
-      return this.chatModel.getMessage(messageId).then((value) {
-        GeoPoint location = value['geo'];
-        this.chatMap.addLocation(location, value['content'], value['type'], "Test");
-        return new ChatMessage(messageBody: value, parentId: TOPIC_ROOT_ID, messageId: messageId, geoTopLeft: topLeft, geoBottomRight: bottomRight, onTap: _onTap, user: widget.user);
-      });
+    Widget rv; 
+    GeoPoint location = GeoHelper.boxCenter(document['geotopleft'], document['geobottomright']);
+    this.chatMap.addLocation(location, document['topic'], document['type'], "Test");
+    rv = new TopicMessage(user: widget.user, messageBody: document, messageId: messageId, geoTopLeft: document['geotopleft'], geoBottomRight: document['geobottomright'], onTap: _onTap);
+    return rv;
   }
 
   bool isLastMessageLeft(int index) {
