@@ -31,7 +31,7 @@ class PopupMenu extends StatelessWidget {
     } else if(item == MENU_ITEM_LOGOUT){
       userService.logout();
 
-      Navigator.of(context).push(
+      Navigator.of(context).pushReplacement(
           new MaterialPageRoute(
               builder: (context) => PhoneAuthenticationScreen()
           )
