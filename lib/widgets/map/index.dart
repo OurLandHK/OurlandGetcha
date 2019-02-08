@@ -25,7 +25,7 @@ class GoogleMapWidget extends StatefulWidget {
 //              icon: BitmapDescriptor.fromAsset('images/flutter.png',),
 //              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
               );
-    state.mapController.addMarker(markerOptions);
+    state.addMarker(markerOptions);
   }
 
   @override
@@ -36,6 +36,8 @@ class GoogleMapWidget extends StatefulWidget {
 }
 
 class _GoogleMapWidgetState extends State<GoogleMapWidget> {
+  List<MarkerOptions> pendingMarkerList;
+  _GoogleMapWidgetState() {pendingMarkerList = new List<MarkerOptions>();}
 
   GoogleMapController mapController;
 
@@ -63,7 +65,20 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
     );
   }
 
+  void addMarker(MarkerOptions options) {
+    if(mapController != null) {
+      mapController.addMarker(options);
+    } else {
+      pendingMarkerList.add(options);
+    }
+  }
+
   void _onMapCreated(GoogleMapController controller) {
-    setState(() { mapController = controller; });
+    setState(() { 
+      mapController = controller; 
+      pendingMarkerList.forEach((option) {
+        mapController.addMarker(option);
+      } );
+    });
   }
 }

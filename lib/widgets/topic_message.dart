@@ -26,6 +26,11 @@ class TopicMessage extends StatelessWidget {
       this.geoBottomRight})
       : super(key: key);
 
+  bool isLink() {
+    String topic = this.messageBody['topic'];
+    return topic.contains("http");
+  }
+
   Widget build(BuildContext context) {
     void _onTap() {
       //print("onTap");
@@ -36,77 +41,32 @@ class TopicMessage extends StatelessWidget {
     Widget rv;
     Container messageWidget;
     //print(this.messageId);
-    switch (messageBody['type']) {
-      case 0:
+    if(isLink()) {
+      messageWidget = Container(
+        child: RichLinkPreview(
+            link: messageBody['topic'],
+            appendToLink: true,
+            backgroundColor: primaryColor,
+            borderColor: primaryColor,
+            textColor: Colors.white),
+        padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
+        // width: 200.0,
+        //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
+        // margin: EdgeInsets.only(left: 10.0),
+      );
+    } else {
         messageWidget = Container(
-          child: RichLinkPreview(
-              link: messageBody['topic'],
-              appendToLink: true,
-              backgroundColor: primaryColor,
-              borderColor: primaryColor,
-              textColor: Colors.white),
-          padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
-          width: 200.0,
-          //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
-          margin: EdgeInsets.only(left: 10.0),
-        );
-        break;
-      case 1:
-        messageWidget = Container(
-          child: Material(
-            child: CachedNetworkImage(
-              placeholder: Container(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(themeColor),
-                ),
-                width: 200.0,
-                height: 200.0,
-                padding: EdgeInsets.all(70.0),
-                //decoration: BoxDecoration(color: greyColor2, borderRadius: BorderRadius.all(Radius.circular(8.0),),),
-              ),
-              errorWidget: Material(
-                child: Image.asset(
-                  'images/img_not_available.jpeg',
-                  width: 200.0,
-                  height: 200.0,
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.all(
-                  Radius.circular(8.0),
-                ),
-                clipBehavior: Clip.hardEdge,
-              ),
-              imageUrl: messageBody['content'],
-              width: 200.0,
-              height: 200.0,
-              fit: BoxFit.cover,
-            ),
-            borderRadius: BorderRadius.all(Radius.circular(8.0)),
-            clipBehavior: Clip.hardEdge,
+        child: Text(
+          messageBody['topic'],
+            style: TextStyle(
+              color: Colors.black, fontSize: 14.0, fontStyle: FontStyle.normal),
           ),
-          margin: EdgeInsets.only(left: 10.0),
-        );
-        break;
-      default:
-        messageWidget = Container(
-          child: Text(
-            messageBody['topic'],
-            style: TextStyle(color: Colors.white),
-          ),
-          alignment: Alignment.centerLeft,
-          padding: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
+          padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
           //width: 200.0,
           //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
           margin: EdgeInsets.only(left: 10.0),
-          //margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
-        );
+        );         
     }
-    Row row = new Row(
-      children: <Widget>[
-        Container(width: 35.0), // Should be fild with user avator
-        messageWidget,
-      ],
-    );
     // Time
     Container timeWidget = Container(
       child: Text(
@@ -116,61 +76,62 @@ class TopicMessage extends StatelessWidget {
         style: TextStyle(
             color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
       ),
-      margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
+      //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
     );
-    //Widget content = row;
-/*    content = new GestureDetector(onTap: _onTap, child: row);
-    rv = Container(
-      child: Column(
-        children: <Widget>[
-          content,
-          timeWidget,
-        ],
-        crossAxisAlignment: CrossAxisAlignment.start,
-      ),
-      margin: EdgeInsets.only(bottom: 10.0),
-    );*/
-    rv = Container(
+    if(isLink()) {
+      Widget content = new GestureDetector(onTap: _onTap, child: messageWidget);
+      rv = Container(
+        child: Column(
+          children: <Widget>[
+            content,
+            timeWidget,
+          ],
+          crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        margin: EdgeInsets.only(bottom: 10.0),
+      );
+    } else {
+      rv = Container(
         child: FlatButton(
           child: Row(
             children: <Widget>[
-              Material(
-                child: CachedNetworkImage(
-                  placeholder: Container(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1.0,
-                      valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+              Column(
+                children: <Widget>[
+                  Material(
+                    child: CachedNetworkImage(
+                      placeholder: Container(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.0,
+                          valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                        ),
+                        width: 50.0,
+                        height: 50.0,
+                        padding: EdgeInsets.all(15.0),
+                      ),
+                      imageUrl: (messageBody['createdUser'] != null) ? messageBody['createdUser']['avatarUrl'] : 'assets/images/default-avatar.jpg',
+                      width: 50.0,
+                      height: 50.0,
+                      fit: BoxFit.cover,
                     ),
-                    width: 50.0,
-                    height: 50.0,
-                    padding: EdgeInsets.all(15.0),
+                    borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                    clipBehavior: Clip.hardEdge,
                   ),
-                  imageUrl: (messageBody['createdUser'] != null) ? messageBody['createdUser']['avatarUrl'] : 'assets/images/default-avatar.jpg',
-                  width: 50.0,
-                  height: 50.0,
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                clipBehavior: Clip.hardEdge,
+                  Container(
+                    child: Text(
+                      (messageBody['createdUser'] != null) ? messageBody['createdUser']['user'] : LABEL_NOBODY,
+                      style: TextStyle(color: primaryColor),
+                    ),
+                    alignment: Alignment.center,
+                    margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
+                  ),
+                ]
               ),
               Flexible(
                 child: Container(
                   child: Column(
                     children: <Widget>[
-                      Row(
-                        children: <Widget> [
-                          Container(
-                            child: Text(
-                              (messageBody['createdUser'] != null) ? messageBody['createdUser']['user'] : LABEL_NOBODY,
-                              style: TextStyle(color: primaryColor),
-                            ),
-                            alignment: Alignment.centerLeft,
-                            margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                          ),
-                          timeWidget
-                        ]
-                      ),
-                      row,
+                      messageWidget,
+                      timeWidget
                     ],
                   ),
                   margin: EdgeInsets.only(left: 20.0),
@@ -180,11 +141,12 @@ class TopicMessage extends StatelessWidget {
           ),
           onPressed: _onTap,
           color: greyColor2,
-          padding: EdgeInsets.fromLTRB(25.0, 10.0, 25.0, 10.0),
+          padding: EdgeInsets.fromLTRB(5.0, 10.0, 10.0, 5.0),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
         ),
         margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
       );
+    }
     return rv;
   }
 }

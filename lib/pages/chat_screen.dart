@@ -200,8 +200,12 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     return rv;
   }
 
+  bool isCurrentUser(int index) {
+    return(listMessage[index]['createdUser'] != null && listMessage[index]['createdUser']['uuid'] == widget.user.uuid);
+  }
+
   bool isLastMessageLeft(int index) {
-    if ((index > 0 && listMessage != null && listMessage[index - 1]['idFrom'] == id) || index == 0) {
+    if ((index > 0 && listMessage != null && isCurrentUser(index - 1)) || index == 0) {
       return true;
     } else {
       return false;
@@ -209,7 +213,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   }
 
   bool isLastMessageRight(int index) {
-    if ((index > 0 && listMessage != null && listMessage[index - 1]['idFrom'] != id) || index == 0) {
+    if ((index > 0 && listMessage != null && !isCurrentUser(index - 1)) || index == 0) {
       return true;
     } else {
       return false;

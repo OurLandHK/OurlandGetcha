@@ -21,7 +21,7 @@ class ChatMap extends StatefulWidget {
         label = username;
     }
     // only handle text message now
-    if(contentType == 0 && state != null && state.googleMapWidget != null) {
+    if(state != null && state.googleMapWidget != null) {
       state.googleMapWidget.addMarker(location, label);
     } 
   }
