@@ -18,9 +18,8 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/pages/chat_map.dart';
-import 'package:ourland_native/widgets/chat_message.dart';
+import 'package:ourland_native/widgets/Topic_message.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
-import 'package:ourland_native/widgets/send_message.dart';
 
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -38,7 +37,6 @@ class TopicScreen extends StatefulWidget {
 class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin  {
   TopicScreenState({Key key, @required this.fixLocation});
   GeoPoint fixLocation;
-  String id;
   ChatModel chatModel;
   ChatMap chatMap;
 
@@ -71,7 +69,6 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
 
     isLoading = false;
 
-    readLocal();
     initPlatformState();
     if(this.fixLocation == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
@@ -142,53 +139,20 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     }
   }
 
-  readLocal() async {
-    prefs = await SharedPreferences.getInstance();
-    id = prefs.getString('id') ?? '';
-    setState(() {});
-  }
-
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
-    //return new Text(messageId);
-    
-    return FutureBuilder<Widget>(
-      future: buildFutureItem(messageId, document['geotopleft'], document['geobottomright'], _onTap), // a previously-obtained Future<String> or null
-      builder: (context, AsyncSnapshot<Widget> snapshot) {
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-          case ConnectionState.active:
-          case ConnectionState.waiting:
-            return new CircularProgressIndicator();
-          case ConnectionState.done:
-            return snapshot.data;
-        }
-        return null; // unreachable
-      },
-    );
-  }
-
-  Future<Widget> buildFutureItem(String messageId, GeoPoint topLeft, GeoPoint bottomRight, Function _onTap) async {
-      return this.chatModel.getMessage(messageId).then((value) {
-        GeoPoint location = value['geo'];
-        this.chatMap.addLocation(location, value['content'], value['type'], "Test");
-        return new ChatMessage(messageBody: value, parentId: TOPIC_ROOT_ID, messageId: messageId, geoTopLeft: topLeft, geoBottomRight: bottomRight, onTap: _onTap, user: widget.user);
-      });
-  }
-
-  bool isLastMessageLeft(int index) {
-    if ((index > 0 && listMessage != null && listMessage[index - 1]['idFrom'] == id) || index == 0) {
-      return true;
-    } else {
-      return false;
+    Widget rv; 
+    int type = 0;
+    if(document['type'] != null) {
+      type = document['type'];
     }
-  }
-
-  bool isLastMessageRight(int index) {
-    if ((index > 0 && listMessage != null && listMessage[index - 1]['idFrom'] != id) || index == 0) {
-      return true;
-    } else {
-      return false;
+    String userName = "Test";
+    if(document['createdUser'] != null) {
+      userName = document['createdUser']['user'];
     }
+    GeoPoint location = GeoHelper.boxCenter(document['geotopleft'], document['geobottomright']);
+    this.chatMap.addLocation(location, document['topic'], type, userName);
+    rv = new TopicMessage(user: widget.user, messageBody: document, messageId: messageId, geoTopLeft: document['geotopleft'], geoBottomRight: document['geobottomright'], onTap: _onTap);
+    return rv;
   }
 
   @override
@@ -215,9 +179,6 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         buildLoading(),
       ],
     );
-/*            (this.messageLocation != null) ? 
-              SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(), 
-*/
   }
   Widget buildLoading() {
     return Positioned(

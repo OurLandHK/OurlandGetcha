@@ -28,15 +28,15 @@ class ChatMessage extends StatelessWidget {
       this.geoBottomRight})
       : super(key: key);
 
-  Widget build(BuildContext context) {
-    void _onTap() {
-      //print("onTap");
-      this.onTap(this.messageBody['id'], this.messageBody['content'],
-          this.geoTopLeft, this.geoBottomRight);
-    }
+  bool isCurrentUser() {
+    return(messageBody['createdUser'] != null && messageBody['createdUser']['uuid'] == this.user.uuid);
+  }    
 
+  Widget build(BuildContext context) {
     Widget rv;
     Container messageWidget;
+    EdgeInsets margin = isCurrentUser() ? EdgeInsets.only(right: 10.0) : EdgeInsets.only(left: 10.0);
+    EdgeInsets timeMargin = isCurrentUser() ? EdgeInsets.only(right: 50.0, top: 5.0, bottom: 5.0) : EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0);
     //print(this.messageId);
     switch (messageBody['type']) {
       case 0:
@@ -51,7 +51,7 @@ class ChatMessage extends StatelessWidget {
           width: 200.0,
           decoration: BoxDecoration(
               color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
-          margin: EdgeInsets.only(left: 10.0),
+          margin: margin,
         );
         break;
       case 1:
@@ -92,7 +92,7 @@ class ChatMessage extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(8.0)),
             clipBehavior: Clip.hardEdge,
           ),
-          margin: EdgeInsets.only(left: 10.0),
+          margin: margin,
         );
         break;
       default:
@@ -103,7 +103,7 @@ class ChatMessage extends StatelessWidget {
             height: 100.0,
             fit: BoxFit.cover,
           ),
-          margin: EdgeInsets.only(bottom: 10.0, right: 10.0),
+          margin: margin,
         );
     }
     Row row = new Row(
@@ -121,12 +121,9 @@ class ChatMessage extends StatelessWidget {
         style: TextStyle(
             color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
       ),
-      margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
+      margin: timeMargin,
     );
     Widget content = row;
-    if (this.parentId.length == TOPIC_ROOT_ID.length) {
-      content = new GestureDetector(onTap: _onTap, child: row);
-    }
     rv = Container(
       child: Column(
         children: <Widget>[
