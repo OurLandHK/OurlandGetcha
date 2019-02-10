@@ -11,7 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class PhoneAuthenticationScreen extends StatefulWidget {
   @override
-  _PhoneAuthenticationScreenState createState() => new _PhoneAuthenticationScreenState();
+  _PhoneAuthenticationScreenState createState() =>
+      new _PhoneAuthenticationScreenState();
 }
 
 class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
@@ -34,17 +35,15 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
       UserService userService = new UserService();
       userService.getUser(fbuser.uid).then((user) {
         Navigator.of(context).pushReplacement(
-            new MaterialPageRoute(
-                builder: (context) => OurlandHome(user)
-            )
-        );
+            new MaterialPageRoute(builder: (context) => OurlandHome(user)));
       });
     }
   }
 
   verifyPhoneField(context) {
-    if(this.phoneNumber == null) {
-      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
+    if (this.phoneNumber == null) {
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
     }
 //    else if(this.phoneNumber.startsWith('+') == false){
 //      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT)));
@@ -71,7 +70,8 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     };
 
     final PhoneVerificationFailed veriFailed = (AuthException exception) {
-      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(exception.message)));
+      _scaffoldKey.currentState
+          .showSnackBar(new SnackBar(content: new Text(exception.message)));
     };
 
     await FirebaseAuth.instance.verifyPhoneNumber(
@@ -92,11 +92,10 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
           return new AlertDialog(
             title: Text(SMS_CODE_DIALOG_TITLE),
             content: TextField(
-              onChanged: (value) {
-                this.smsCode = value;
-              },
-              keyboardType: TextInputType.phone
-            ),
+                onChanged: (value) {
+                  this.smsCode = value;
+                },
+                keyboardType: TextInputType.phone),
             contentPadding: EdgeInsets.all(10.0),
             actions: <Widget>[
               new FlatButton(
@@ -104,24 +103,19 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 onPressed: () {
                   FirebaseAuth.instance.currentUser().then((fbuser) {
                     if (fbuser != null) {
-                        userService.getUser(fbuser.uid).then((user) {
-                          if(user != null) {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pushReplacement(
+                      userService.getUser(fbuser.uid).then((user) {
+                        if (user != null) {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushReplacement(
                               new MaterialPageRoute(
-                                builder: (context) => OurlandHome(user)
-                              )
-                            );
-                          } else {
-                            Navigator.of(context).push(
-                              new MaterialPageRoute(
-                              builder: (context) => RegistrationScreen(fbuser)
-                              )
-                            );
-                          }
-                        });
-                    }
-                    else {
+                                  builder: (context) => OurlandHome(user)));
+                        } else {
+                          Navigator.of(context).push(new MaterialPageRoute(
+                              builder: (context) =>
+                                  RegistrationScreen(fbuser)));
+                        }
+                      });
+                    } else {
                       Navigator.of(context).pop();
                       signIn(context);
                     }
@@ -142,49 +136,43 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     );
     FirebaseAuth.instance.signInWithCredential(credential)
     */
-    FirebaseAuth.instance.signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
+    FirebaseAuth.instance
+        .signInWithPhoneNumber(verificationId: verificationId, smsCode: smsCode)
         .then((fbuser) {
-          print("${fbuser}");
-          if(fbuser != null) {
-              userService.getUser(fbuser.uid).then((user) {
-                if(user != null) {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => OurlandHome(user)
-                    )
-                  );
-                } else {
-                  Navigator.of(context).push(
-                    new MaterialPageRoute(
-                    builder: (context) => RegistrationScreen(fbuser)
-                   )
-                  );
-                }
-              });
+      print("${fbuser}");
+      if (fbuser != null) {
+        userService.getUser(fbuser.uid).then((user) {
+          if (user != null) {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => OurlandHome(user)));
           } else {
-            _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
+            Navigator.of(context).push(new MaterialPageRoute(
+                builder: (context) => RegistrationScreen(fbuser)));
           }
+        });
+      } else {
+        _scaffoldKey.currentState.showSnackBar(
+            new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
+      }
     }).catchError((e) {
       print(e);
-      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
     });
   }
 
   renderAppLogo() {
     return Container(
-      width: 120.0,
-      height: 120.0,
-      margin: const EdgeInsets.only(bottom: 40.0),
-      decoration: new BoxDecoration(
-      image: new DecorationImage(
-      fit: BoxFit.fill,
-        image: new ExactAssetImage(APP_LOGO_IMAGE_PATH),
-      )
-     )
-    );
+        width: 120.0,
+        height: 120.0,
+        margin: const EdgeInsets.only(bottom: 40.0),
+        decoration: new BoxDecoration(
+            image: new DecorationImage(
+          fit: BoxFit.fill,
+          image: new ExactAssetImage(APP_LOGO_IMAGE_PATH),
+        )));
   }
-
 
   renderPhoneNumberField() {
     return TextField(
@@ -192,8 +180,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         onChanged: (value) {
           this.phoneNumber = value;
         },
-        keyboardType: TextInputType.phone
-    );
+        keyboardType: TextInputType.phone);
   }
 
   renderSubmitButton(context) {
@@ -202,8 +189,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         child: Text(REG_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
-        color: Colors.blue
-    );
+        color: Colors.blue);
   }
 
   renderSizeBox() {
@@ -236,8 +222,9 @@ class RegistrationScreen extends StatefulWidget {
   final FirebaseUser user;
 
   RegistrationScreen(this.user) {
-    if (user  == null) {
-      throw new ArgumentError("[RegistrationScreen] firebase user cannot be null.");
+    if (user == null) {
+      throw new ArgumentError(
+          "[RegistrationScreen] firebase user cannot be null.");
     }
   }
 
@@ -246,7 +233,6 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-
   UserService userService = new UserService();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -282,12 +268,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             decoration: new BoxDecoration(
                 shape: BoxShape.circle,
                 image: new DecorationImage(
-                    fit: BoxFit.fill,
-                    image: avatarImage == null ? new ExactAssetImage(DEFAULT_AVATAR_IMAGE_PATH) : new ExactAssetImage(avatarImage.path),
-                    )
-            )
-        )
-    );
+                  fit: BoxFit.fill,
+                  image: avatarImage == null
+                      ? new ExactAssetImage(DEFAULT_AVATAR_IMAGE_PATH)
+                      : new ExactAssetImage(avatarImage.path),
+                ))));
   }
 
   renderUsernameField() {
@@ -296,8 +281,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         onChanged: (value) {
           this.username = value;
         },
-        keyboardType: TextInputType.text
-    );
+        keyboardType: TextInputType.text);
   }
 
   renderAddressField() {
@@ -306,8 +290,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         onChanged: (value) {
           this.address = value;
         },
-        keyboardType: TextInputType.text
-    );
+        keyboardType: TextInputType.text);
   }
 
   renderSubmitButton(context) {
@@ -316,28 +299,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         child: Text(REG_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
-        color: Colors.blue
-    );
+        color: Colors.blue);
   }
 
   validateInput(context) {
-      if(this.username == null) {
-        _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_USERNAME_NULL_TEXT)));
-      } else{
-        register(context);
-      }
+    if (this.username == null) {
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(content: new Text(VAL_USERNAME_NULL_TEXT)));
+    } else {
+      register(context);
+    }
   }
 
   register(context) {
-    userService.register(widget.user.uid, this.username, this.avatarImage, this.address).then((user) {
-      if(user == null) {
-        _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
+    userService
+        .register(
+            widget.user.uid, this.username, this.avatarImage, this.address)
+        .then((user) {
+      if (user == null) {
+        _scaffoldKey.currentState.showSnackBar(
+            new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
       } else {
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-                builder: (context) => OurlandHome(user)
-            )
-        );
+            MaterialPageRoute(builder: (context) => OurlandHome(user)));
       }
     });
   }
@@ -345,22 +329,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-        key: _scaffoldKey,
-        body: new Center(
-            child: Container(
-                padding: EdgeInsets.all(25.0),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      renderAvatar(),
-                      renderSizeBox(),
-                      renderUsernameField(),
-                      renderSizeBox(),
-                      renderAddressField(),
-                      renderSubmitButton(context)
-                    ]
-                )),
-            ),
-        );
+      key: _scaffoldKey,
+      body: new Center(
+        child: Container(
+            padding: EdgeInsets.all(25.0),
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  renderAvatar(),
+                  renderSizeBox(),
+                  renderUsernameField(),
+                  renderSizeBox(),
+                  renderAddressField(),
+                  renderSubmitButton(context)
+                ])),
+      ),
+    );
   }
 }
