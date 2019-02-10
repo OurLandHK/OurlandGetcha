@@ -45,9 +45,11 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   verifyPhoneField(context) {
     if(this.phoneNumber == null) {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
-    } else if(this.phoneNumber.startsWith('+') == false){
-      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT)));
-    } else {
+    }
+//    else if(this.phoneNumber.startsWith('+') == false){
+//      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT)));
+//    }
+    else {
       verifyPhone(context);
     }
   }
@@ -73,7 +75,8 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     };
 
     await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: this.phoneNumber,
+        // set +852 as default dial code temporarily
+        phoneNumber: '+852' + this.phoneNumber,
         codeAutoRetrievalTimeout: autoRetrieve,
         codeSent: smsCodeSent,
         timeout: const Duration(seconds: 5),
