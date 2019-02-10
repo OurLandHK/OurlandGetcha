@@ -42,7 +42,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     }
   }
 
-  verifyPhoneFeild(context) {
+  verifyPhoneField(context) {
     if(this.phoneNumber == null) {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(VAL_PHONE_NUMBER_NULL_TEXT)));
     } else if(this.phoneNumber.startsWith('+') == false){
@@ -195,7 +195,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
 
   renderSubmitButton(context) {
     return RaisedButton(
-        onPressed: () => verifyPhoneFeild(context),
+        onPressed: () => verifyPhoneField(context),
         child: Text(REG_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
