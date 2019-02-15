@@ -132,7 +132,9 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
       verificationId: verificationId,
       smsCode: smsCode,
     );
-    FirebaseAuth.instance.signInWithCredential(credential).then((FirebaseUser fbuser) {
+    FirebaseAuth.instance
+        .signInWithCredential(credential)
+        .then((FirebaseUser fbuser) {
       print("${fbuser}");
       if (fbuser != null) {
         userService.getUser(fbuser.uid).then((user) {
