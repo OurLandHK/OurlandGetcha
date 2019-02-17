@@ -50,7 +50,18 @@ class _OurlandHomeState extends State<OurlandHome>
       if (permission == PermissionStatus.granted) {
         _locationPermissionGranted = true;
       } else {
-        _locationPermissionGranted = false;
+        requestLocationPermission();
+      }
+    });
+  }
+
+  requestLocationPermission() {
+    PermissionHandler().requestPermissions([PermissionGroup.location]).then(
+        (Map<PermissionGroup, PermissionStatus> permissions) {
+      if (permissions[PermissionGroup.location] == PermissionStatus.granted) {
+        setState(() {
+          _locationPermissionGranted = true;
+        });
       }
     });
   }
@@ -134,20 +145,8 @@ class _OurlandHomeState extends State<OurlandHome>
               padding: const EdgeInsets.all(8.0),
               textColor: Colors.white,
               color: Colors.blue,
-              onPressed: () {
-                PermissionHandler()
-                    .requestPermissions([PermissionGroup.location]).then(
-                        (Map<PermissionGroup, PermissionStatus> permissions) {
-                  print(permissions[PermissionGroup.location].toString());
-                  if (permissions[PermissionGroup.location] ==
-                      PermissionStatus.granted) {
-                    setState(() {
-                      _locationPermissionGranted = true;
-                    });
-                  }
-                });
-              },
-              child: new Text("Retry"),
+              onPressed: requestLocationPermission,
+              child: new Text(PERM_LOCATION_GRANT_BTN_TEXT),
             ),
           ],
         )),
