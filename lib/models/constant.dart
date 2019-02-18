@@ -44,6 +44,8 @@ const String LABEL_MISSING_TOPIC = "Missing Topic";
 const String LABEL_MORE_DETAIL = "More Detail is Better";
 const String LABEL_SEND = "Send";
 const String LABEL_NOBODY = "沒有人";
+const String PERM_LOCATION_NOT_GRANTED = "Location permission is required";
+const String PERM_LOCATION_GRANT_BTN_TEXT = "Retry";
 
 
 const String TOPIC_ROOT_ID = "";
