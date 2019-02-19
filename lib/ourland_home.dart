@@ -48,7 +48,9 @@ class _OurlandHomeState extends State<OurlandHome>
         .checkPermissionStatus(PermissionGroup.location)
         .then((PermissionStatus permission) {
       if (permission == PermissionStatus.granted) {
-        _locationPermissionGranted = true;
+        setState(() {
+          _locationPermissionGranted = true;
+        });
       } else {
         requestLocationPermission();
       }
