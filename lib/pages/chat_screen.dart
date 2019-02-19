@@ -18,7 +18,7 @@ import 'package:ourland_native/models/user_model.dart';
 import '../models/chat_model.dart';
 import './chat_map.dart';
 import '../widgets/chat_message.dart';
-import '../helper/geo_helper.dart';
+import 'package:ourland_native/helper/geo_helper.dart';
 import '../widgets/send_message.dart';
 
 final analytics = new FirebaseAnalytics();
@@ -28,10 +28,11 @@ final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 class Chat extends StatelessWidget {
   final String parentId;
   final String parentTitle;
-  final GeoPoint fixLocation;
+  final GeoPoint topLeft;
+  final GeoPoint bottomRight;
   final GeoPoint messageLocation;
   final User user;
-  Chat({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
+  Chat({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.topLeft, this.bottomRight, this.messageLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +50,8 @@ class Chat extends StatelessWidget {
             user: this.user,
             parentId: this.parentId,
             parentTitle: this.parentTitle,
-            fixLocation: this.fixLocation,
+            topLeft: this.topLeft,
+            bottomRight: this.bottomRight,
             messageLocation: this.messageLocation
           ),
         );
@@ -59,22 +61,24 @@ class Chat extends StatelessWidget {
 class ChatScreen extends StatefulWidget {
   final String parentId;
   final String parentTitle;
-  final GeoPoint fixLocation;
+  final GeoPoint topLeft;
+  final GeoPoint bottomRight;
   final GeoPoint messageLocation;
   final User user;
 
-  ChatScreen({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.fixLocation, this.messageLocation}) : super(key: key);
+  ChatScreen({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.topLeft, this.bottomRight, this.messageLocation}) : super(key: key);
 
   @override
-  State createState() => new ChatScreenState(parentId: this.parentId, parentTitle: this.parentTitle, fixLocation: this.fixLocation, messageLocation: this.messageLocation);
+  State createState() => new ChatScreenState(parentId: this.parentId, parentTitle: this.parentTitle, topLeft: this.topLeft, bottomRight: this.bottomRight, messageLocation: this.messageLocation);
 }
 
 class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
-  ChatScreenState({Key key, @required this.parentId, @required this.parentTitle, @required this.fixLocation, this.messageLocation});
+  ChatScreenState({Key key, @required this.parentId, @required this.parentTitle, @required this.topLeft, @required this.bottomRight, this.messageLocation});
 
   String parentId;
   String parentTitle;
-  GeoPoint fixLocation;
+  GeoPoint topLeft;
+  GeoPoint bottomRight;
   String id;
   ChatModel chatModel;
   ChatMap chatMap;
@@ -111,7 +115,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
     readLocal();
     initPlatformState();
-    if(this.fixLocation == null) {
+    if(this.topLeft == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {
           if(position != null) {
@@ -120,24 +124,23 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
             if(this.chatMap == null) {        
-              this.chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
+              this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
             } else {
               this.chatMap.updateCenter(mapCenter);
             }
           }
         });
     } else {
-      print('FixLocation ${this.fixLocation.latitude} , ${this.fixLocation.longitude}');
-      this.chatMap = new ChatMap(mapCenter: this.fixLocation, height: MAP_HEIGHT);
+      this.chatMap = new ChatMap(topLeft: this.topLeft, bottomRight: this.bottomRight, height: MAP_HEIGHT);
       if(this.messageLocation == null) {
-        this.messageLocation = this.fixLocation;
+        this.messageLocation = GeoHelper.boxCenter(this.topLeft, this.bottomRight);;
       }
     }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
-    if(this.fixLocation == null) {
+    if(this.topLeft == null) {
       Position location;
       // Platform messages may fail, so we use a try/catch PlatformException.
 
@@ -166,7 +169,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
+            chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
           }
       });
     }
@@ -230,14 +233,14 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     void _onTap(String messageId, String parentTitle, GeoPoint topLeft, GeoPoint bottomRight) {
       print("onTap");
       GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-      if(this.fixLocation != null) {
-        _messageLocation = this.fixLocation;
+      if(this.messageLocation != null) {
+        _messageLocation = this.messageLocation;
       }
       GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new Chat(user: widget.user, parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter, messageLocation: _messageLocation);
+            return new Chat(user: widget.user, parentId: messageId, parentTitle: parentTitle, topLeft: topLeft, bottomRight: bottomRight, messageLocation: _messageLocation);
           },
         ),
       );
