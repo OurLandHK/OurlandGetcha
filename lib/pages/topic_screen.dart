@@ -79,7 +79,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
             if(this.chatMap == null) {        
-              this.chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
+              this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
             } else {
               this.chatMap.updateCenter(mapCenter);
             }
@@ -87,7 +87,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         });
     } else {
       print('FixLocation ${this.fixLocation.latitude} , ${this.fixLocation.longitude}');
-      this.chatMap = new ChatMap(mapCenter: this.fixLocation, height: MAP_HEIGHT);
+      this.chatMap = new ChatMap(topLeft: this.fixLocation, bottomRight: this.fixLocation, height: MAP_HEIGHT);
       if(this.messageLocation == null) {
         this.messageLocation = this.fixLocation;
       }
@@ -125,7 +125,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
+            chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT);
           }
       });
     }
@@ -163,11 +163,11 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       if(this.fixLocation != null) {
         _messageLocation = this.fixLocation;
       }
-      GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
+      //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new Chat(user: widget.user, parentId: messageId, parentTitle: parentTitle, fixLocation: mapCenter, messageLocation: _messageLocation);
+            return new Chat(user: widget.user, parentId: messageId, parentTitle: parentTitle, topLeft: topLeft, bottomRight: bottomRight, messageLocation: _messageLocation);
           },
         ),
       );

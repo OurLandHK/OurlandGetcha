@@ -7,14 +7,16 @@ class GoogleMapWidget extends StatefulWidget {
   final double latitude;
   final double longitude;
   final double height;
+  double zoom;
   _GoogleMapWidgetState state;
 
-  GoogleMapWidget(this.latitude, this.longitude ,@required this.height);
+  GoogleMapWidget(this.latitude, this.longitude ,@required this.height, this.zoom);
 
-  void updateMapCenter (GeoPoint center) {
-//    print('GoogleMapWidget called ${center}');
+  void updateMapCenter (GeoPoint center, double zoom) {
+    this.zoom = zoom;
+    print('GoogleMapWidget called ${center} ${zoom}');
      state.mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-        target: center == null ? LatLng(0, 0) : LatLng(center.latitude, center.longitude), zoom: 15.0)));
+        target: center == null ? LatLng(0, 0) : LatLng(center.latitude, center.longitude), zoom: this.zoom)));
   }
 
   void addMarker (GeoPoint location, String label) {
@@ -55,7 +57,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
                 myLocationEnabled: true,
                 initialCameraPosition:  new CameraPosition(
                   target: LatLng(widget.latitude, widget.longitude),
-                  zoom: 15.0,
+                  zoom: widget.zoom,
                 ),
               ),
             ),

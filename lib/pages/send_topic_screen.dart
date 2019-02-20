@@ -98,7 +98,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
             if(this.chatMap == null) {        
-              this.chatMap = new ChatMap(mapCenter: mapCenter, height: CREATE_TOPIC_MAP_HEIGHT);
+              this.chatMap = new ChatMap(topLeft: mapCenter, bottomRight: mapCenter, height: CREATE_TOPIC_MAP_HEIGHT);
             } else {
               this.chatMap.updateCenter(mapCenter);
             }
@@ -106,7 +106,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         });
     } else {
       print('messageLocation ${this.messageLocation.latitude} , ${this.messageLocation.longitude}');
-      this.chatMap = new ChatMap(mapCenter: this.messageLocation, height: CREATE_TOPIC_MAP_HEIGHT);
+      this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: CREATE_TOPIC_MAP_HEIGHT);
     }
   }
 
@@ -153,7 +153,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(mapCenter: mapCenter, height: CREATE_TOPIC_MAP_HEIGHT);
+            chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,height: CREATE_TOPIC_MAP_HEIGHT);
           }
       });
     }
@@ -187,7 +187,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
       }
       GeoPoint mapCenter = this.messageLocation;
       if(this.chatMap == null) {        
-        this.chatMap = new ChatMap(mapCenter: mapCenter, height: MAP_HEIGHT);
+        this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
       } else {
         this.chatMap.updateCenter(mapCenter);
       }
