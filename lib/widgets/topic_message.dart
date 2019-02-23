@@ -7,6 +7,7 @@ import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:open_graph_parser/open_graph_parser.dart';
 
 class TopicMessage extends StatelessWidget {
   final String messageId;
@@ -33,9 +34,15 @@ class TopicMessage extends StatelessWidget {
 
   Widget build(BuildContext context) {
     void _onTap() {
-      //print("onTap");
-      this.onTap(this.messageBody['id'], this.messageBody['topic'],
-          this.geoTopLeft, this.geoBottomRight);
+      if(isLink()) {
+        OpenGraphParser.getOpenGraphData(this.messageBody['topic']).then((Map data) {
+          this.onTap(this.messageBody['id'], data['title'],
+              this.geoTopLeft, this.geoBottomRight);
+        });
+      } else {
+        this.onTap(this.messageBody['id'], this.messageBody['topic'],
+            this.geoTopLeft, this.geoBottomRight);
+      }
     }
 
     Widget rv;
