@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,16 +9,16 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 
-//import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
-import '../models/chat_model.dart';
-import './chat_map.dart';
-import '../widgets/send_message.dart';
+import 'package:ourland_native/models/chat_model.dart';
+import 'package:ourland_native/pages/chat_map.dart';
 
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -37,6 +38,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   String id;
   ChatModel chatModel;
   ChatMap chatMap;
+  File imageFile;
 
   SharedPreferences prefs;
 
@@ -208,7 +210,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
              key: _formKey,
              autovalidate: true,
 //           onWillPop: _warnUserAboutInvalidData,
-            child: formUI()
+            child: formUI(context)
           )
         ],
       ),
@@ -218,7 +220,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
       key: _scaffoldKey,
       appBar: new AppBar(
         title: new Text(
-          "test",
+          "New Topic",
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -227,12 +229,69 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
       body: SafeArea(
         top: false,
         bottom: false,
-        child: body
+        child: SingleChildScrollView(
+          child: body
+        ),
       ),
     ); 
   }
 
-  Widget formUI() {
+  Future getImageFromGallery() async {
+    await getImage(ImageSource.gallery);
+  }
+
+  Future getImageFromCamera() async {
+    await getImage(ImageSource.camera);
+  }
+
+  Future getImage(ImageSource imageSource) async {
+    File newImageFile = await ImagePicker.pickImage(source: imageSource);
+
+    if (newImageFile != null) {
+      setState(() {
+        imageFile = newImageFile;
+        print("${imageFile.uri.toString()}");
+      });
+    }
+  }
+
+  Widget topicImageUI(BuildContext context) {
+    return 
+      Column(children: <Widget>[
+        Row(children: <Widget> [
+          Material(
+            child: new Container(
+              margin: new EdgeInsets.symmetric(horizontal: 1.0),
+              child: new IconButton(
+                icon: new Icon(Icons.image),
+                onPressed: getImageFromGallery,
+                color: primaryColor,
+              ),
+            ),
+            color: Colors.white,
+          ),
+          Material(
+            child: new Container(
+              margin: new EdgeInsets.symmetric(horizontal: 1.0),
+              child: new IconButton(
+                icon: new Icon(Icons.camera_enhance),
+                onPressed: getImageFromCamera,
+                color: primaryColor,
+              ),
+            ),
+            color: Colors.white,
+          ),
+          imageFile != null ? new Image.file(
+            imageFile, height:MAP_HEIGHT /* (MediaQuery.of(context).size.width - 50)*/
+          ) : new Container(), 
+        ]
+      )        
+    ],
+    crossAxisAlignment: CrossAxisAlignment.center,
+    );
+  }
+
+  Widget formUI(BuildContext context) {
     String validation(String label, String value) {
       String rv;
       switch(label) {
@@ -247,7 +306,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           }
           break;
         case LABEL_DETAIL:
-          if(!value.isEmpty) {
+          if(value.isNotEmpty) {
             if(!_isSubmitDisable) {
               _buttonText = Text(LABEL_SEND);
             }
@@ -266,7 +325,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   //    If all data are correct then save data to out variables
         _formKey.currentState.save();
         List<String> tags = [this._firstTag];
-        chatModel.sendTopicMessage(this.messageLocation, this._parentTitle, tags, this._desc, this._type, this._isShowGeo);
+        chatModel.sendTopicMessage(this.messageLocation, this._parentTitle, tags, this._desc, this.imageFile, this._type, this._isShowGeo);
         onBackPress();
       }
     };
@@ -291,7 +350,9 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
               )),
             ]
           ),
-          const SizedBox(height: 24.0),
+          const SizedBox(height: 12.0),
+          topicImageUI(context), 
+          const SizedBox(height: 12.0),
           TextFormField(
             textCapitalization: TextCapitalization.words,
             decoration: const InputDecoration(
@@ -307,7 +368,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             onSaved: (String value) {this._parentTitle = value;},
         // validator: _validateName,
           ),
-          const SizedBox(height: 24.0),
+          const SizedBox(height: 12.0),
           TextFormField(
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
