@@ -1,12 +1,18 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:image/image.dart' as Img;
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import 'package:ourland_native/models/user_model.dart';
 
 class ChatModel {
   String parentID;
+  String imageUrl;
   User _user;
 
   ChatModel(this.parentID, User this._user);
@@ -48,7 +54,7 @@ class ChatModel {
     });
   }
 
-  void sendTopicMessage(GeoPoint position, String topic, List<String> tags, String content, int type, bool isShowGeo) {
+  void sendTopicMessage(GeoPoint position, String topic, List<String> tags, String content, File imageFile, int type, bool isShowGeo) {
     print('SendMessage ${position}');
     var chatReference;
     var indexReference;
@@ -133,4 +139,49 @@ class ChatModel {
         };
       });
   }
+
+  Future uploadFile(File imageFile) async {
+    File uploadImage = imageFile;
+    List<int> blob = uploadImage.readAsBytesSync();
+    
+    Img.Image originImage = Img.decodeImage(blob);
+    Img.Image image = originImage;
+
+    bool newImage = false;
+    if(originImage.width > 1280) {
+      image = Img.copyResize(originImage, 1280);
+      newImage = true;
+    } else {
+      if(originImage.height > 1280) {
+        int width = (originImage.width * 1280 / originImage.height).round();
+        image = Img.copyResize(originImage, width, 1280);  
+        newImage = true;     
+      }
+    }
+
+    if(newImage) {
+  //    uploadImage = new File('temp.png').writeAsBytesSync(Img.encodePng(image));
+//      blob = new Img.PngEncoder({level: 3}).encodeImage(image);
+      blob = new Img.JpegEncoder(quality: 75).encodeImage(image);
+    }
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+    StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
+    StorageUploadTask uploadTask = reference.putData(blob);
+    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
+    storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
+      imageUrl = downloadUrl;
+/*      setState(() {
+        isLoading = false;
+        imageUrl = downloadUrl;
+      });
+      */
+    });
+/*    , onError: (err) {
+      setState(() {
+        isLoading = false;
+      });
+      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_FILE_NOT_IMG)));
+    });
+ */   
+  } 
 }
