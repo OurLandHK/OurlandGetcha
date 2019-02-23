@@ -46,9 +46,9 @@ class TopicMessage extends StatelessWidget {
         child: RichLinkPreview(
             link: messageBody['topic'],
             appendToLink: true,
-            backgroundColor: primaryColor,
-            borderColor: primaryColor,
-            textColor: Colors.white),
+            backgroundColor: greyColor2,
+            borderColor: greyColor2,
+            textColor: Colors.black),
         padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
         // width: 200.0,
         //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
