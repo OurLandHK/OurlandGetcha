@@ -7,6 +7,7 @@ import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:open_graph_parser/open_graph_parser.dart';
 
 class TopicMessage extends StatelessWidget {
   final String messageId;
@@ -33,9 +34,15 @@ class TopicMessage extends StatelessWidget {
 
   Widget build(BuildContext context) {
     void _onTap() {
-      //print("onTap");
-      this.onTap(this.messageBody['id'], this.messageBody['topic'],
-          this.geoTopLeft, this.geoBottomRight);
+      if(isLink()) {
+        OpenGraphParser.getOpenGraphData(this.messageBody['topic']).then((Map data) {
+          this.onTap(this.messageBody['id'], data['title'],
+              this.geoTopLeft, this.geoBottomRight);
+        });
+      } else {
+        this.onTap(this.messageBody['id'], this.messageBody['topic'],
+            this.geoTopLeft, this.geoBottomRight);
+      }
     }
 
     Widget rv;
@@ -46,9 +53,10 @@ class TopicMessage extends StatelessWidget {
         child: RichLinkPreview(
             link: messageBody['topic'],
             appendToLink: true,
-            backgroundColor: primaryColor,
-            borderColor: primaryColor,
-            textColor: Colors.white),
+            backgroundColor: greyColor2,
+            borderColor: greyColor2,
+            textColor: Colors.black,
+            launchFromLink: false),
         padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
         // width: 200.0,
         //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
