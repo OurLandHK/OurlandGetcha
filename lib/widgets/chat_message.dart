@@ -30,33 +30,9 @@ class ChatMessage extends StatelessWidget {
 
   bool isCurrentUser() {
     return(messageBody['createdUser'] != null && messageBody['createdUser']['uuid'] == this.user.uuid);
-  }    
-
-  Widget build(BuildContext context) {
-    Widget rv;
-    Container messageWidget;
-    EdgeInsets margin = isCurrentUser() ? EdgeInsets.only(right: 10.0) : EdgeInsets.only(left: 10.0);
-    EdgeInsets timeMargin = isCurrentUser() ? EdgeInsets.only(right: 50.0, top: 5.0, bottom: 5.0) : EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0);
-    //print(this.messageId);
-    switch (messageBody['type']) {
-      case 0:
-        messageWidget = Container(
-          child: RichLinkPreview(
-              link: messageBody['content'],
-              appendToLink: true,
-              backgroundColor: primaryColor,
-              borderColor: primaryColor,
-              textColor: Colors.white),
-          padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
-          width: 200.0,
-          decoration: BoxDecoration(
-              color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
-          margin: margin,
-        );
-        break;
-      case 1:
-        messageWidget = Container(
-          child: Material(
+  }
+  Widget imageWidget(imageUrl) {
+    return Material(
             child: CachedNetworkImage(
               placeholder: Container(
                 child: CircularProgressIndicator(
@@ -84,14 +60,49 @@ class ChatMessage extends StatelessWidget {
                 ),
                 clipBehavior: Clip.hardEdge,
               ),
-              imageUrl: messageBody['content'],
+              imageUrl: imageUrl,
               width: 200.0,
               height: 200.0,
               fit: BoxFit.cover,
             ),
             borderRadius: BorderRadius.all(Radius.circular(8.0)),
             clipBehavior: Clip.hardEdge,
-          ),
+          );
+  }
+
+  Widget build(BuildContext context) {
+    Widget rv;
+    Container messageWidget;
+    EdgeInsets margin = isCurrentUser() ? EdgeInsets.only(right: 10.0) : EdgeInsets.only(left: 10.0);
+    EdgeInsets timeMargin = isCurrentUser() ? EdgeInsets.only(right: 50.0, top: 5.0, bottom: 5.0) : EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0);
+    //print(this.messageId);
+    switch (messageBody['type']) {
+      case 0:
+        messageWidget = Container(
+          child: RichLinkPreview(
+              link: messageBody['content'],
+              appendToLink: true,
+              backgroundColor: primaryColor,
+              borderColor: primaryColor,
+              textColor: Colors.white),
+          padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
+          width: 200.0,
+          decoration: BoxDecoration(
+              color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
+          margin: margin,
+        );
+        if(messageBody['imageUrl'] != null) {
+          messageWidget = Container(
+            child: Column (children: <Widget>[
+              imageWidget(messageBody['imageUrl']),
+              messageWidget,
+          ]),
+          );
+        }
+        break;
+      case 1:
+        messageWidget = Container(
+          child: imageWidget(messageBody['content']),
           margin: margin,
         );
         break;

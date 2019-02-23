@@ -281,9 +281,9 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             ),
             color: Colors.white,
           ),
-          (imageFile != null) ? new Image.file(
+          imageFile != null ? new Image.file(
             imageFile, height:MAP_HEIGHT /* (MediaQuery.of(context).size.width - 50)*/
-        ) : new Container(), 
+          ) : new Container(), 
         ]
       )        
     ],

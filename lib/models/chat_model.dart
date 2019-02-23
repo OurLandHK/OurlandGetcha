@@ -54,12 +54,18 @@ class ChatModel {
     });
   }
 
-  void sendTopicMessage(GeoPoint position, String topic, List<String> tags, String content, File imageFile, int type, bool isShowGeo) {
+  Future sendTopicMessage(GeoPoint position, String topic, List<String> tags, String content, File imageFile, int type, bool isShowGeo) async {
     print('SendMessage ${position}');
     var chatReference;
     var indexReference;
     var sendMessageTime = DateTime.now();
     var basicUserMap = _user.toBasicMap();
+    String imageUrl;
+    if(imageFile != null) {
+      imageUrl = await uploadImage(imageFile);
+      if(imageUrl != null) {
+      }
+    }
     String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
     var indexData = {
           'created': sendMessageTime,
@@ -71,12 +77,14 @@ class ChatModel {
           'tags' : tags,
           'isShowGeo' : isShowGeo,
           'createdUser' : basicUserMap,
+          'imageUrl' : imageUrl,
     };
     var chatData = {
           'created': sendMessageTime,
           'id': sendMessageTimeString,
           'geo': new GeoPoint(position.latitude, position.longitude),
           'content': content,
+          'imageUrl' : imageUrl,
           'type': type,
           'createdUser' : basicUserMap,
     };
@@ -140,7 +148,7 @@ class ChatModel {
       });
   }
 
-  Future uploadFile(File imageFile) async {
+  Future<String> uploadImage(File imageFile) async {
     File uploadImage = imageFile;
     List<int> blob = uploadImage.readAsBytesSync();
     
@@ -168,15 +176,17 @@ class ChatModel {
     StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
     StorageUploadTask uploadTask = reference.putData(blob);
     StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
+    String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
+    return downloadUrl;
+/*
     storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
       imageUrl = downloadUrl;
-/*      setState(() {
+      setState(() {
         isLoading = false;
         imageUrl = downloadUrl;
       });
-      */
     });
-/*    , onError: (err) {
+    , onError: (err) {
       setState(() {
         isLoading = false;
       });

@@ -99,11 +99,9 @@ class TopicMessage extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 10.0),
       );
     } else {
-      rv = Container(
-        child: FlatButton(
-          child: Row(
-            children: <Widget>[
-              Column(
+      Widget imageWidget;
+      if(messageBody['imageUrl'] == null) {
+        imageWidget = Column(
                 children: <Widget>[
                   Material(
                     child: CachedNetworkImage(
@@ -133,7 +131,33 @@ class TopicMessage extends StatelessWidget {
                     margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
                   ),
                 ]
-              ),
+              );
+      } else {
+        imageWidget = Material(
+                    child: CachedNetworkImage(
+                      placeholder: Container(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.0,
+                          valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                        ),
+                        width: 75.0,
+                        height: 75.0,
+                        padding: EdgeInsets.all(15.0),
+                      ),
+                      imageUrl: messageBody['imageUrl'],
+                      width: 75.0,
+                      height: 75.0,
+                      fit: BoxFit.cover,
+                    ),
+//                    borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                    clipBehavior: Clip.hardEdge,
+                  );
+      }
+      rv = Container(
+        child: FlatButton(
+          child: Row(
+            children: <Widget>[
+              imageWidget,
               Flexible(
                 child: Container(
                   child: Column(
