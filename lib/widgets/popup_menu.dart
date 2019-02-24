@@ -19,7 +19,7 @@ class PopupMenu extends StatelessWidget {
     if(item == MENU_ITEM_SETTINGS) {
       Navigator.of(context).push(
           new MaterialPageRoute(
-              builder: (context) => Settings()
+              builder: (context) => SettingsScreen()
           )
       );
     } else if(item == MENU_ITEM_ABOUT) {
