@@ -4,7 +4,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:ourland_native/pages/chat_map.dart';
 import 'package:ourland_native/models/constant.dart';
 
-
 // ----------------------------------------
 // SETTING SCREEN LANDING SCREEN
 // ----------------------------------------
@@ -17,7 +16,7 @@ class SettingsScreen extends StatelessWidget {
   ];
 
   void onTapped(BuildContext context, String item) {
-    if(item == MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION) {
+    if (item == MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION) {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
@@ -25,7 +24,7 @@ class SettingsScreen extends StatelessWidget {
           },
         ),
       );
-    } else if(item == MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION){
+    } else if (item == MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION) {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
@@ -33,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
           },
         ),
       );
-    } else if(item == MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE) {
+    } else if (item == MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE) {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
@@ -53,16 +52,14 @@ class SettingsScreen extends StatelessWidget {
         appBar: new AppBar(
           title: new Text(MENU_ITEM_SETTINGS),
         ),
-        body:  ListView(
-        padding: EdgeInsets.symmetric(vertical: 8.0),
-        children: _settingsItems.map((settingItem) =>
-            ListTile(
-            title: Text(settingItem),
-              onTap: () => onTapped(context, settingItem),
-        ))
-            .toList()
-        )
-    );
+        body: ListView(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            children: _settingsItems
+                .map((settingItem) => ListTile(
+                      title: Text(settingItem),
+                      onTap: () => onTapped(context, settingItem),
+                    ))
+                .toList()));
   }
 }
 
@@ -71,11 +68,19 @@ class SettingsScreen extends StatelessWidget {
 // ----------------------------------------
 
 class UpdateLocationScreen extends StatefulWidget {
+  final String locationType;
+
+  UpdateLocationScreen({Key key, @required this.locationType});
+
   @override
-  _UpdateLocationScreenState createState() => new _UpdateLocationScreenState();
+  _UpdateLocationScreenState createState() =>
+      new _UpdateLocationScreenState(locationType: this.locationType);
 }
 
 class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
+  _UpdateLocationScreenState({Key key, @required this.locationType});
+
+  String locationType;
   ChatMap chatMap = null;
   Geolocator _geolocator = new Geolocator();
   GeoPoint currentLocation;
@@ -127,7 +132,6 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
     );
   }
 }
-
 
 // ----------------------------------------
 // TODO: UPDATE PROFILE IMAGE SCREEN
