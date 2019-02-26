@@ -17,7 +17,7 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/models/chat_model.dart';
-import 'package:ourland_native/pages/chat_map.dart';
+import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 
@@ -150,7 +150,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       userName = document['createdUser']['user'];
     }
     GeoPoint location = GeoHelper.boxCenter(document['geotopleft'], document['geobottomright']);
-    this.chatMap.addLocation(location, document['topic'], type, userName);
+    if(this.chatMap != null) {
+      this.chatMap.addLocation(location, document['topic'], type, userName);
+    }
     rv = new TopicMessage(user: widget.user, messageBody: document, messageId: messageId, geoTopLeft: document['geotopleft'], geoBottomRight: document['geobottomright'], onTap: _onTap);
     return rv;
   }

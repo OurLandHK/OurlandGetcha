@@ -21,6 +21,7 @@ class ChatMap extends StatefulWidget {
   }  
 
   void addLocation(GeoPoint location, String content, int contentType, String username) {
+//    print('${content} ${contentType} ${username} ${location.latitude}');
     String label = "";
     switch(contentType) {
       case 0:
@@ -32,7 +33,9 @@ class ChatMap extends StatefulWidget {
     // only handle text message now
     if(state != null && state.googleMapWidget != null) {
       state.googleMapWidget.addMarker(location, label);
-    } 
+    } else {
+      print('not created');
+    }
   }
 
   void updateCenter(GeoPoint _mapCenter) {
@@ -97,14 +100,6 @@ class _ChatMapState extends State<ChatMap> {
     if(rv == null) {
       rv = new CircularProgressIndicator();
     }
-    List<Widget> widgets;
-    widgets = [
-        rv
-      ];
-    return new Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: widgets,
-    );
+    return rv;
   }
 }

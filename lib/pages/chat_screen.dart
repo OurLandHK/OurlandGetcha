@@ -16,8 +16,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import '../models/chat_model.dart';
-import './chat_map.dart';
-import '../widgets/chat_message.dart';
+import 'package:ourland_native/widgets/chat_summary.dart';
+import 'package:ourland_native/widgets/chat_map.dart';
+import 'package:ourland_native/widgets/chat_message.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import '../widgets/send_message.dart';
 
@@ -81,7 +82,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   GeoPoint bottomRight;
   String id;
   ChatModel chatModel;
-  ChatMap chatMap;
+  ChatSummary chatSummary;
+  //ChatMap chatMap;
 
   var listMessage;
   String groupChatId;
@@ -109,7 +111,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     super.initState();
     focusNode.addListener(onFocusChange);
     chatModel = new ChatModel(this.parentId, widget.user);
-    chatMap = null; 
+    chatSummary = null; 
+ //   chatMap = null;
 
     isLoading = false;
 
@@ -123,15 +126,18 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             _currentLocation = position;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            if(this.chatMap == null) {        
-              this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
+            if(this.chatSummary == null) {        
+              //this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
+              this.chatSummary = new ChatSummary(topLeft: this.messageLocation, bottomRight: this.messageLocation, width: 0, height: MAP_HEIGHT);
             } else {
-              this.chatMap.updateCenter(mapCenter);
+              //this.chatMap.updateCenter(mapCenter);
+              this.chatSummary.updateCenter(mapCenter);
             }
           }
         });
     } else {
-      this.chatMap = new ChatMap(topLeft: this.topLeft, bottomRight: this.bottomRight, height: MAP_HEIGHT);
+      //this.chatMap = new ChatMap(topLeft: this.topLeft, bottomRight: this.bottomRight, height: MAP_HEIGHT);
+      this.chatSummary = new ChatSummary(topLeft: this.topLeft, bottomRight: this.bottomRight, width: 0, height: MAP_HEIGHT);
       if(this.messageLocation == null) {
         this.messageLocation = GeoHelper.boxCenter(this.topLeft, this.bottomRight);;
       }
@@ -169,7 +175,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
+            //chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
+            this.chatSummary = new ChatSummary(topLeft: this.messageLocation, bottomRight: this.messageLocation, width: 0, height: MAP_HEIGHT);
           }
       });
     }
@@ -198,7 +205,20 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
     Widget rv;
     GeoPoint location = document['geo'];
-    this.chatMap.addLocation(location, document['content'], document['type'], "Test");
+    String imageUrl ="";
+    if(document['imageUrl'] != null) {
+      imageUrl = document['imageUrl'];
+    }
+    User user = User.fromBasicMap(document['createdUser']);
+
+    if(this.chatSummary != null) {
+      this.chatSummary.addMessage(location, document['content'], imageUrl, document['type'], user);
+    }
+/*
+    if(this.chatMap != null) {
+      this.chatMap.addLocation(location, document['content'], document['type'], document['createdUser']['user']);
+    }
+*/
     rv = new ChatMessage(user: widget.user, messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
     return rv;
   }
@@ -255,8 +275,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               new Container( 
                 decoration: new BoxDecoration(
                   color: Theme.of(context).cardColor),
-                // child: GoogleMapWidget(this._currentLocation.latitude, this._currentLocation.longitude),
-                  child: this.chatMap,
+                child: this.chatSummary,
               ),
               
               // List of messages
@@ -306,6 +325,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 //                      if(index == 0) {
 //                        return this.chatMap;
 //                      } else {
+//  print(index);
                         return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
 //                      }
                     },
