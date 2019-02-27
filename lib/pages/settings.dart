@@ -82,9 +82,9 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
 
   String locationType;
   String _location;
-  ChatMap chatMap = null;
+  ChatMap map = null;
   Geolocator _geolocator = new Geolocator();
-  GeoPoint currentLocation;
+  GeoPoint _currentLocation;
 
   @override
   void initState() {
@@ -93,27 +93,32 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
     // get current location
     _geolocator.getCurrentPosition().then((Position position) {
       setState(() {
-        currentLocation = new GeoPoint(position.latitude, position.longitude);
+        _currentLocation = new GeoPoint(position.latitude, position.longitude);
       });
-      updateChatMap();
+      updateMap();
     });
   }
 
-  void updateChatMap() {
-    if (this.chatMap == null) {
-      this.chatMap = new ChatMap(
-          topLeft: this.currentLocation,
-          bottomRight: this.currentLocation,
+  void updateMap() {
+    if (this.map == null) {
+      this.map = new ChatMap(
+          topLeft: this._currentLocation,
+          bottomRight: this._currentLocation,
           height: MAP_HEIGHT);
     } else {
-      this.chatMap.updateCenter(currentLocation);
+      this.map.updateCenter(_currentLocation);
     }
+  }
+
+  void refreshMarker(String label) {
+    this.map.clearMarkers();
+    this.map.addMarker(_currentLocation, label);
   }
 
   void onSubmit() {}
 
   Widget renderMap() {
-    return this.chatMap;
+    return this.map;
   }
 
   Widget renderLocationField() {
@@ -127,16 +132,13 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
 
           _geolocator.placemarkFromAddress(_location).then(
               (List<Placemark> placemark) {
-            print(placemark[0].country);
-            print(placemark[0].position);
-            print(placemark[0].locality);
-            print(placemark[0].administrativeArea);
-            print(placemark[0].postalCode);
-            print(placemark[0].name);
-            print(placemark[0].isoCountryCode);
-            print(placemark[0].subLocality);
-            print(placemark[0].subThoroughfare);
-            print(placemark[0].thoroughfare);
+            Position pos = placemark[0].position;
+            String markerLabel = placemark[0].name;
+            setState(() {
+              _currentLocation = new GeoPoint(pos.latitude, pos.longitude);
+            });
+            updateMap();
+            refreshMarker(markerLabel);
           }, onError: (e) {
             // PlatformException thrown by the Geolocation if the address cannot be translate
             // DO NOTHING
