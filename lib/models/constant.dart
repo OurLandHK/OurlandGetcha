@@ -52,6 +52,9 @@ const String LABEL_NOBODY = "沒有人";
 const String PERM_LOCATION_NOT_GRANTED = "Location permission is required";
 const String PERM_LOCATION_GRANT_BTN_TEXT = "Retry";
 
+const String NEW_HOME_LOCATION = "New Home Location";
+const String NEW_OFFICE_LOCATION = "New Office Location";
+const String UPDATE_LOCATION_BTN_TEXT = "Update Location";
 
 const String TOPIC_ROOT_ID = "";
 
