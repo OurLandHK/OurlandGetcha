@@ -20,7 +20,7 @@ class SettingsScreen extends StatelessWidget {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new UpdateLocationScreen();
+            return new UpdateLocationScreen(locationType: LABEL_REGION0);
           },
         ),
       );
@@ -28,7 +28,7 @@ class SettingsScreen extends StatelessWidget {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new UpdateLocationScreen();
+            return new UpdateLocationScreen(locationType: LABEL_REGION1);
           },
         ),
       );
@@ -81,6 +81,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   _UpdateLocationScreenState({Key key, @required this.locationType});
 
   String locationType;
+  String _location;
   ChatMap chatMap = null;
   Geolocator _geolocator = new Geolocator();
   GeoPoint currentLocation;
@@ -109,24 +110,64 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
     }
   }
 
+  void onSubmit() {}
+
   Widget renderMap() {
     return this.chatMap;
   }
 
   Widget renderLocationField() {
-    return new Container();
+    return new TextField(
+        decoration: InputDecoration(
+            hintText: locationType == LABEL_REGION0
+                ? NEW_HOME_LOCATION
+                : NEW_OFFICE_LOCATION),
+        onChanged: (value) {
+          _location = value;
+
+          _geolocator.placemarkFromAddress(_location).then(
+              (List<Placemark> placemark) {
+            print(placemark[0].country);
+            print(placemark[0].position);
+            print(placemark[0].locality);
+            print(placemark[0].administrativeArea);
+            print(placemark[0].postalCode);
+            print(placemark[0].name);
+            print(placemark[0].isoCountryCode);
+            print(placemark[0].subLocality);
+            print(placemark[0].subThoroughfare);
+            print(placemark[0].thoroughfare);
+          }, onError: (e) {
+            // PlatformException thrown by the Geolocation if the address cannot be translate
+            // DO NOTHING
+          });
+        },
+        keyboardType: TextInputType.text);
+  }
+
+  Widget renderLocationButton() {
+    return new RaisedButton(
+        onPressed: () => onSubmit(),
+        child: Text(UPDATE_LOCATION_BTN_TEXT),
+        textColor: Colors.white,
+        elevation: 7.0,
+        color: Colors.blue);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: new AppBar(
-        title: new Text("Settings"),
+        title: new Text(locationType == LABEL_REGION0
+            ? MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION
+            : MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION),
       ),
       body: new Center(
         child: Container(
             child: Column(children: <Widget>[
           renderMap(),
+          renderLocationField(),
+          renderLocationButton()
         ])),
       ),
     );
