@@ -4,7 +4,7 @@ import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/pages/about.dart';
 import 'package:ourland_native/pages/settings.dart';
 import 'package:ourland_native/pages/registration_screen.dart';
-
+import 'package:ourland_native/models/user_model.dart';
 
 final List<String> items = <String>[
   MENU_ITEM_SETTINGS,
@@ -14,28 +14,22 @@ final List<String> items = <String>[
 
 class PopupMenu extends StatelessWidget {
   UserService userService = new UserService();
+  final User user;
+
+  PopupMenu(this.user);
 
   void _select(BuildContext context, String item) {
-    if(item == MENU_ITEM_SETTINGS) {
-      Navigator.of(context).push(
-          new MaterialPageRoute(
-              builder: (context) => SettingsScreen()
-          )
-      );
-    } else if(item == MENU_ITEM_ABOUT) {
-      Navigator.of(context).push(
-          new MaterialPageRoute(
-              builder: (context) => About()
-          )
-      );
-    } else if(item == MENU_ITEM_LOGOUT){
+    if (item == MENU_ITEM_SETTINGS) {
+      Navigator.of(context).push(new MaterialPageRoute(
+          builder: (context) => SettingsScreen(this.user)));
+    } else if (item == MENU_ITEM_ABOUT) {
+      Navigator.of(context)
+          .push(new MaterialPageRoute(builder: (context) => About()));
+    } else if (item == MENU_ITEM_LOGOUT) {
       userService.logout();
 
-      Navigator.of(context).pushReplacement(
-          new MaterialPageRoute(
-              builder: (context) => PhoneAuthenticationScreen()
-          )
-      );
+      Navigator.of(context).pushReplacement(new MaterialPageRoute(
+          builder: (context) => PhoneAuthenticationScreen()));
     }
   }
 
@@ -50,11 +44,10 @@ class PopupMenu extends StatelessWidget {
         itemBuilder: (BuildContext context) {
           return items.map((String item) {
             return PopupMenuItem<String>(
-                value: item,
-                child: Text(item),
-                );
+              value: item,
+              child: Text(item),
+            );
           }).toList();
-        }
-    );
+        });
   }
 }

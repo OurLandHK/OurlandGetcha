@@ -107,7 +107,7 @@ class _OurlandHomeState extends State<OurlandHome>
             new Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5.0),
             ),
-            PopupMenu()
+            new PopupMenu(widget.user)
           ],
         ),
         body: new TabBarView(

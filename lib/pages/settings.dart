@@ -3,12 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ourland_native/pages/chat_map.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/services/user_service.dart';
+import 'package:ourland_native/models/user_model.dart';
 
 // ----------------------------------------
 // SETTING SCREEN LANDING SCREEN
 // ----------------------------------------
 
 class SettingsScreen extends StatelessWidget {
+  final User user;
+  SettingsScreen(this.user);
+
   List<String> _settingsItems = [
     MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION,
     MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION,
@@ -20,7 +25,8 @@ class SettingsScreen extends StatelessWidget {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new UpdateLocationScreen(locationType: LABEL_REGION0);
+            return new UpdateLocationScreen(
+                locationType: LABEL_REGION0, user: this.user);
           },
         ),
       );
@@ -28,7 +34,8 @@ class SettingsScreen extends StatelessWidget {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new UpdateLocationScreen(locationType: LABEL_REGION1);
+            return new UpdateLocationScreen(
+                locationType: LABEL_REGION1, user: this.user);
           },
         ),
       );
@@ -69,18 +76,24 @@ class SettingsScreen extends StatelessWidget {
 
 class UpdateLocationScreen extends StatefulWidget {
   final String locationType;
+  final User user;
 
-  UpdateLocationScreen({Key key, @required this.locationType});
+  UpdateLocationScreen(
+      {Key key, @required this.user, @required this.locationType});
 
   @override
-  _UpdateLocationScreenState createState() =>
-      new _UpdateLocationScreenState(locationType: this.locationType);
+  _UpdateLocationScreenState createState() => new _UpdateLocationScreenState(
+      user: this.user, locationType: this.locationType);
 }
 
 class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
-  _UpdateLocationScreenState({Key key, @required this.locationType});
+  _UpdateLocationScreenState(
+      {Key key, @required this.user, @required this.locationType});
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
+  UserService userService = new UserService();
   String locationType;
+  User user;
   String _location;
   ChatMap map = null;
   Geolocator _geolocator = new Geolocator();
@@ -115,7 +128,19 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
     this.map.addMarker(_currentLocation, label);
   }
 
-  void onSubmit() {}
+  void onSubmit() {
+    Map<String, GeoPoint> newLocation = new Map<String, GeoPoint>();
+    if (locationType == LABEL_REGION0) {
+      newLocation['homeAddress'] = this._currentLocation;
+    } else {
+      newLocation['officeAddress'] = this._currentLocation;
+    }
+    userService.updateUser(this.user.uuid, newLocation);
+    _scaffoldKey.currentState
+        .showSnackBar(new SnackBar(content: new Text(UPDATE_LOCATION_SUCCESS)));
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
+  }
 
   Widget renderMap() {
     return this.map;
@@ -147,7 +172,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
         keyboardType: TextInputType.text);
   }
 
-  Widget renderLocationButton() {
+  Widget renderUpdateLocationButton() {
     return new RaisedButton(
         onPressed: () => onSubmit(),
         child: Text(UPDATE_LOCATION_BTN_TEXT),
@@ -159,6 +184,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: new AppBar(
         title: new Text(locationType == LABEL_REGION0
             ? MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION
@@ -169,7 +195,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
             child: Column(children: <Widget>[
           renderMap(),
           renderLocationField(),
-          renderLocationButton()
+          renderUpdateLocationButton()
         ])),
       ),
     );

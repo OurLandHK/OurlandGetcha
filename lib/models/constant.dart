@@ -55,6 +55,7 @@ const String PERM_LOCATION_GRANT_BTN_TEXT = "Retry";
 const String NEW_HOME_LOCATION = "New Home Location";
 const String NEW_OFFICE_LOCATION = "New Office Location";
 const String UPDATE_LOCATION_BTN_TEXT = "Update Location";
+const String UPDATE_LOCATION_SUCCESS = "Updated Location Successfully";
 
 const String TOPIC_ROOT_ID = "";
 
