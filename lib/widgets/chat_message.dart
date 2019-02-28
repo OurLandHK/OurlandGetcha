@@ -75,7 +75,7 @@ class ChatMessage extends StatelessWidget {
     Container messageWidget;
     EdgeInsets margin = isCurrentUser() ? EdgeInsets.only(right: 10.0) : EdgeInsets.only(left: 10.0);
     EdgeInsets timeMargin = isCurrentUser() ? EdgeInsets.only(right: 50.0, top: 5.0, bottom: 5.0) : EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0);
-    print(this.messageId);
+    //print(this.messageId);
     switch (messageBody['type']) {
       case 0:
         messageWidget = Container(

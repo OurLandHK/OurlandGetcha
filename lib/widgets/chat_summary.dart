@@ -20,31 +20,25 @@ class ChatSummary extends StatefulWidget {
   ChatSummary({Key key,  @required GeoPoint this.topLeft, @required GeoPoint this.bottomRight, @required this.width, @required this.height}) : super(key: key) {
   }  
 
-  void addMessage(GeoPoint location, String content, String imageUrl, int contentType, User user) {
+  Future<void> addMessage(GeoPoint location, String content, String imageUrl, int contentType, User user) async {
     if(state.chatMapWidget != null) {
       state.chatMapWidget.addLocation(location, content, contentType, user.username);
     } 
     // Add involved user in the summary;
-    bool addUser = true;
-    state.userList.map((userObj) {
-      if(user.uuid == userObj.uuid) {
-        addUser = false;
-      }
-    });
-    if(addUser) {
-      state.userList.add(user);
-    }
-    if(imageUrl.length != 0) {
-      state.imageUrlList.add(imageUrl);
-    }
-    state.messageList.add(content);
-    //state.addMessage(content);
+    state.updateUser(user);
+    state.addImage(imageUrl);
+    state.addMessage(content);
+  }
+
+  void cleanUp() {
+    state.cleanUp();
   }
 
   void updateCenter(GeoPoint mapCenter) {
     if(state.chatMapWidget != null) {
       state.chatMapWidget.updateCenter(mapCenter);
-    } 
+    }
+    cleanUp();
   }
 
   @override
@@ -67,24 +61,71 @@ class _ChatSummaryState extends State<ChatSummary> {
     userList = new List<User>();
     imageUrlList = new List<String>();
   }
-/*
-  void addMessage(String message) {
-    List<String> _messageList = messageList;
-    _messageList.add(message);
-    this.setState((){messageList = _messageList;});
+
+  void cleanUp() {
+    setState(() {
+      messageList = new List<String>();
+      userList = new List<User>();
+      imageUrlList = new List<String>();
+    });
   }
-*/
+
   void initState() {
     super.initState();
     this.chatMapWidget = new ChatMap(topLeft: this.widget.topLeft, bottomRight: this.widget.bottomRight, height: this.widget.height);
   }
 
+  void updateUser(User user) {
+    bool addUser = true;
+    userList.map((userObj) {
+      if(user.uuid == userObj.uuid) {
+        addUser = false;
+      }
+    });
+    if(addUser) {
+      List<User> tempUserList = userList;
+      tempUserList.add(user);
+  //    setState(() {
+       this.userList = tempUserList; 
+  //    });
+      print('User ${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
+
+    }
+  }
+
+  void addImage(String imageUrl) {
+    if(imageUrl.length != 0) {
+      List<String> tempImageUrlList = imageUrlList;      
+      tempImageUrlList.add(imageUrl);
+  //    setState(() {
+        this.imageUrlList =tempImageUrlList;
+  //    });
+    print('Iamge ${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
+
+    }
+
+  }
+
+  void addMessage(String message) {
+    List<String> tempMessageList = messageList;
+    tempMessageList.add(message);
+ //   setState(() {
+      this.messageList =tempMessageList;
+ //   });
+     print('Message ${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
+
+  }
+  
   @override
   Widget build(BuildContext context) {
-
     Widget rv = this.chatMapWidget;
-    RichLinkPreview richList = null;
+    if(rv == null) {
+      rv = new CircularProgressIndicator();
+    }
+    
+    RichLinkPreview richList;
     if(messageList.length > 0) {
+      print(messageList.first);
       richList = RichLinkPreview(
               link: messageList.first,
               appendToLink: true,
@@ -92,20 +133,22 @@ class _ChatSummaryState extends State<ChatSummary> {
               borderColor: primaryColor,
               textColor: Colors.white);
     }
-    if(rv == null) {
-      rv = new CircularProgressIndicator();
-    }
+    
     List<Widget> widgets = [rv];
+    print('${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
     if(imageUrlList.length == 1) {
+      print(imageUrlList.first);
       Row row = new Row(children: <Widget>[
         ImageWidget(width: context.size.width/2,height: this.widget.height, imageUrl: imageUrlList.first),
-        richList
+//        richList
       ]);
       widgets.add(row);
     } else {
+      /*
       if(richList != null) {
         widgets.add(richList);
       }
+      */
     }
     return new Column(
 //      crossAxisAlignment: CrossAxisAlignment.start,

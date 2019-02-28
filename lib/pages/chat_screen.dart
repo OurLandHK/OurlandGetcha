@@ -17,7 +17,6 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import '../models/chat_model.dart';
 import 'package:ourland_native/widgets/chat_summary.dart';
-import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/chat_message.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import '../widgets/send_message.dart';
@@ -202,8 +201,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     setState(() {});
   }
 
-  Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
-    Widget rv;
+  void updateSummary(Map<String, dynamic> document) {
     GeoPoint location = document['geo'];
     String imageUrl ="";
     if(document['imageUrl'] != null) {
@@ -214,11 +212,10 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     if(this.chatSummary != null) {
       this.chatSummary.addMessage(location, document['content'], imageUrl, document['type'], user);
     }
-/*
-    if(this.chatMap != null) {
-      this.chatMap.addLocation(location, document['content'], document['type'], document['createdUser']['user']);
-    }
-*/
+  }
+
+  Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
+    Widget rv;
     rv = new ChatMessage(user: widget.user, messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
     return rv;
   }
@@ -322,12 +319,9 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
                   return ListView.builder(
                     padding: EdgeInsets.all(10.0),
                     itemBuilder: (context, index) {
-//                      if(index == 0) {
-//                        return this.chatMap;
-//                      } else {
-//  print(index);
-                        return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
-//                      }
+                        Map<String, dynamic> chatDocument = snapshot.data.documents[index].data;
+                        updateSummary(chatDocument);
+                        return buildItem(snapshot.data.documents[index].data['id'], chatDocument, _onTap, context);
                     },
                     itemCount: snapshot.data.documents.length,
                     reverse: true,

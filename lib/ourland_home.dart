@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ourland_native/pages/topic_screen.dart';
 import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
-import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/pages/send_topic_screen.dart';
 
 class OurlandHome extends StatefulWidget {
