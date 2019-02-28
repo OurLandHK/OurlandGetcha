@@ -28,6 +28,11 @@ const String LABEL_REGION0 = "Home";
 const String LABEL_REGION1 = "Office";
 
 const String MENU_ITEM_SETTINGS = "Settings";
+const String MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION = "Change Home Location";
+const String MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION = "Change Office Location";
+const String MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE = "Change Profile Image";
+const String MENU_ITEM_NOT_FOUND_ERR = "Meun item not found";
+
 const String MENU_ITEM_ABOUT = "About";
 const String MENU_ITEM_LOGOUT = "Logout";
 
@@ -47,6 +52,10 @@ const String LABEL_NOBODY = "沒有人";
 const String PERM_LOCATION_NOT_GRANTED = "Location permission is required";
 const String PERM_LOCATION_GRANT_BTN_TEXT = "Retry";
 
+const String NEW_HOME_LOCATION = "New Home Location";
+const String NEW_OFFICE_LOCATION = "New Office Location";
+const String UPDATE_LOCATION_BTN_TEXT = "Update Location";
+const String UPDATE_LOCATION_SUCCESS = "Updated Location Successfully";
 
 const String TOPIC_ROOT_ID = "";
 
