@@ -102,14 +102,32 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   @override
   void initState() {
     super.initState();
+    initMap();
+  }
 
-    // get current location
-    _geolocator.getCurrentPosition().then((Position position) {
+  void initMap() {
+    GeoPoint address;
+    if (locationType == LABEL_REGION0) {
+      address = user.homeAddress;
+    } else {
+      address = user.officeAddress;
+    }
+
+    if (address == null) {
+      // home / location address not set. get current location instead
+      _geolocator.getCurrentPosition().then((Position position) {
+        setState(() {
+          this._currentLocation =
+              new GeoPoint(position.latitude, position.longitude);
+        });
+        updateMap();
+      });
+    } else {
       setState(() {
-        _currentLocation = new GeoPoint(position.latitude, position.longitude);
+        this._currentLocation = address;
       });
       updateMap();
-    });
+    }
   }
 
   void updateMap() {
@@ -119,13 +137,13 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
           bottomRight: this._currentLocation,
           height: MAP_HEIGHT);
     } else {
-      this.map.updateCenter(_currentLocation);
+      this.map.updateCenter(this._currentLocation);
     }
   }
 
   void refreshMarker(String label) {
     this.map.clearMarkers();
-    this.map.addMarker(_currentLocation, label);
+    this.map.addMarker(this._currentLocation, label);
   }
 
   void onSubmit() {
@@ -135,9 +153,12 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
     } else {
       newLocation['officeAddress'] = this._currentLocation;
     }
+    // TODO: should return a updated user object and pass it to home
     userService.updateUser(this.user.uuid, newLocation);
+    // FIXME: snackbar is not shown at this moment
     _scaffoldKey.currentState
         .showSnackBar(new SnackBar(content: new Text(UPDATE_LOCATION_SUCCESS)));
+    // TODO: tmp pop twice to navigate back home
     Navigator.of(context).pop();
     Navigator.of(context).pop();
   }
@@ -160,7 +181,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
             Position pos = placemark[0].position;
             String markerLabel = placemark[0].name;
             setState(() {
-              _currentLocation = new GeoPoint(pos.latitude, pos.longitude);
+              this._currentLocation = new GeoPoint(pos.latitude, pos.longitude);
             });
             updateMap();
             refreshMarker(markerLabel);
