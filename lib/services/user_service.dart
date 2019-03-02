@@ -11,19 +11,19 @@ final CollectionReference userCollection =
 
 class UserService {
   Future register(
-      String uuid, String username, File avatarImage, String address) async {
+      String uuid, String username, File avatarImage) async {
     if (avatarImage != null) {
       return await uploadAvatar(uuid, avatarImage).then((avatarUrl) {
-        return createUser(uuid, username, avatarImage, avatarUrl, address);
+        return createUser(uuid, username, avatarImage, avatarUrl);
       });
     } else {
       return await createUser(
-          uuid, username, avatarImage, DEFAULT_AVATAR_IMAGE_PATH, address);
+          uuid, username, avatarImage, DEFAULT_AVATAR_IMAGE_PATH);
     }
   }
 
   Future<User> createUser(String uuid, String username, File avatarImage,
-      String avatarUrl, String address) async {
+      String avatarUrl) async {
     final TransactionHandler createTransaction = (Transaction tx) async {
       final DocumentSnapshot ds = await tx.get(userCollection.document(uuid));
 
