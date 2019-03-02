@@ -233,7 +233,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   String username;
-  String address;
   String phoneNumber;
   String smsCode;
   String verificationId;
@@ -280,15 +279,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         keyboardType: TextInputType.text);
   }
 
-  renderAddressField() {
-    return TextField(
-        decoration: InputDecoration(hintText: REG_ADDRESS_HINT_TEXT),
-        onChanged: (value) {
-          this.address = value;
-        },
-        keyboardType: TextInputType.text);
-  }
-
   renderSubmitButton(context) {
     return RaisedButton(
         onPressed: () => validateInput(context),
@@ -310,7 +300,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   register(context) {
     userService
         .register(
-            widget.user.uid, this.username, this.avatarImage, this.address)
+            widget.user.uid, this.username, this.avatarImage)
         .then((user) {
       if (user == null) {
         _scaffoldKey.currentState.showSnackBar(
@@ -336,7 +326,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   renderSizeBox(),
                   renderUsernameField(),
                   renderSizeBox(),
-                  renderAddressField(),
                   renderSubmitButton(context)
                 ])),
       ),
