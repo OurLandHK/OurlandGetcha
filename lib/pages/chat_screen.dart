@@ -18,6 +18,7 @@ import 'package:ourland_native/models/user_model.dart';
 import '../models/chat_model.dart';
 import 'package:ourland_native/widgets/chat_summary.dart';
 import 'package:ourland_native/widgets/chat_message.dart';
+import 'package:ourland_native/widgets/chat_list.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import '../widgets/send_message.dart';
 
@@ -81,6 +82,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   GeoPoint bottomRight;
   String id;
   ChatModel chatModel;
+  ValueNotifier<Stream> chatStream;
   ChatSummary chatSummary;
   //ChatMap chatMap;
 
@@ -117,6 +119,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
     readLocal();
     initPlatformState();
+    chatStream = new ValueNotifier(this.chatModel.getMessageSnap(this._currentLocation, 1));
     if(this.topLeft == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {
@@ -125,6 +128,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             _currentLocation = position;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
+/*
             if(this.chatSummary == null) {        
               //this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
               this.chatSummary = new ChatSummary(topLeft: this.messageLocation, bottomRight: this.messageLocation, width: 0, height: MAP_HEIGHT);
@@ -132,11 +136,12 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               //this.chatMap.updateCenter(mapCenter);
               this.chatSummary.updateCenter(mapCenter);
             }
+*/            
           }
         });
     } else {
       //this.chatMap = new ChatMap(topLeft: this.topLeft, bottomRight: this.bottomRight, height: MAP_HEIGHT);
-      this.chatSummary = new ChatSummary(topLeft: this.topLeft, bottomRight: this.bottomRight, width: 0, height: MAP_HEIGHT);
+//      this.chatSummary = new ChatSummary(topLeft: this.topLeft, bottomRight: this.bottomRight, width: 0, height: MAP_HEIGHT);
       if(this.messageLocation == null) {
         this.messageLocation = GeoHelper.boxCenter(this.topLeft, this.bottomRight);;
       }
@@ -175,7 +180,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
             //chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
-            this.chatSummary = new ChatSummary(topLeft: this.messageLocation, bottomRight: this.messageLocation, width: 0, height: MAP_HEIGHT);
+//            this.chatSummary = new ChatSummary(topLeft: this.messageLocation, bottomRight: this.messageLocation, width: 0, height: MAP_HEIGHT);
           }
       });
     }
@@ -200,7 +205,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
     setState(() {});
   }
-
+/*
   void updateSummary(Map<String, dynamic> document) {
     GeoPoint location = document['geo'];
     String imageUrl ="";
@@ -213,7 +218,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
       this.chatSummary.addMessage(location, document['content'], imageUrl, document['type'], user);
     }
   }
-
+*/
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
     Widget rv;
     rv = new ChatMessage(user: widget.user, messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
@@ -247,7 +252,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
   @override
   Widget build(BuildContext context) {
-    void _onTap(String messageId, String parentTitle, GeoPoint topLeft, GeoPoint bottomRight) {
+/*    void _onTap(String messageId, String parentTitle, GeoPoint topLeft, GeoPoint bottomRight) {
       print("onTap");
       GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
       if(this.messageLocation != null) {
@@ -262,7 +267,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
         ),
       );
     }
+*/
+
     //this.chatMap.mapCenter = this._currentLocation; 
+    ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(this.topLeft);
+    ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(this.bottomRight);
     return WillPopScope(
       child: Stack(
         children: <Widget>[
@@ -272,11 +281,12 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               new Container( 
                 decoration: new BoxDecoration(
                   color: Theme.of(context).cardColor),
-                child: this.chatSummary,
+                child: ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: 0, height: MAP_HEIGHT, user: widget.user),
               ),
               
               // List of messages
-              buildListMessage(_onTap, context),
+              ChatList(chatStream: chatStream, parentId: this.parentId, user: widget.user, listScrollController: this.listScrollController),
+              //buildListMessage(_onTap, context),
               // Input content
               (this.messageLocation != null) ?
                 new SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
@@ -320,7 +330,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
                     padding: EdgeInsets.all(10.0),
                     itemBuilder: (context, index) {
                         Map<String, dynamic> chatDocument = snapshot.data.documents[index].data;
-                        updateSummary(chatDocument);
+                        //updateSummary(chatDocument);
                         return buildItem(snapshot.data.documents[index].data['id'], chatDocument, _onTap, context);
                     },
                     itemCount: snapshot.data.documents.length,

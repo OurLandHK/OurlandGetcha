@@ -1,5 +1,8 @@
 
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
@@ -9,120 +12,77 @@ import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
 
 class ChatSummary extends StatefulWidget {
-  GeoPoint topLeft;
-  GeoPoint bottomRight;
+  final ValueListenable<Stream> chatStream; 
+  final ValueListenable<GeoPoint> topLeft;
+  final ValueListenable<GeoPoint> bottomRight;
+  final User user;
   final double height;
   final double width;
-  _ChatSummaryState state;
 
-
-
-  ChatSummary({Key key,  @required GeoPoint this.topLeft, @required GeoPoint this.bottomRight, @required this.width, @required this.height}) : super(key: key) {
-  }  
-
-  Future<void> addMessage(GeoPoint location, String content, String imageUrl, int contentType, User user) async {
-    if(state.chatMapWidget != null) {
-      state.chatMapWidget.addLocation(location, content, contentType, user.username);
-    } 
-    // Add involved user in the summary;
-    state.updateUser(user);
-    state.addImage(imageUrl);
-    state.addMessage(content);
-  }
-
-  void cleanUp() {
-    state.cleanUp();
-  }
-
-  void updateCenter(GeoPoint mapCenter) {
-    if(state.chatMapWidget != null) {
-      state.chatMapWidget.updateCenter(mapCenter);
-    }
-    cleanUp();
-  }
-
+  ChatSummary({Key key,  @required this.chatStream, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user}) : super(key: key);  
   @override
-  _ChatSummaryState createState() {
-    state = new _ChatSummaryState();
-    return state;
-  }
+  _ChatSummaryState createState() => new _ChatSummaryState();
 }
 
-
 class _ChatSummaryState extends State<ChatSummary> {
+  
   List<String> messageList;
   List<User> userList;
   List<String> imageUrlList;
   ChatMap chatMapWidget;
-  
+  bool _progressBarActive;
+
+  _ChatSummaryState() {
+    _progressBarActive = true;
+  }  
+
   @override
-  _ChatSummaryState({Key key}){
+  void initState() {
+    super.initState();
     messageList = new List<String>();
     userList = new List<User>();
     imageUrlList = new List<String>();
+    chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, height:  widget.height);
+    buildMessageSummaryWidget();
+    _progressBarActive = false;
   }
 
-  void cleanUp() {
-    setState(() {
-      messageList = new List<String>();
-      userList = new List<User>();
-      imageUrlList = new List<String>();
-    });
-  }
-
-  void initState() {
-    super.initState();
-    this.chatMapWidget = new ChatMap(topLeft: this.widget.topLeft, bottomRight: this.widget.bottomRight, height: this.widget.height);
+  void addChat(GeoPoint location, String content, String imageUrl, int contentType, User user) {    
+    if(chatMapWidget != null) {
+      chatMapWidget.addLocation(location, content, contentType, user.username);
+    } 
+    // Add involved user in the summary;
+    updateUser(user);
+    addImage(imageUrl);
+    addMessage(content);
   }
 
   void updateUser(User user) {
     bool addUser = true;
     userList.map((userObj) {
+      print("update User ${user.uuid}  == ${userObj.uuid}");
       if(user.uuid == userObj.uuid) {
         addUser = false;
       }
     });
     if(addUser) {
-      List<User> tempUserList = userList;
-      tempUserList.add(user);
-  //    setState(() {
-       this.userList = tempUserList; 
-  //    });
-      print('User ${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
-
+      this.userList.add(user);
     }
   }
 
   void addImage(String imageUrl) {
     if(imageUrl.length != 0) {
-      List<String> tempImageUrlList = imageUrlList;      
-      tempImageUrlList.add(imageUrl);
-  //    setState(() {
-        this.imageUrlList =tempImageUrlList;
-  //    });
-    print('Iamge ${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
-
+      imageUrlList.add(imageUrl);
     }
 
   }
 
   void addMessage(String message) {
-    List<String> tempMessageList = messageList;
-    tempMessageList.add(message);
- //   setState(() {
-      this.messageList =tempMessageList;
- //   });
-     print('Message ${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
-
+    this.messageList.add(message);
   }
-  
-  @override
-  Widget build(BuildContext context) {
-    Widget rv = this.chatMapWidget;
-    if(rv == null) {
-      rv = new CircularProgressIndicator();
-    }
-    
+
+  Widget buildSummaryFooter(BuildContext context) {
+    Widget rv = const CircularProgressIndicator();
     RichLinkPreview richList;
     if(messageList.length > 0) {
       print(messageList.first);
@@ -133,27 +93,80 @@ class _ChatSummaryState extends State<ChatSummary> {
               borderColor: primaryColor,
               textColor: Colors.white);
     }
-    
-    List<Widget> widgets = [rv];
     print('${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
     if(imageUrlList.length == 1) {
-      print(imageUrlList.first);
-      Row row = new Row(children: <Widget>[
-        ImageWidget(width: context.size.width/2,height: this.widget.height, imageUrl: imageUrlList.first),
-//        richList
-      ]);
-      widgets.add(row);
+        print(imageUrlList.first);
+        Row row = new Row(children: <Widget>[
+          ImageWidget(width: MediaQuery.of(context).size.width/2,height: widget.height, imageUrl: imageUrlList.first),
+          richList
+        ]);
+        rv = row;
     } else {
-      /*
       if(richList != null) {
-        widgets.add(richList);
+        rv = richList;
       }
-      */
     }
-    return new Column(
-//      crossAxisAlignment: CrossAxisAlignment.start,
-//      mainAxisSize: MainAxisSize.min,
-      children: widgets,
+    return rv;
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return _progressBarActive == true?const CircularProgressIndicator() :
+      new Column(
+        children: [
+          this.chatMapWidget,
+          buildSummaryFooter(context),
+        ],
+      );
+  }
+
+  Future buildMessageSummaryWidget() async {
+    await for(var stream in widget.chatStream.value) {
+      for(var entry in stream.documents) {
+        Map<String, dynamic> document = entry.data;
+        GeoPoint location = document['geo'];
+        String imageUrl ="";
+        if(document['imageUrl'] != null) {
+          imageUrl = document['imageUrl'];
+        }
+        User chatUser = User.fromBasicMap(document['createdUser']);
+        addChat(location, document['content'], imageUrl, document['type'], chatUser);
+      }
+    }
+  }
+
+    Widget buildMessageSummary(BuildContext context) {
+    return Flexible(
+      child: StreamBuilder(
+              stream: widget.chatStream.value,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
+                } else {
+                  return ListView.builder(
+                    //padding: EdgeInsets.all(10.0),
+                    itemBuilder: (context, index) {
+                        Map<String, dynamic> document = snapshot.data.documents[index].data;
+                        GeoPoint location = document['geo'];
+                        String imageUrl ="";
+                        if(document['imageUrl'] != null) {
+                          imageUrl = document['imageUrl'];
+                        }
+                        User chatUser = User.fromBasicMap(document['createdUser']);
+                        addChat(location, document['content'], imageUrl, document['type'], chatUser);
+                        if(index == 0) {
+                          return Container();
+                        } else {
+                          return null;
+                        }
+                    },
+                    itemCount: snapshot.data.documents.length,
+                    reverse: true,
+                  );
+                }
+              },
+            ),
     );
   }
 }

@@ -94,11 +94,11 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    setState(() {
+    //setState(() {
       mapController = controller;
       pendingMarkerList.forEach((option) {
-        mapController.addMarker(option);
+      //  mapController.addMarker(option);
       });
-    });
+    //});
   }
 }
