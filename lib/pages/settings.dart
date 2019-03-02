@@ -5,6 +5,7 @@ import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/ourland_home.dart';
 
 // ----------------------------------------
 // SETTING SCREEN LANDING SCREEN
@@ -153,14 +154,16 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
     } else {
       newLocation['officeAddress'] = this._currentLocation;
     }
-    // TODO: should return a updated user object and pass it to home
-    userService.updateUser(this.user.uuid, newLocation);
-    // FIXME: snackbar is not shown at this moment
-    _scaffoldKey.currentState
-        .showSnackBar(new SnackBar(content: new Text(UPDATE_LOCATION_SUCCESS)));
-    // TODO: tmp pop twice to navigate back home
-    Navigator.of(context).pop();
-    Navigator.of(context).pop();
+
+    userService.updateUser(this.user.uuid, newLocation).then((void v) {
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(content: new Text(UPDATE_LOCATION_SUCCESS)));
+
+      userService.getUser(this.user.uuid).then((User user) {
+        Navigator.of(context).pushReplacement(
+            new MaterialPageRoute(builder: (context) => OurlandHome(user)));
+      });
+    });
   }
 
   Widget renderMap() {
