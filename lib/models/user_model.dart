@@ -1,18 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class User {
   String _uuid;
   String _username;
   String _avatarUrl;
-  String _address;
+  GeoPoint _homeAddress;
+  GeoPoint _officeAddress;
   DateTime _createdAt;
   DateTime _updatedAt;
 
-  User(this._uuid, this._username, this._avatarUrl, this._address, this._createdAt, this._updatedAt);
+  User(this._uuid, this._username, this._avatarUrl, this._homeAddress,
+      this._officeAddress, this._createdAt, this._updatedAt);
 
   User.map(dynamic obj) {
     this._uuid = obj['uuid'];
     this._username = obj['_username'];
     this._avatarUrl = obj['avatarUrl'];
-    this._address = obj['address'];
+    this._homeAddress = obj['homeAddress'];
     this._createdAt = obj['createdAt'];
     this._updatedAt = obj['updatedAt'];
   }
@@ -20,7 +24,8 @@ class User {
   String get uuid => _uuid;
   String get username => _username;
   String get avatarUrl => _avatarUrl;
-  String get address => _address;
+  GeoPoint get homeAddress => _homeAddress;
+  GeoPoint get officeAddress => _officeAddress;
   DateTime get createdAt => _createdAt;
   DateTime get updatedAt => _updatedAt;
 
@@ -38,8 +43,12 @@ class User {
       map['avatarUrl'] = _avatarUrl;
     }
 
-    if (_address != null) {
-      map['address'] = _address;
+    if (_homeAddress != null) {
+      map['homeAddress'] = _homeAddress;
+    }
+
+    if (_officeAddress != null) {
+      map['officeAddress'] = _officeAddress;
     }
 
     if (_createdAt != null) {
@@ -73,17 +82,20 @@ class User {
     this._uuid = map['uuid'];
     this._username = map['user'];
     this._avatarUrl = map['avatarUrl'];
-    this._address = "";
+    this._homeAddress = null;
+    this._officeAddress = null;
     this._createdAt = DateTime.now();
     this._updatedAt = this._createdAt;
   }
+
 
 
   User.fromMap(Map<String, dynamic> map) {
     this._uuid = map['uuid'];
     this._username = map['user'];
     this._avatarUrl = map['avatarUrl'];
-    this._address = map['address'];
+    this._homeAddress = map['homeAddress'];
+    this._officeAddress = map['officeAddress'];
     this._createdAt = map['createdAt'].toDate();
     this._updatedAt = map['updatedAt'].toDate();
   }
