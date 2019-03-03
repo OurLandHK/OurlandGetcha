@@ -29,6 +29,7 @@ class _ChatSummaryState extends State<ChatSummary> {
   List<String> messageList;
   List<User> userList;
   List<String> imageUrlList;
+  List<Map<String, dynamic>> markerList;
   ChatMap chatMapWidget;
   bool _progressBarActive;
 
@@ -42,15 +43,18 @@ class _ChatSummaryState extends State<ChatSummary> {
     messageList = new List<String>();
     userList = new List<User>();
     imageUrlList = new List<String>();
+    markerList = new List<Map<String, dynamic>>();
     chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, height:  widget.height);
     buildMessageSummaryWidget();
     _progressBarActive = false;
   }
 
-  void addChat(GeoPoint location, String content, String imageUrl, int contentType, User user) {    
-    if(chatMapWidget != null) {
-      chatMapWidget.addLocation(location, content, contentType, user.username);
-    } 
+  void addChat(GeoPoint location, String content, String imageUrl, int contentType, User user) {
+    Map<String, dynamic> marker = {'location':location,
+                                   'content': content,
+                                   'contentType': contentType,
+                                   'username': user.username};
+    markerList.add(marker);
     // Add involved user in the summary;
     updateUser(user);
     addImage(imageUrl);
@@ -82,39 +86,39 @@ class _ChatSummaryState extends State<ChatSummary> {
   }
 
   Widget buildSummaryFooter(BuildContext context) {
-    Widget rv = const CircularProgressIndicator();
-    RichLinkPreview richList;
+    List<Widget> widgetList = new List<Widget>();
+    print('${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
+/*    if(imageUrlList.length > 0) {
+        print(imageUrlList.first);        
+        widgetList.add(ImageWidget(width: MediaQuery.of(context).size.width/2, height: widget.height, imageUrl: imageUrlList.first));
+
+    }*/
     if(messageList.length > 0) {
       print(messageList.first);
-      richList = RichLinkPreview(
+      widgetList.add(RichLinkPreview(
               link: messageList.first,
               appendToLink: true,
               backgroundColor: primaryColor,
               borderColor: primaryColor,
-              textColor: Colors.white);
+              textColor: Colors.white));
     }
-    print('${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
-    if(imageUrlList.length == 1) {
-        print(imageUrlList.first);
-        Row row = new Row(children: <Widget>[
-          ImageWidget(width: MediaQuery.of(context).size.width/2,height: widget.height, imageUrl: imageUrlList.first),
-          richList
-        ]);
-        rv = row;
-    } else {
-      if(richList != null) {
-        rv = richList;
-      }
-    }
+    Row rv = new Row(children: widgetList);
     return rv;
   }
   
   @override
   Widget build(BuildContext context) {
+    Widget firstRow = this.chatMapWidget;
+    if(chatMapWidget != null) {
+      chatMapWidget.clearMarkers();
+      for(var marker in markerList) {
+        chatMapWidget.addLocation(marker['location'], marker['content'], marker['contentType'], marker['username']);
+      }
+    } 
     return _progressBarActive == true?const CircularProgressIndicator() :
       new Column(
         children: [
-          this.chatMapWidget,
+          firstRow,
           buildSummaryFooter(context),
         ],
       );
@@ -133,40 +137,5 @@ class _ChatSummaryState extends State<ChatSummary> {
         addChat(location, document['content'], imageUrl, document['type'], chatUser);
       }
     }
-  }
-
-    Widget buildMessageSummary(BuildContext context) {
-    return Flexible(
-      child: StreamBuilder(
-              stream: widget.chatStream.value,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(
-                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
-                } else {
-                  return ListView.builder(
-                    //padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) {
-                        Map<String, dynamic> document = snapshot.data.documents[index].data;
-                        GeoPoint location = document['geo'];
-                        String imageUrl ="";
-                        if(document['imageUrl'] != null) {
-                          imageUrl = document['imageUrl'];
-                        }
-                        User chatUser = User.fromBasicMap(document['createdUser']);
-                        addChat(location, document['content'], imageUrl, document['type'], chatUser);
-                        if(index == 0) {
-                          return Container();
-                        } else {
-                          return null;
-                        }
-                    },
-                    itemCount: snapshot.data.documents.length,
-                    reverse: true,
-                  );
-                }
-              },
-            ),
-    );
   }
 }
