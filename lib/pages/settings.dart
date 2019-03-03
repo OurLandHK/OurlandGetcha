@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:ourland_native/pages/chat_map.dart';
+import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/models/user_model.dart';

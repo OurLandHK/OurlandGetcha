@@ -16,8 +16,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import '../models/chat_model.dart';
-import './chat_map.dart';
-import '../widgets/chat_message.dart';
+import 'package:ourland_native/widgets/chat_summary.dart';
+import 'package:ourland_native/widgets/chat_message.dart';
+import 'package:ourland_native/widgets/chat_list.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import '../widgets/send_message.dart';
 
@@ -81,7 +82,9 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   GeoPoint bottomRight;
   String id;
   ChatModel chatModel;
-  ChatMap chatMap;
+  ValueNotifier<Stream> chatStream;
+  ChatSummary chatSummary;
+  //ChatMap chatMap;
 
   var listMessage;
   String groupChatId;
@@ -109,12 +112,14 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
     super.initState();
     focusNode.addListener(onFocusChange);
     chatModel = new ChatModel(this.parentId, widget.user);
-    chatMap = null; 
+    chatSummary = null; 
+ //   chatMap = null;
 
     isLoading = false;
 
     readLocal();
     initPlatformState();
+    chatStream = new ValueNotifier(this.chatModel.getMessageSnap(this._currentLocation, 1));
     if(this.topLeft == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {
@@ -122,16 +127,10 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             print('initState Poisition ${position}');
             _currentLocation = position;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-            this.messageLocation = mapCenter;
-            if(this.chatMap == null) {        
-              this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
-            } else {
-              this.chatMap.updateCenter(mapCenter);
-            }
+            this.messageLocation = mapCenter;          
           }
         });
     } else {
-      this.chatMap = new ChatMap(topLeft: this.topLeft, bottomRight: this.bottomRight, height: MAP_HEIGHT);
       if(this.messageLocation == null) {
         this.messageLocation = GeoHelper.boxCenter(this.topLeft, this.bottomRight);;
       }
@@ -169,7 +168,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
           }
       });
     }
@@ -197,8 +195,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
     Widget rv;
-    GeoPoint location = document['geo'];
-    this.chatMap.addLocation(location, document['content'], document['type'], "Test");
     rv = new ChatMessage(user: widget.user, messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
     return rv;
   }
@@ -230,22 +226,8 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
   @override
   Widget build(BuildContext context) {
-    void _onTap(String messageId, String parentTitle, GeoPoint topLeft, GeoPoint bottomRight) {
-      print("onTap");
-      GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-      if(this.messageLocation != null) {
-        _messageLocation = this.messageLocation;
-      }
-      GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
-      Navigator.of(context).push(
-        new MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return new Chat(user: widget.user, parentId: messageId, parentTitle: parentTitle, topLeft: topLeft, bottomRight: bottomRight, messageLocation: _messageLocation);
-          },
-        ),
-      );
-    }
-    //this.chatMap.mapCenter = this._currentLocation; 
+    ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(this.topLeft);
+    ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(this.bottomRight);
     return WillPopScope(
       child: Stack(
         children: <Widget>[
@@ -255,13 +237,11 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               new Container( 
                 decoration: new BoxDecoration(
                   color: Theme.of(context).cardColor),
-                // child: GoogleMapWidget(this._currentLocation.latitude, this._currentLocation.longitude),
-                  child: this.chatMap,
+                child: ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: 0, height: MAP_HEIGHT, user: widget.user),
               ),
               
               // List of messages
-              buildListMessage(_onTap, context),
-              // Input content
+              ChatList(chatStream: chatStream, parentId: this.parentId, user: widget.user, listScrollController: this.listScrollController),
               (this.messageLocation != null) ?
                 new SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
             ],
@@ -285,37 +265,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               color: Colors.white.withOpacity(0.8),
             )
           : Container(),
-    );
-  }
-
-  Widget buildListMessage(Function _onTap, BuildContext context) {
-    return Flexible(
-      child: groupChatId == ''
-          ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
-          : StreamBuilder(
-              stream: this.chatModel.getMessageSnap(this._currentLocation, 1),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(
-                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
-                } else {
-                  listMessage = snapshot.data.documents;
-                  return ListView.builder(
-                    padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) {
-//                      if(index == 0) {
-//                        return this.chatMap;
-//                      } else {
-                        return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
-//                      }
-                    },
-                    itemCount: snapshot.data.documents.length,
-                    reverse: true,
-                    controller: listScrollController,
-                  );
-                }
-              },
-            ),
     );
   }
 }

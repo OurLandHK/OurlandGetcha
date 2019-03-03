@@ -78,6 +78,18 @@ class User {
     return map;
   }
 
+  User.fromBasicMap(Map<dynamic, dynamic> map) {
+    this._uuid = map['uuid'];
+    this._username = map['user'];
+    this._avatarUrl = map['avatarUrl'];
+    this._homeAddress = null;
+    this._officeAddress = null;
+    this._createdAt = DateTime.now();
+    this._updatedAt = this._createdAt;
+  }
+
+
+
   User.fromMap(Map<String, dynamic> map) {
     this._uuid = map['uuid'];
     this._username = map['user'];

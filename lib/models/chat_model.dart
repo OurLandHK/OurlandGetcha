@@ -15,7 +15,7 @@ class ChatModel {
   String imageUrl;
   User _user;
 
-  ChatModel(this.parentID, User this._user);
+  ChatModel(this.parentID, this._user);
 
   Stream<QuerySnapshot> getMessageSnap(Position position, int distanceInKM) {
     Stream<QuerySnapshot> rv;
@@ -55,7 +55,7 @@ class ChatModel {
   }
 
   Future sendTopicMessage(GeoPoint position, String topic, List<String> tags, String content, File imageFile, int type, bool isShowGeo) async {
-    print('SendMessage ${position}');
+    //print('SendMessage ${position}');
     var chatReference;
     var indexReference;
     var sendMessageTime = DateTime.now();

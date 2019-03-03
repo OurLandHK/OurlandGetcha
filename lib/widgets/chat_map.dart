@@ -114,12 +114,6 @@ class _ChatMapState extends State<ChatMap> {
     if (rv == null) {
       rv = new CircularProgressIndicator();
     }
-    List<Widget> widgets;
-    widgets = [rv];
-    return new Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: widgets,
-    );
+    return rv;
   }
 }

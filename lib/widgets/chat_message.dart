@@ -12,8 +12,8 @@ class ChatMessage extends StatelessWidget {
   final String parentId;
   final String messageId;
   final User user;
-  GeoPoint geoTopLeft;
-  GeoPoint geoBottomRight;
+  final GeoPoint geoTopLeft;
+  final GeoPoint geoBottomRight;
   final Map<String, dynamic> messageBody;
   final Function onTap;
 

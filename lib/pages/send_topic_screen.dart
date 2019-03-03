@@ -18,7 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/chat_model.dart';
-import 'package:ourland_native/pages/chat_map.dart';
+import 'package:ourland_native/widgets/chat_map.dart';
 
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
