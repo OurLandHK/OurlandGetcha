@@ -26,14 +26,15 @@ final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-class Chat extends StatelessWidget {
+class ChatScreen extends StatelessWidget {
   final String parentId;
   final String parentTitle;
   final GeoPoint topLeft;
   final GeoPoint bottomRight;
   final GeoPoint messageLocation;
+  final String imageUrl;
   final User user;
-  Chat({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.topLeft, this.bottomRight, this.messageLocation}) : super(key: key);
+  ChatScreen({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.topLeft, this.bottomRight, this.messageLocation, this.imageUrl}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -47,42 +48,46 @@ class Chat extends StatelessWidget {
             centerTitle: true,
             elevation: 0.7,
           ),
-          body: new ChatScreen(
+          body: new ChatScreenBody(
             user: this.user,
             parentId: this.parentId,
             parentTitle: this.parentTitle,
             topLeft: this.topLeft,
             bottomRight: this.bottomRight,
-            messageLocation: this.messageLocation
+            messageLocation: this.messageLocation,
+            imageUrl: this.imageUrl
           ),
         );
   }
 }
 
-class ChatScreen extends StatefulWidget {
+class ChatScreenBody extends StatefulWidget {
   final String parentId;
   final String parentTitle;
   final GeoPoint topLeft;
   final GeoPoint bottomRight;
   final GeoPoint messageLocation;
+  final String imageUrl;
   final User user;
 
-  ChatScreen({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.topLeft, this.bottomRight, this.messageLocation}) : super(key: key);
+  ChatScreenBody({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.topLeft, this.bottomRight, this.messageLocation, this.imageUrl}) : super(key: key);
 
   @override
-  State createState() => new ChatScreenState(parentId: this.parentId, parentTitle: this.parentTitle, topLeft: this.topLeft, bottomRight: this.bottomRight, messageLocation: this.messageLocation);
+  State createState() => new ChatScreenBodyState(parentId: this.parentId, parentTitle: this.parentTitle, topLeft: this.topLeft, bottomRight: this.bottomRight, messageLocation: this.messageLocation, imageUrl: this.imageUrl);
 }
 
-class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
-  ChatScreenState({Key key, @required this.parentId, @required this.parentTitle, @required this.topLeft, @required this.bottomRight, this.messageLocation});
+class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderStateMixin  {
+  ChatScreenBodyState({Key key, @required this.parentId, @required this.parentTitle, @required this.topLeft, @required this.bottomRight, this.messageLocation, this.imageUrl});
 
   String parentId;
   String parentTitle;
   GeoPoint topLeft;
   GeoPoint bottomRight;
+  String imageUrl;  
   String id;
   ChatModel chatModel;
   ValueNotifier<Stream> chatStream;
+  ValueNotifier<Stream> chatStream1;
   ChatSummary chatSummary;
   //ChatMap chatMap;
 
@@ -117,9 +122,10 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
 
     isLoading = false;
 
-    readLocal();
+    //readLocal();
     initPlatformState();
     chatStream = new ValueNotifier(this.chatModel.getMessageSnap(this._currentLocation, 1));
+    chatStream1 = new ValueNotifier(this.chatModel.getMessageSnap(this._currentLocation, 1));
     if(this.topLeft == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {
@@ -228,6 +234,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
   Widget build(BuildContext context) {
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(this.topLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(this.bottomRight);
+    ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream1, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MAP_HEIGHT, user: widget.user, imageUrl: imageUrl);
     return WillPopScope(
       child: Stack(
         children: <Widget>[
@@ -237,7 +244,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin  {
               new Container( 
                 decoration: new BoxDecoration(
                   color: Theme.of(context).cardColor),
-                child: ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: 0, height: MAP_HEIGHT, user: widget.user),
+                child: chatSummary,
               ),
               
               // List of messages

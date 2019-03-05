@@ -8,6 +8,7 @@ class ChatMap extends StatefulWidget {
   GeoPoint mapCenter;
   Geodesy geodesy;
   double height;
+  double width;
   double zoom;
   _ChatMapState state;
 
@@ -15,6 +16,7 @@ class ChatMap extends StatefulWidget {
       {Key key,
       @required GeoPoint topLeft,
       @required GeoPoint bottomRight,
+      this.width,
       @required this.height})
       : super(key: key) {
     this.mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
@@ -105,7 +107,7 @@ class _ChatMapState extends State<ChatMap> {
   void initState() {
     super.initState();
     this.googleMapWidget = new GoogleMapWidget(widget.mapCenter.latitude,
-        widget.mapCenter.longitude, widget.height, widget.zoom);
+        widget.mapCenter.longitude, widget.width, widget.height, widget.zoom);
   }
 
   @override
