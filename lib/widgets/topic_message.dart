@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
+//import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:open_graph_parser/open_graph_parser.dart';
 
@@ -15,16 +16,18 @@ class TopicMessage extends StatelessWidget {
   GeoPoint geoTopLeft;
   GeoPoint geoBottomRight;
   final Map<String, dynamic> messageBody;
+//  final Topic topic;
   final Function onTap;
 
   TopicMessage(
       {Key key,
-      @required this.user,
+  //    @required this.topic,
       @required this.messageId,
       @required this.messageBody,
-      @required this.onTap,
-      this.geoTopLeft,
-      this.geoBottomRight})
+      @required this.user,
+      @required this.geoBottomRight,
+      @required this.geoTopLeft,
+      @required this.onTap})
       : super(key: key);
 
   bool isLink() {
@@ -36,11 +39,11 @@ class TopicMessage extends StatelessWidget {
     void _onTap() {
       if(isLink()) {
         OpenGraphParser.getOpenGraphData(this.messageBody['topic']).then((Map data) {
-          this.onTap(this.messageBody['id'], data['title'],
+          this.onTap(this.messageBody['id'], data['title'], this.messageBody['imageUrl'], this.messageBody['content'],
               this.geoTopLeft, this.geoBottomRight);
         });
       } else {
-        this.onTap(this.messageBody['id'], this.messageBody['topic'],
+        this.onTap(this.messageBody['id'], this.messageBody['topic'], this.messageBody['imageUrl'], this.messageBody['content'],
             this.geoTopLeft, this.geoBottomRight);
       }
     }

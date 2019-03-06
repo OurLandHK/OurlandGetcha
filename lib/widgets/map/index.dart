@@ -5,12 +5,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class GoogleMapWidget extends StatefulWidget {
   final double latitude;
   final double longitude;
+  final double width;
   final double height;
   double zoom;
   _GoogleMapWidgetState state;
 
   GoogleMapWidget(
-      this.latitude, this.longitude, @required this.height, this.zoom);
+      this.latitude, this.longitude, this.width, this.height, this.zoom);
 
   void updateMapCenter(GeoPoint center, double zoom) {
     this.zoom = zoom;
@@ -55,12 +56,16 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    double width = double.infinity;
+    if(widget.width != 0) {
+      width = widget.width; 
+    }
     return new Container(
       child: Column(
         children: <Widget>[
           Center(
             child: SizedBox(
-              width: double.infinity,
+              width: width,
               height: widget.height,
               child: GoogleMap(
                 onMapCreated: _onMapCreated,
@@ -78,6 +83,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
 
   void addMarker(MarkerOptions options) {
+  //  print('$options');
     if (mapController != null) {
       mapController.addMarker(options);
     } else {
@@ -96,8 +102,9 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   void _onMapCreated(GoogleMapController controller) {
     //setState(() {
       mapController = controller;
+ //     print('create map $pendingMarkerList.length');
       pendingMarkerList.forEach((option) {
-      //  mapController.addMarker(option);
+        mapController.addMarker(option);
       });
     //});
   }

@@ -100,3 +100,4 @@ class User {
     this._updatedAt = map['updatedAt'].toDate();
   }
 }
+

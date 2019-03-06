@@ -16,21 +16,31 @@ class ChatSummary extends StatefulWidget {
   final ValueListenable<GeoPoint> topLeft;
   final ValueListenable<GeoPoint> bottomRight;
   final User user;
+  final String imageUrl;
+  final String desc;
   final double height;
   final double width;
+  _ChatSummaryState state;
 
-  ChatSummary({Key key,  @required this.chatStream, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user}) : super(key: key);  
+  ChatSummary({Key key,  @required this.chatStream, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.desc}) : super(key: key);
   @override
-  _ChatSummaryState createState() => new _ChatSummaryState();
+  _ChatSummaryState createState() { 
+    state = new _ChatSummaryState();
+    return state;
+  }
+  void addChat(GeoPoint location, String content, String imageUrl, int contentType, User user) {
+    state.addChat(location, content, imageUrl, contentType, user);
+  }
 }
 
 class _ChatSummaryState extends State<ChatSummary> {
   
   List<String> messageList;
   List<User> userList;
-  List<String> imageUrlList;
+  List<String> galleryImageUrlList;
   List<Map<String, dynamic>> markerList;
   ChatMap chatMapWidget;
+  ImageWidget summaryImageWidget;
   bool _progressBarActive;
 
   _ChatSummaryState() {
@@ -40,13 +50,18 @@ class _ChatSummaryState extends State<ChatSummary> {
   @override
   void initState() {
     super.initState();
+    
     messageList = new List<String>();
     userList = new List<User>();
-    imageUrlList = new List<String>();
+    galleryImageUrlList = new List<String>();
     markerList = new List<Map<String, dynamic>>();
-    chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, height:  widget.height);
+    double mapWidth = widget.width;
+    if(widget.imageUrl != null && widget.imageUrl.length != 0) {
+      summaryImageWidget = new ImageWidget(width: widget.width/2, height: widget.height, imageUrl: widget.imageUrl);
+      mapWidth /= 2;
+    }
+    chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height);
     buildMessageSummaryWidget();
-    _progressBarActive = false;
   }
 
   void addChat(GeoPoint location, String content, String imageUrl, int contentType, User user) {
@@ -54,11 +69,13 @@ class _ChatSummaryState extends State<ChatSummary> {
                                    'content': content,
                                    'contentType': contentType,
                                    'username': user.username};
+                                   print('$content');
     markerList.add(marker);
     // Add involved user in the summary;
     updateUser(user);
     addImage(imageUrl);
     addMessage(content);
+    setState(() {});
   }
 
   void updateUser(User user) {
@@ -76,7 +93,7 @@ class _ChatSummaryState extends State<ChatSummary> {
 
   void addImage(String imageUrl) {
     if(imageUrl.length != 0) {
-      imageUrlList.add(imageUrl);
+      galleryImageUrlList.add(imageUrl);
     }
 
   }
@@ -86,47 +103,58 @@ class _ChatSummaryState extends State<ChatSummary> {
   }
 
   Widget buildSummaryFooter(BuildContext context) {
-    List<Widget> widgetList = new List<Widget>();
-    print('${this.messageList.length} + " " + ${this.imageUrlList.length} + " " ${this.userList.length}');
-/*    if(imageUrlList.length > 0) {
-        print(imageUrlList.first);        
-        widgetList.add(ImageWidget(width: MediaQuery.of(context).size.width/2, height: widget.height, imageUrl: imageUrlList.first));
-
+    Widget rv = Container();
+/*    if(chatMapWidget != null) {
+      //chatMapWidget.clearMarkers();
+      print('Markers ${markerList.length}');
+      for(var marker in markerList) {
+        chatMapWidget.addLocation(marker['location'], marker['content'], marker['contentType'], marker['username']);
+      }
     }*/
-    if(messageList.length > 0) {
-      print(messageList.first);
-      widgetList.add(RichLinkPreview(
-              link: messageList.first,
+    if(widget.desc != null && widget.desc.length > 0) {
+      print(widget.desc);
+      rv = RichLinkPreview(
+              link: widget.desc,
               appendToLink: true,
-              backgroundColor: primaryColor,
-              borderColor: primaryColor,
-              textColor: Colors.white));
+              backgroundColor: greyColor2,
+              borderColor: greyColor2,
+              textColor: Colors.black,
+              launchFromLink: true);
     }
-    Row rv = new Row(children: widgetList);
     return rv;
   }
   
   @override
   Widget build(BuildContext context) {
     Widget firstRow = this.chatMapWidget;
+    if(this.summaryImageWidget != null) {
+      firstRow = new Row(children: [this.summaryImageWidget, this.chatMapWidget]);
+    }
+
     if(chatMapWidget != null) {
-      chatMapWidget.clearMarkers();
+      //chatMapWidget.clearMarkers();
+      print('Markers ${markerList.length}');
       for(var marker in markerList) {
         chatMapWidget.addLocation(marker['location'], marker['content'], marker['contentType'], marker['username']);
       }
-    } 
-    return _progressBarActive == true?const CircularProgressIndicator() :
+    }
+
+    return _progressBarActive == true?const CircularProgressIndicator():
       new Column(
         children: [
           firstRow,
           buildSummaryFooter(context),
         ],
       );
+      
+
   }
 
-  Future buildMessageSummaryWidget() async {
-    await for(var stream in widget.chatStream.value) {
-      for(var entry in stream.documents) {
+  buildMessageSummaryWidget() async {
+//    for(var stream in widget.chatStream.value {
+      Stream<QuerySnapshot> stream = widget.chatStream.value;
+      stream.forEach((action){
+        for(var entry in action.documents) {
         Map<String, dynamic> document = entry.data;
         GeoPoint location = document['geo'];
         String imageUrl ="";
@@ -135,7 +163,11 @@ class _ChatSummaryState extends State<ChatSummary> {
         }
         User chatUser = User.fromBasicMap(document['createdUser']);
         addChat(location, document['content'], imageUrl, document['type'], chatUser);
-      }
-    }
+        }
+      });
+      setState(() {
+         _progressBarActive = false;
+      });
+
   }
 }
