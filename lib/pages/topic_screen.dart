@@ -158,8 +158,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
 
   @override
   Widget build(BuildContext context) {
-    void _onTap(String messageId, String parentTitle, String imageUrl, GeoPoint topLeft, GeoPoint bottomRight) {
-      print("onTap ${imageUrl}");
+    void _onTap(String messageId, String parentTitle, String imageUrl, String desc, GeoPoint topLeft, GeoPoint bottomRight) {
       GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
       if(this.fixLocation != null) {
         _messageLocation = this.fixLocation;
@@ -168,7 +167,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new ChatScreen(user: widget.user, parentId: messageId, parentTitle: parentTitle, topLeft: topLeft, bottomRight: bottomRight, messageLocation: _messageLocation, imageUrl: imageUrl);
+            return new ChatScreen(user: widget.user, parentId: messageId, parentTitle: parentTitle, topLeft: topLeft, bottomRight: bottomRight, messageLocation: _messageLocation, imageUrl: imageUrl, desc: desc);
           },
         ),
       );

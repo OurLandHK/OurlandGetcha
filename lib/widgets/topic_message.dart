@@ -39,11 +39,11 @@ class TopicMessage extends StatelessWidget {
     void _onTap() {
       if(isLink()) {
         OpenGraphParser.getOpenGraphData(this.messageBody['topic']).then((Map data) {
-          this.onTap(this.messageBody['id'], data['title'], this.messageBody['imageUrl'],
+          this.onTap(this.messageBody['id'], data['title'], this.messageBody['imageUrl'], this.messageBody['content'],
               this.geoTopLeft, this.geoBottomRight);
         });
       } else {
-        this.onTap(this.messageBody['id'], this.messageBody['topic'], this.messageBody['imageUrl'],
+        this.onTap(this.messageBody['id'], this.messageBody['topic'], this.messageBody['imageUrl'], this.messageBody['content'],
             this.geoTopLeft, this.geoBottomRight);
       }
     }

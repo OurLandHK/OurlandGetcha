@@ -167,16 +167,21 @@ class ChatModel {
           'geotopleft' : new GeoPoint(position.latitude, position.longitude),
           'geobottomright' :new GeoPoint(position.latitude, position.longitude),
           'topic' : topic,
+          'content' : content,
           'tags' : tags,
           'isShowGeo' : isShowGeo,
           'createdUser' : basicUserMap,
           'imageUrl' : imageUrl,
     };
+    String chatText = content;
+    if(content == null || content.length == 0) {
+      chatText = topic;
+    }
     var chatData = {
           'created': sendMessageTime,
           'id': sendMessageTimeString,
           'geo': new GeoPoint(position.latitude, position.longitude),
-          'content': content,
+          'content': chatText,
 //          'imageUrl' : imageUrl,
           'type': type,
           'createdUser' : basicUserMap,

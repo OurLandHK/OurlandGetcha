@@ -17,11 +17,12 @@ class ChatSummary extends StatefulWidget {
   final ValueListenable<GeoPoint> bottomRight;
   final User user;
   final String imageUrl;
+  final String desc;
   final double height;
   final double width;
   _ChatSummaryState state;
 
-  ChatSummary({Key key,  @required this.chatStream, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl}) : super(key: key);  
+  ChatSummary({Key key,  @required this.chatStream, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.desc}) : super(key: key);
   @override
   _ChatSummaryState createState() { 
     state = new _ChatSummaryState();
@@ -102,18 +103,24 @@ class _ChatSummaryState extends State<ChatSummary> {
   }
 
   Widget buildSummaryFooter(BuildContext context) {
-    List<Widget> widgetList = new List<Widget>();
-    print('${this.messageList.length} + " " + ${this.galleryImageUrlList.length} + " " ${this.userList.length}');
-    if(messageList.length > 0) {
-      print(messageList.first);
-      widgetList.add(RichLinkPreview(
-              link: messageList.first,
+    Widget rv = Container();
+/*    if(chatMapWidget != null) {
+      //chatMapWidget.clearMarkers();
+      print('Markers ${markerList.length}');
+      for(var marker in markerList) {
+        chatMapWidget.addLocation(marker['location'], marker['content'], marker['contentType'], marker['username']);
+      }
+    }*/
+    if(widget.desc != null && widget.desc.length > 0) {
+      print(widget.desc);
+      rv = RichLinkPreview(
+              link: widget.desc,
               appendToLink: true,
-              backgroundColor: primaryColor,
-              borderColor: primaryColor,
-              textColor: Colors.white));
+              backgroundColor: greyColor2,
+              borderColor: greyColor2,
+              textColor: Colors.black,
+              launchFromLink: true);
     }
-    Row rv = new Row(children: widgetList);
     return rv;
   }
   
@@ -123,12 +130,15 @@ class _ChatSummaryState extends State<ChatSummary> {
     if(this.summaryImageWidget != null) {
       firstRow = new Row(children: [this.summaryImageWidget, this.chatMapWidget]);
     }
+
     if(chatMapWidget != null) {
-      chatMapWidget.clearMarkers();
+      //chatMapWidget.clearMarkers();
+      print('Markers ${markerList.length}');
       for(var marker in markerList) {
         chatMapWidget.addLocation(marker['location'], marker['content'], marker['contentType'], marker['username']);
       }
-    } 
+    }
+
     return _progressBarActive == true?const CircularProgressIndicator():
       new Column(
         children: [
@@ -160,22 +170,4 @@ class _ChatSummaryState extends State<ChatSummary> {
       });
 
   }
-
-/*
-  buildMessageSummaryWidget() async {
-    await for(var stream in widget.chatStream.value) {
-      for(var entry in stream.documents) {
-        Map<String, dynamic> document = entry.data;
-        GeoPoint location = document['geo'];
-        String imageUrl ="";
-        if(document['imageUrl'] != null) {
-          imageUrl = document['imageUrl'];
-        }
-        User chatUser = User.fromBasicMap(document['createdUser']);
-        addChat(location, document['content'], imageUrl, document['type'], chatUser);
-      }
-    }
-    setState(() {});
-  }
-  */
 }

@@ -83,6 +83,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
 
   void addMarker(MarkerOptions options) {
+  //  print('$options');
     if (mapController != null) {
       mapController.addMarker(options);
     } else {
@@ -101,8 +102,9 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   void _onMapCreated(GoogleMapController controller) {
     //setState(() {
       mapController = controller;
+ //     print('create map $pendingMarkerList.length');
       pendingMarkerList.forEach((option) {
-      //  mapController.addMarker(option);
+        mapController.addMarker(option);
       });
     //});
   }
