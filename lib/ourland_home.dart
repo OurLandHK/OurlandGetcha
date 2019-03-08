@@ -6,6 +6,7 @@ import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/send_topic_screen.dart';
+import 'package:ourland_native/pages/settings.dart';
 
 class OurlandHome extends StatefulWidget {
   final User user;
@@ -26,20 +27,46 @@ class _OurlandHomeState extends State<OurlandHome>
     with SingleTickerProviderStateMixin {
   TabController _tabController;
   String uid = '';
+  bool _isFabShow = true;
 //  List<CameraDescription> cameras;
   bool _locationPermissionGranted = false;
 
   @override
   void initState() {
     this.uid = '';
-
-/*
-    availableCameras().then((rv) {
-      cameras = rv;
-    });
-*/
     super.initState();
     _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
+    _tabController.addListener(() {
+      print('Index: ${_tabController.index}');
+      switch(_tabController.index) {
+        case 1:
+          if(widget.user.homeAddress == null) {
+            setState(() {
+              this._isFabShow = false;
+            });
+          } else {
+            setState(() {
+              this._isFabShow = true;
+            });            
+          }
+          break;
+        case 2:
+          if(widget.user.officeAddress == null) {
+            setState(() {
+              this._isFabShow = false;
+            });
+          } else {
+            setState(() {
+              this._isFabShow = true;
+            });            
+          }
+          break;          
+        default:
+          setState(() {
+            this._isFabShow = true;
+          });
+      }
+    });
 
     // checking if location permission is granted
     PermissionHandler()
@@ -68,7 +95,35 @@ class _OurlandHomeState extends State<OurlandHome>
 
   @override
   Widget build(BuildContext context) {
-    void sendMessageClick(GeoPoint messageLocation) {
+    Widget showNearby() { 
+      return new TopicScreen(user: widget.user);
+    }
+    Widget showHome() {
+      Widget rv = new UpdateLocationScreen(locationType: LABEL_REGION0, user: widget.user);
+      if(widget.user.homeAddress != null) {
+        rv = new TopicScreen(user: widget.user, fixLocation: widget.user.homeAddress);
+      }
+      return rv;
+    }
+    Widget showOffice() {
+      Widget rv = new UpdateLocationScreen(locationType: LABEL_REGION1, user: widget.user);
+      if(widget.user.officeAddress != null) {
+        rv = new TopicScreen(user: widget.user, fixLocation: widget.user.officeAddress);
+      }
+      return rv;
+    }    
+    void sendMessageClick() {
+      GeoPoint messageLocation;
+      /*
+      switch(_tabController.index) {
+        case 1:
+          messageLocation = widget.user.homeAddress;
+          break;
+        case 2:
+          messageLocation = widget.user.officeAddress;
+          break;
+      }
+      */
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
@@ -112,21 +167,23 @@ class _OurlandHomeState extends State<OurlandHome>
           controller: _tabController,
           children: <Widget>[
             //new CameraScreen(widget.cameras),
-            new TopicScreen(user: widget.user),
-            new TopicScreen(user: widget.user),
-            new TopicScreen(user: widget.user),
+            showNearby(),
+            showHome(),
+            showOffice()
             //new StatusScreen(),
-            //new CallsScreen(),
           ],
         ),
         //persistentFooterButtons: <Widget>[SendMessage(chatModel: ChatModel(TOPIC_ROOT_ID), listScrollController: null, messageLocation: new GeoPoint(22.4, 114)),],
-        floatingActionButton: new FloatingActionButton(
-          backgroundColor: Theme.of(context).accentColor,
-          child: new Icon(
-            Icons.message,
-            color: Colors.white,
-          ),
-          onPressed: () => sendMessageClick(null),
+        floatingActionButton:  new Opacity(
+            opacity: _isFabShow ? 1.0 : 0.0,
+            child: new FloatingActionButton(
+              backgroundColor: Theme.of(context).accentColor,
+              child: new Icon(
+                  Icons.note_add,
+                  color: Colors.white,
+                ),
+              onPressed: () => sendMessageClick(),
+            )
         ),
       );
     } else {
