@@ -86,8 +86,14 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     _parentTitle = "";
     _type = 0;
     _isSubmitDisable = true;
-
-    _locationDropDownMenuItems = getDropDownMenuItems([LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1]);
+    List<String> dropDownList = [LABEL_NEARBY];
+    if(widget.user.homeAddress != null) {
+      dropDownList.add(LABEL_REGION0);
+    }
+    if(widget.user.officeAddress != null) {
+      dropDownList.add(LABEL_REGION1);
+    }    
+    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
 
     initPlatformState();
@@ -183,8 +189,10 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           this.messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
           break;
         case LABEL_REGION0:
+          this.messageLocation = widget.user.homeAddress;
+          break;
         case LABEL_REGION1:
-          this.messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+          this.messageLocation = widget.user.officeAddress;
           break;
       }
       GeoPoint mapCenter = this.messageLocation;
