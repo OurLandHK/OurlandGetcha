@@ -150,7 +150,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     }
     GeoPoint location = GeoHelper.boxCenter(document['geotopleft'], document['geobottomright']);
     if(this.chatMap != null) {
-      this.chatMap.addLocation(location, document['topic'], type, userName);
+      this.chatMap.addLocation(messageId, location, document['topic'], type, userName);
     }
     rv = new TopicMessage(user: widget.user, messageBody: document, messageId: messageId, geoTopLeft: document['geotopleft'], geoBottomRight: document['geobottomright'], onTap: _onTap);
     return rv;

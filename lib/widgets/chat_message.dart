@@ -7,6 +7,7 @@ import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/widgets/image_widget.dart';
 
 class ChatMessage extends StatelessWidget {
   final String parentId;
@@ -30,44 +31,6 @@ class ChatMessage extends StatelessWidget {
 
   bool isCurrentUser() {
     return(messageBody['createdUser'] != null && messageBody['createdUser']['uuid'] == this.user.uuid);
-  }
-  Widget imageWidget(imageUrl) {
-    return Material(
-            child: CachedNetworkImage(
-              placeholder: Container(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(themeColor),
-                ),
-                width: 200.0,
-                height: 200.0,
-                padding: EdgeInsets.all(70.0),
-                decoration: BoxDecoration(
-                  color: greyColor2,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
-                ),
-              ),
-              errorWidget: Material(
-                child: Image.asset(
-                  'images/img_not_available.jpeg',
-                  width: 200.0,
-                  height: 200.0,
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.all(
-                  Radius.circular(8.0),
-                ),
-                clipBehavior: Clip.hardEdge,
-              ),
-              imageUrl: imageUrl,
-              width: 200.0,
-              height: 200.0,
-              fit: BoxFit.cover,
-            ),
-            borderRadius: BorderRadius.all(Radius.circular(8.0)),
-            clipBehavior: Clip.hardEdge,
-          );
   }
 
   Widget build(BuildContext context) {
@@ -94,7 +57,7 @@ class ChatMessage extends StatelessWidget {
         if(messageBody['imageUrl'] != null) {
           messageWidget = Container(
             child: Column (children: <Widget>[
-              imageWidget(messageBody['imageUrl']),
+              new ImageWidget(imageUrl: messageBody['imageUrl'], height: 200 ,width: 200),
               messageWidget,
           ]),
           );
@@ -102,7 +65,7 @@ class ChatMessage extends StatelessWidget {
         break;
       case 1:
         messageWidget = Container(
-          child: imageWidget(messageBody['content']),
+          child: new ImageWidget(imageUrl: messageBody['content'], height: 200 ,width: 200),
           margin: margin,
         );
         break;

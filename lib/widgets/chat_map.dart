@@ -24,7 +24,7 @@ class ChatMap extends StatefulWidget {
     zoomAdjustment(topLeft, bottomRight);
   }
 
-  void addLocation(
+  void addLocation(String messageId,
       GeoPoint location, String content, int contentType, String username) {
     String label = "";
     switch (contentType) {
@@ -36,14 +36,14 @@ class ChatMap extends StatefulWidget {
     }
     // only handle text message now
     if (state != null && state.googleMapWidget != null) {
-      state.googleMapWidget.addMarker(location, label);
+      state.googleMapWidget.addMarker(location, label, messageId);
     }
   }
 
-  void addMarker(GeoPoint location, String label) {
+  void addMarker(GeoPoint location, String label, String messageId) {
     if (state != null && state.googleMapWidget != null) {
       state.googleMapWidget.clearMarkers();
-      state.googleMapWidget.addMarker(location, label);
+      state.googleMapWidget.addMarker(location, label, messageId);
     }
   }
 

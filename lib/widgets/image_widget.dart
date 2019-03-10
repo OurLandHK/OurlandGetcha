@@ -20,32 +20,32 @@ class ImageWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
             child: CachedNetworkImage(
-              placeholder: Container(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+              placeholder: (context, url) => new Container(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                  ),
+                  width: width,
+                  height: height,
+                  padding: EdgeInsets.all(70.0),
+                  decoration: BoxDecoration(
+                    color: greyColor2,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(8.0),
+                    ),
+                  ),
                 ),
-                width: width,
-                height: height,
-                padding: EdgeInsets.all(70.0),
-                decoration: BoxDecoration(
-                  color: greyColor2,
+              errorWidget: (context, url, error) => new Material(
+                  child: Image.asset(
+                    'images/img_not_available.jpeg',
+                    width: width,
+                    height: height,
+                    fit: BoxFit.cover,
+                  ),
                   borderRadius: BorderRadius.all(
                     Radius.circular(8.0),
                   ),
+                  clipBehavior: Clip.hardEdge,
                 ),
-              ),
-              errorWidget: Material(
-                child: Image.asset(
-                  'images/img_not_available.jpeg',
-                  width: width,
-                  height: height,
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.all(
-                  Radius.circular(8.0),
-                ),
-                clipBehavior: Clip.hardEdge,
-              ),
               imageUrl: imageUrl,
               width: width,
               height: height,

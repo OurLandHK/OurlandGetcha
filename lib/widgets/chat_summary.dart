@@ -28,9 +28,6 @@ class ChatSummary extends StatefulWidget {
     state = new _ChatSummaryState();
     return state;
   }
-  void addChat(GeoPoint location, String content, String imageUrl, int contentType, User user) {
-    state.addChat(location, content, imageUrl, contentType, user);
-  }
 }
 
 class _ChatSummaryState extends State<ChatSummary> {
@@ -64,8 +61,9 @@ class _ChatSummaryState extends State<ChatSummary> {
     buildMessageSummaryWidget();
   }
 
-  void addChat(GeoPoint location, String content, String imageUrl, int contentType, User user) {
-    Map<String, dynamic> marker = {'location':location,
+  void addChat(String id, GeoPoint location, String content, String imageUrl, int contentType, User user) {
+    Map<String, dynamic> marker = {'id': id,
+                                   'location':location,
                                    'content': content,
                                    'contentType': contentType,
                                    'username': user.username};
@@ -104,13 +102,6 @@ class _ChatSummaryState extends State<ChatSummary> {
 
   Widget buildSummaryFooter(BuildContext context) {
     Widget rv = Container();
-/*    if(chatMapWidget != null) {
-      //chatMapWidget.clearMarkers();
-      print('Markers ${markerList.length}');
-      for(var marker in markerList) {
-        chatMapWidget.addLocation(marker['location'], marker['content'], marker['contentType'], marker['username']);
-      }
-    }*/
     if(widget.desc != null && widget.desc.length > 0) {
       print(widget.desc);
       rv = RichLinkPreview(
@@ -135,7 +126,7 @@ class _ChatSummaryState extends State<ChatSummary> {
       //chatMapWidget.clearMarkers();
       print('Markers ${markerList.length}');
       for(var marker in markerList) {
-        chatMapWidget.addLocation(marker['location'], marker['content'], marker['contentType'], marker['username']);
+        chatMapWidget.addLocation(marker['id'], marker['location'], marker['content'], marker['contentType'], marker['username']);
       }
     }
 
@@ -162,7 +153,7 @@ class _ChatSummaryState extends State<ChatSummary> {
           imageUrl = document['imageUrl'];
         }
         User chatUser = User.fromBasicMap(document['createdUser']);
-        addChat(location, document['content'], imageUrl, document['type'], chatUser);
+        addChat(document['id'], location, document['content'], imageUrl, document['type'], chatUser);
         }
       });
       setState(() {
