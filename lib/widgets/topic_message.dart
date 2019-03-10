@@ -108,15 +108,16 @@ class TopicMessage extends StatelessWidget {
                 children: <Widget>[
                   Material(
                     child: CachedNetworkImage(
-                      placeholder: Container(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.0,
-                          valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                      placeholder: (context, url) => 
+                        new Container(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.0,
+                            valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                          ),
+                          width: 50.0,
+                          height: 50.0,
+                          padding: EdgeInsets.all(15.0),
                         ),
-                        width: 50.0,
-                        height: 50.0,
-                        padding: EdgeInsets.all(15.0),
-                      ),
                       imageUrl: (messageBody['createdUser'] != null) ? messageBody['createdUser']['avatarUrl'] : 'assets/images/default-avatar.jpg',
                       width: 50.0,
                       height: 50.0,
@@ -138,15 +139,15 @@ class TopicMessage extends StatelessWidget {
       } else {
         imageWidget = Material(
                     child: CachedNetworkImage(
-                      placeholder: Container(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.0,
-                          valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                      placeholder: (context, url) => new Container(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.0,
+                            valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                          ),
+                          width: 75.0,
+                          height: 75.0,
+                          padding: EdgeInsets.all(15.0),
                         ),
-                        width: 75.0,
-                        height: 75.0,
-                        padding: EdgeInsets.all(15.0),
-                      ),
                       imageUrl: messageBody['imageUrl'],
                       width: 75.0,
                       height: 75.0,

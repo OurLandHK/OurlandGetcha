@@ -144,7 +144,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
 
   void refreshMarker(String label) {
     this.map.clearMarkers();
-    this.map.addMarker(this._currentLocation, label);
+    this.map.addMarker(this._currentLocation, label, "settings");
   }
 
   void onSubmit() {

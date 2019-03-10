@@ -24,15 +24,17 @@ class GoogleMapWidget extends StatefulWidget {
             zoom: this.zoom)));
   }
 
-  void addMarker(GeoPoint location, String label) {
-//    print('addMarker ${label}');
-    final markerOptions = MarkerOptions(
+  void addMarker(GeoPoint location, String label ,String messageId) {
+    final MarkerId markerId = MarkerId(messageId);
+    final Marker marker = Marker(
+      markerId: markerId,
       position: LatLng(location.latitude, location.longitude),
-      infoWindowText: InfoWindowText(label, null),
-//              icon: BitmapDescriptor.fromAsset('images/flutter.png',),
-//              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-    );
-    state.addMarker(markerOptions);
+      infoWindow: InfoWindow(title: label, snippet: '*'),
+/*      onTap: () {
+        _onMarkerTapped(markerId);
+      },*/
+    );    
+    state.addMarker(markerId, marker);
   }
 
   void clearMarkers() {
@@ -47,10 +49,16 @@ class GoogleMapWidget extends StatefulWidget {
 }
 
 class _GoogleMapWidgetState extends State<GoogleMapWidget> {
-  List<MarkerOptions> pendingMarkerList;
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+  List<Marker> pendingMarkers = new List<Marker>();
+  bool _isCleanUp = false;
   _GoogleMapWidgetState() {
-    pendingMarkerList = new List<MarkerOptions>();
   }
+
+  void addMarker(MarkerId markerId, Marker marker) {
+      pendingMarkers.add(marker);
+  }
+
 
   GoogleMapController mapController;
 
@@ -60,6 +68,8 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
     if(widget.width != 0) {
       width = widget.width; 
     }
+    WidgetsBinding.instance
+    .addPostFrameCallback((_) => updateAnyMarkerChange(context));
     return new Container(
       child: Column(
         children: <Widget>[
@@ -74,6 +84,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
                   target: LatLng(widget.latitude, widget.longitude),
                   zoom: widget.zoom,
                 ),
+                markers: Set<Marker>.of(markers.values),
               ),
             ),
           ),
@@ -81,31 +92,34 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
       ),
     );
   }
-
-  void addMarker(MarkerOptions options) {
-  //  print('$options');
-    if (mapController != null) {
-      mapController.addMarker(options);
-    } else {
-      pendingMarkerList.add(options);
+  
+  void updateAnyMarkerChange(BuildContext context) {
+    bool isSetState = false;
+    Map<MarkerId, Marker> newmarkers = markers;
+    if(_isCleanUp) {
+      isSetState = true;
+      _isCleanUp = false;
+      newmarkers = <MarkerId, Marker>{};
+    }
+    if(pendingMarkers.length > 0) {
+      isSetState = true;
+      for(Marker marker in pendingMarkers) {
+        newmarkers[marker.markerId] = marker;
+      }
+      pendingMarkers = new List<Marker>();
+    }
+    if(isSetState) {
+      setState(() {
+        markers = newmarkers;
+      });
     }
   }
 
   void clearMarkers() {
-    if (mapController != null) {
-      mapController.clearMarkers();
-    } else {
-      pendingMarkerList.clear();
-    }
+    _isCleanUp = true;
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    //setState(() {
       mapController = controller;
- //     print('create map $pendingMarkerList.length');
-      pendingMarkerList.forEach((option) {
-        mapController.addMarker(option);
-      });
-    //});
   }
 }
