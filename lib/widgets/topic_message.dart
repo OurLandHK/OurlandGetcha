@@ -6,45 +6,36 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
-//import 'package:ourland_native/models/topic_model.dart';
+import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:open_graph_parser/open_graph_parser.dart';
 
 class TopicMessage extends StatelessWidget {
-  final String messageId;
+  final Topic topic;
   final User user;
-  GeoPoint geoTopLeft;
-  GeoPoint geoBottomRight;
-  final Map<String, dynamic> messageBody;
-//  final Topic topic;
   final Function onTap;
 
   TopicMessage(
       {Key key,
   //    @required this.topic,
-      @required this.messageId,
-      @required this.messageBody,
+      @required this.topic,
       @required this.user,
-      @required this.geoBottomRight,
-      @required this.geoTopLeft,
       @required this.onTap})
       : super(key: key);
 
   bool isLink() {
-    String topic = this.messageBody['topic'];
-    return topic.contains("http");
+    String title = this.topic.topic;
+    return title.contains("http");
   }
 
   Widget build(BuildContext context) {
     void _onTap() {
       if(isLink()) {
-        OpenGraphParser.getOpenGraphData(this.messageBody['topic']).then((Map data) {
-          this.onTap(this.messageBody['id'], data['title'], this.messageBody['imageUrl'], this.messageBody['content'],
-              this.geoTopLeft, this.geoBottomRight);
+        OpenGraphParser.getOpenGraphData(this.topic.topic).then((Map data) {
+          this.onTap(this.topic, data['title']);
         });
       } else {
-        this.onTap(this.messageBody['id'], this.messageBody['topic'], this.messageBody['imageUrl'], this.messageBody['content'],
-            this.geoTopLeft, this.geoBottomRight);
+        this.onTap(this.topic, this.topic.topic);
       }
     }
 
@@ -54,7 +45,7 @@ class TopicMessage extends StatelessWidget {
     if(isLink()) {
       messageWidget = Container(
         child: RichLinkPreview(
-            link: messageBody['topic'],
+            link: this.topic.topic,
             appendToLink: true,
             backgroundColor: greyColor2,
             borderColor: greyColor2,
@@ -68,7 +59,7 @@ class TopicMessage extends StatelessWidget {
     } else {
         messageWidget = Container(
         child: Text(
-          messageBody['topic'],
+          this.topic.topic,
             style: TextStyle(
               color: Colors.black, fontSize: 14.0, fontStyle: FontStyle.normal),
           ),
@@ -83,7 +74,7 @@ class TopicMessage extends StatelessWidget {
       child: Text(
         DateFormat('dd MMM kk:mm').format(
             new DateTime.fromMicrosecondsSinceEpoch(
-                messageBody['created'].microsecondsSinceEpoch)),
+                this.topic.created.microsecondsSinceEpoch)),
         style: TextStyle(
             color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
       ),
@@ -103,7 +94,7 @@ class TopicMessage extends StatelessWidget {
       );
     } else {
       Widget imageWidget;
-      if(messageBody['imageUrl'] == null) {
+      if(this.topic.imageUrl == null) {
         imageWidget = Column(
                 children: <Widget>[
                   Material(
@@ -118,7 +109,7 @@ class TopicMessage extends StatelessWidget {
                           height: 50.0,
                           padding: EdgeInsets.all(15.0),
                         ),
-                      imageUrl: (messageBody['createdUser'] != null) ? messageBody['createdUser']['avatarUrl'] : 'assets/images/default-avatar.jpg',
+                      imageUrl: (this.topic.createdUser != null) ? this.topic.createdUser.avatarUrl : 'assets/images/default-avatar.jpg',
                       width: 50.0,
                       height: 50.0,
                       fit: BoxFit.cover,
@@ -128,7 +119,7 @@ class TopicMessage extends StatelessWidget {
                   ),
                   Container(
                     child: Text(
-                      (messageBody['createdUser'] != null) ? messageBody['createdUser']['user'] : LABEL_NOBODY,
+                      (this.topic.createdUser != null) ? this.topic.createdUser.username : LABEL_NOBODY,
                       style: TextStyle(color: primaryColor),
                     ),
                     alignment: Alignment.center,
@@ -148,7 +139,7 @@ class TopicMessage extends StatelessWidget {
                           height: 75.0,
                           padding: EdgeInsets.all(15.0),
                         ),
-                      imageUrl: messageBody['imageUrl'],
+                      imageUrl: this.topic.imageUrl,
                       width: 75.0,
                       height: 75.0,
                       fit: BoxFit.cover,

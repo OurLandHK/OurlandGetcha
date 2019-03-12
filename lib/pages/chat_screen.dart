@@ -11,6 +11,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/chat_list.dart';
 import 'package:ourland_native/widgets/chat_message.dart';
 import 'package:ourland_native/widgets/chat_summary.dart';
@@ -24,15 +25,11 @@ final auth = FirebaseAuth.instance;
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class ChatScreen extends StatelessWidget {
-  final String parentId;
   final String parentTitle;
-  final GeoPoint topLeft;
-  final GeoPoint bottomRight;
+  final Topic topic;
   final GeoPoint messageLocation;
-  final String imageUrl;
-  final String desc;
   final User user;
-  ChatScreen({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.topLeft, this.bottomRight, this.messageLocation, this.imageUrl, this.desc}) : super(key: key);
+  ChatScreen({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -48,43 +45,27 @@ class ChatScreen extends StatelessWidget {
           ),
           body: new ChatScreenBody(
             user: this.user,
-            parentId: this.parentId,
+            topic: this.topic,
             parentTitle: this.parentTitle,
-            topLeft: this.topLeft,
-            bottomRight: this.bottomRight,
             messageLocation: this.messageLocation,
-            imageUrl: this.imageUrl,
-            desc: this.desc
           ),
         );
   }
 }
 
 class ChatScreenBody extends StatefulWidget {
-  final String parentId;
   final String parentTitle;
-  final GeoPoint topLeft;
-  final GeoPoint bottomRight;
   final GeoPoint messageLocation;
-  final String imageUrl;
-  final String desc;
+  final Topic topic;
   final User user;
 
-  ChatScreenBody({Key key, @required this.user, @required this.parentId, @required this.parentTitle, this.topLeft, this.bottomRight, this.messageLocation, this.imageUrl, this.desc}) : super(key: key);
+  ChatScreenBody({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
 
   @override
-  State createState() => new ChatScreenBodyState(parentId: this.parentId, parentTitle: this.parentTitle, topLeft: this.topLeft, bottomRight: this.bottomRight, messageLocation: this.messageLocation, imageUrl: this.imageUrl, desc: this.desc);
+  State createState() => new ChatScreenBodyState();
 }
 
 class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderStateMixin  {
-  String parentId;
-
-  String parentTitle;
-  GeoPoint topLeft;
-  GeoPoint bottomRight;
-  String imageUrl;
-  String desc;
-  String id;
   ChatModel chatModel;
   ValueNotifier<Stream> chatStream;
   ChatSummary chatSummary;
@@ -111,13 +92,13 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
 
   final ScrollController listScrollController = new ScrollController();
   final FocusNode focusNode = new FocusNode();
-  ChatScreenBodyState({Key key, @required this.parentId, @required this.parentTitle, @required this.topLeft, @required this.bottomRight, this.messageLocation, this.imageUrl, this.desc});
+  ChatScreenBodyState({Key key, this.messageLocation});
 
   @override
   Widget build(BuildContext context) {
-    ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(this.topLeft);
-    ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(this.bottomRight);
-    ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: imageUrl, desc: desc);
+    ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(widget.topic.geoTopLeft);
+    ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(widget.topic.geoBottomRight);
+    ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, desc: widget.topic.content);
     return WillPopScope(
       child: Stack(
         children: <Widget>[
@@ -131,7 +112,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
               ),
 
               // List of messages
-              ChatList(chatStream: chatStream, parentId: this.parentId, user: widget.user, listScrollController: this.listScrollController),
+              ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, listScrollController: this.listScrollController),
               (this.messageLocation != null) ?
                 new SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
             ],
@@ -148,7 +129,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   // Platform messages are asynchronous, so we initialize in an async method.
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
     Widget rv;
-    rv = new ChatMessage(user: widget.user, messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
+    rv = new ChatMessage(user: widget.user, messageBody: document, parentId: widget.topic.id, messageId: messageId, onTap: _onTap);
     return rv;
   }
 
@@ -166,7 +147,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   }
 
   initPlatformState() async {
-    if(this.topLeft == null) {
+    if(widget.topic.geoTopLeft == null) {
       Position location;
       // Platform messages may fail, so we use a try/catch PlatformException.
 
@@ -204,7 +185,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-    chatModel = new ChatModel(this.parentId, widget.user);
+    chatModel = new ChatModel(widget.topic.id, widget.user);
     chatSummary = null;
  //   chatMap = null;
 
@@ -214,7 +195,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     initPlatformState();
     chatStream = new ValueNotifier(this.chatModel.getMessageSnap(this._currentLocation, 1));
     //chatStream1 = new ValueNotifier(this.chatModel.getMessageSnap(this._currentLocation, 1));
-    if(this.topLeft == null) {
+    if(widget.topic.geoTopLeft == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {
           if(position != null) {
@@ -226,7 +207,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
         });
     } else {
       if(this.messageLocation == null) {
-        this.messageLocation = GeoHelper.boxCenter(this.topLeft, this.bottomRight);;
+        this.messageLocation = widget.topic.geoCenter;
       }
     }
   }
@@ -262,17 +243,5 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
       setState(() {
       });
     }
-  }
-
-  readLocal() async {
-    prefs = await SharedPreferences.getInstance();
-    id = prefs.getString('id') ?? '';
-    if (id.hashCode <= parentId.hashCode) {
-      groupChatId = '$id-$parentId';
-    } else {
-      groupChatId = '$parentId-$id';
-    }
-
-    setState(() {});
   }
 }

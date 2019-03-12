@@ -56,7 +56,14 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
 
   void addMarker(MarkerId markerId, Marker marker) {
+    try {
+      setState(() {
+        markers[markerId] = marker;
+      });
+    } catch (exception) {
+      print('addMarker exception');
       pendingMarkers.add(marker);
+    }
   }
 
 
@@ -94,9 +101,11 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
   
   void updateAnyMarkerChange(BuildContext context) {
+    print('updateAnyMarkerChange ${pendingMarkers.length} ${markers.length}');
     bool isSetState = false;
     Map<MarkerId, Marker> newmarkers = markers;
     if(_isCleanUp) {
+      print('updateAnyMarkerChange cleanup');
       isSetState = true;
       _isCleanUp = false;
       newmarkers = <MarkerId, Marker>{};

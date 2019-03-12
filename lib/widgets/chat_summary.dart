@@ -53,10 +53,12 @@ class _ChatSummaryState extends State<ChatSummary> {
     galleryImageUrlList = new List<String>();
     markerList = new List<Map<String, dynamic>>();
     double mapWidth = widget.width;
+    
     if(widget.imageUrl != null && widget.imageUrl.length != 0) {
-      summaryImageWidget = new ImageWidget(width: widget.width/2, height: widget.height, imageUrl: widget.imageUrl);
-      mapWidth /= 2;
+      summaryImageWidget = new ImageWidget(width: null /*widget.width/2*/, height: widget.height, imageUrl: widget.imageUrl);
+      //mapWidth /= 2;
     }
+    
     chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height);
     buildMessageSummaryWidget();
   }
@@ -67,8 +69,9 @@ class _ChatSummaryState extends State<ChatSummary> {
                                    'content': content,
                                    'contentType': contentType,
                                    'username': user.username};
-                                   print('$content');
-    markerList.add(marker);
+    //markerList.add(marker);
+    chatMapWidget.addLocation(marker['id'], marker['location'], marker['content'], marker['contentType'], marker['username']);
+
     // Add involved user in the summary;
     updateUser(user);
     addImage(imageUrl);
@@ -119,9 +122,9 @@ class _ChatSummaryState extends State<ChatSummary> {
   Widget build(BuildContext context) {
     Widget firstRow = this.chatMapWidget;
     if(this.summaryImageWidget != null) {
-      firstRow = new Row(children: [this.summaryImageWidget, this.chatMapWidget]);
+      firstRow = new Stack(children: [this.chatMapWidget, this.summaryImageWidget]);
     }
-
+/*
     if(chatMapWidget != null) {
       //chatMapWidget.clearMarkers();
       print('Markers ${markerList.length}');
@@ -129,7 +132,7 @@ class _ChatSummaryState extends State<ChatSummary> {
         chatMapWidget.addLocation(marker['id'], marker['location'], marker['content'], marker['contentType'], marker['username']);
       }
     }
-
+*/
     return _progressBarActive == true?const CircularProgressIndicator():
       new Column(
         children: [
