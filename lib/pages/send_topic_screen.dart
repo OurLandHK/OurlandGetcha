@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/chat_model.dart';
+import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 
 final analytics = new FirebaseAnalytics();
@@ -333,7 +334,10 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   //    If all data are correct then save data to out variables
         _formKey.currentState.save();
         List<String> tags = [this._firstTag];
-        chatModel.sendTopicMessage(this.messageLocation, this._parentTitle, tags, this._desc, this.imageFile, this._type, this._isShowGeo);
+        // TODO GeoBox this.messageLocation
+        Topic topic = new Topic(widget.user, this.messageLocation, this.messageLocation,
+              null, this._isShowGeo, tags, this._parentTitle, this._desc);
+        chatModel.sendTopicMessage(this.messageLocation, topic, this.imageFile);
         onBackPress();
       }
     };

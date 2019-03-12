@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
@@ -141,24 +142,22 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
     Widget rv; 
     int type = 0;
-    if(document['type'] != null) {
-      type = document['type'];
+    if(document['createdUser'] == null) {
+      document['createdUser']['user'] = "Test";
     }
-    String userName = "Test";
-    if(document['createdUser'] != null) {
-      userName = document['createdUser']['user'];
-    }
-    GeoPoint location = GeoHelper.boxCenter(document['geotopleft'], document['geobottomright']);
+
+    Topic topic = Topic.fromMap(document);
+    GeoPoint location = topic.geoCenter;
     if(this.chatMap != null) {
-      this.chatMap.addLocation(messageId, location, document['topic'], type, userName);
+      this.chatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
     }
-    rv = new TopicMessage(user: widget.user, messageBody: document, messageId: messageId, geoTopLeft: document['geotopleft'], geoBottomRight: document['geobottomright'], onTap: _onTap);
+    rv = new TopicMessage(user: widget.user, topic: topic, onTap: _onTap);
     return rv;
   }
 
   @override
   Widget build(BuildContext context) {
-    void _onTap(String messageId, String parentTitle, String imageUrl, String desc, GeoPoint topLeft, GeoPoint bottomRight) {
+    void _onTap(Topic topic, String parentTitle) {
       GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
       if(this.fixLocation != null) {
         _messageLocation = this.fixLocation;
@@ -167,7 +166,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new ChatScreen(user: widget.user, parentId: messageId, parentTitle: parentTitle, topLeft: topLeft, bottomRight: bottomRight, messageLocation: _messageLocation, imageUrl: imageUrl, desc: desc);
+            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );
@@ -212,7 +211,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
             background: Stack(
               fit: StackFit.expand,
               children: <Widget>[
-                (this.chatMap != null) ? this.chatMap : new Container(),
+                (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT),
                 // This gradient ensures that the toolbar icons are distinct
                 // against the background image.
                 const DecoratedBox(
