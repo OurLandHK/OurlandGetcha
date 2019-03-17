@@ -8,9 +8,12 @@ class User {
   GeoPoint _officeAddress;
   DateTime _createdAt;
   DateTime _updatedAt;
+  bool _sendBroadcastRight;
 
   User(this._uuid, this._username, this._avatarUrl, this._homeAddress,
-      this._officeAddress, this._createdAt, this._updatedAt);
+      this._officeAddress, this._createdAt, this._updatedAt) {
+        this._sendBroadcastRight = false;
+      }
 
   User.map(dynamic obj) {
     this._uuid = obj['uuid'];
@@ -19,6 +22,11 @@ class User {
     this._homeAddress = obj['homeAddress'];
     this._createdAt = obj['createdAt'];
     this._updatedAt = obj['updatedAt'];
+    try {
+      this._sendBroadcastRight = obj['sendBroadcastRight'];
+    } catch (exception) {
+      this._sendBroadcastRight = false;
+    };
   }
 
   String get uuid => _uuid;
@@ -28,6 +36,7 @@ class User {
   GeoPoint get officeAddress => _officeAddress;
   DateTime get createdAt => _createdAt;
   DateTime get updatedAt => _updatedAt;
+  bool get sendBroadcastRight => _sendBroadcastRight;
 
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
@@ -57,6 +66,10 @@ class User {
 
     if (_updatedAt != null) {
       map['updatedAt'] = _updatedAt;
+    }
+
+    if(_sendBroadcastRight != null) {
+      map['sendBroadcastRight'] = _sendBroadcastRight;
     }
 
     return map;
@@ -98,6 +111,15 @@ class User {
     this._officeAddress = map['officeAddress'];
     this._createdAt = map['createdAt'].toDate();
     this._updatedAt = map['updatedAt'].toDate();
+    try {
+      if(map['sendBroadcastRight'] == null) {
+        this._sendBroadcastRight = false;
+      } else {
+        this._sendBroadcastRight = map['sendBroadcastRight'];
+      }
+    } catch (exception) {
+      this._sendBroadcastRight = false;
+    };    
   }
 }
 
