@@ -26,6 +26,9 @@ const String LABEL_NEARBY = "NearBy";
 const String LABEL_REGION0 = "Home";
 const String LABEL_REGION1 = "Office";
 
+const String LABEL_BROADCAST = "Broadcast";
+const String LABEL_RECENT = "Recent";
+
 const String MENU_ITEM_SETTINGS = "Settings";
 const String MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION = "Change Home Location";
 const String MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION = "Change Office Location";

@@ -96,7 +96,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   String locationType;
   User user;
   String _location;
-  ChatMap map = null;
+  ChatMap map;
   Geolocator _geolocator = new Geolocator();
   GeoPoint _currentLocation;
 
@@ -167,6 +167,9 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   }
 
   Widget renderMap() {
+    if(this.map == null) {
+      return new Container();
+    }
     return this.map;
   }
 

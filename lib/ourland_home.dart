@@ -6,6 +6,7 @@ import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/send_topic_screen.dart';
+import 'package:ourland_native/pages/notification_screen.dart';
 import 'package:ourland_native/pages/settings.dart';
 
 class OurlandHome extends StatefulWidget {
@@ -27,47 +28,42 @@ class _OurlandHomeState extends State<OurlandHome>
     with SingleTickerProviderStateMixin {
   TabController _tabController;
   String uid = '';
+  String _currentLocationSelection;
+  List<DropdownMenuItem<String>> _locationDropDownMenuItems;
   bool _isFabShow = true;
 //  List<CameraDescription> cameras;
   bool _locationPermissionGranted = false;
+  Widget _nearBySelection;
+  Widget _pendingWidget;
 
   @override
   void initState() {
     this.uid = '';
     super.initState();
-    _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
+    List<String> dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
+    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList);
+    _currentLocationSelection = _locationDropDownMenuItems[0].value;
+
+    _tabController = new TabController(vsync: this, initialIndex: 0, length: 2);
     _tabController.addListener(() {
-      print('Index: ${_tabController.index}');
       switch(_tabController.index) {
         case 1:
-          if(widget.user.homeAddress == null) {
+          print("${widget.user.sendBroadcastRight}");
+          if(widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
             setState(() {
-              this._isFabShow = false;
+              this._isFabShow = true;
             });
           } else {
             setState(() {
-              this._isFabShow = true;
-            });            
-          }
-          break;
-        case 2:
-          if(widget.user.officeAddress == null) {
-            setState(() {
               this._isFabShow = false;
-            });
-          } else {
-            setState(() {
-              this._isFabShow = true;
             });            
           }
-          break;          
+          break;       
         default:
-          setState(() {
-            this._isFabShow = true;
-          });
+          updateLocation(_currentLocationSelection);
       }
     });
-
+    _nearBySelection = new TopicScreen(user: widget.user);
     // checking if location permission is granted
     PermissionHandler()
         .checkPermissionStatus(PermissionGroup.location)
@@ -93,28 +89,86 @@ class _OurlandHomeState extends State<OurlandHome>
     });
   }
 
+  
+  List<DropdownMenuItem<String>> getDropDownMenuItems(List<String> labelList) {
+    List<DropdownMenuItem<String>> items = new List();
+    for (String label in labelList) {
+      items.add(new DropdownMenuItem(
+          value: label,
+          child: new Text(label)
+      ));
+    }
+    return items;
+  }
+
+  Widget showNearby() {
+    _pendingWidget = new TopicScreen(user: widget.user);
+    return new CircularProgressIndicator();
+  }
+  Widget showHome() {
+    Widget rv = new UpdateLocationScreen(locationType: LABEL_REGION0, user: widget.user);
+    if(widget.user.homeAddress != null) {
+      _pendingWidget = new TopicScreen(user: widget.user, fixLocation: widget.user.homeAddress);
+      rv = new CircularProgressIndicator();
+    }
+    return rv;
+  }
+  Widget showOffice() {
+    Widget rv = new UpdateLocationScreen(locationType: LABEL_REGION1, user: widget.user);
+    if(widget.user.officeAddress != null) {
+      _pendingWidget = TopicScreen(user: widget.user, fixLocation: widget.user.officeAddress);
+      rv = new CircularProgressIndicator();
+    }
+    return rv;
+  }
+
+    // TODO for Real Notification Screen
+  Widget showNotification() {
+    return new NotificationScreen(user: widget.user);
+  }
+
+  void updateLocation(String locationSelection) {
+    Widget rv;
+    bool isFabShow;
+    switch(locationSelection) {
+      case LABEL_REGION0:
+        rv = showHome();
+        //_nearBySelection.setLocation(widget.user.homeAddress);
+        if(widget.user.homeAddress == null) {
+          isFabShow = false;
+        } else {
+          isFabShow = true;         
+        }
+        break;
+      case LABEL_REGION1:
+        rv = showOffice();
+        //_nearBySelection.setLocation(widget.user.officeAddress);
+        if(widget.user.officeAddress == null) {
+          isFabShow = false;
+        } else {
+          isFabShow = true;           
+        }
+        break;          
+      default:
+        isFabShow = true;
+        rv = showNearby();
+        //_nearBySelection.setLocation(null);
+        
+    }                
+    setState((){
+      _currentLocationSelection = locationSelection;
+      this._isFabShow = isFabShow;
+      _nearBySelection = rv;
+      _tabController.index = 0;
+    });
+  } 
+
   @override
   Widget build(BuildContext context) {
-    Widget showNearby() { 
-      return new TopicScreen(user: widget.user);
-    }
-    Widget showHome() {
-      Widget rv = new UpdateLocationScreen(locationType: LABEL_REGION0, user: widget.user);
-      if(widget.user.homeAddress != null) {
-        rv = new TopicScreen(user: widget.user, fixLocation: widget.user.homeAddress);
-      }
-      return rv;
-    }
-    Widget showOffice() {
-      Widget rv = new UpdateLocationScreen(locationType: LABEL_REGION1, user: widget.user);
-      if(widget.user.officeAddress != null) {
-        rv = new TopicScreen(user: widget.user, fixLocation: widget.user.officeAddress);
-      }
-      return rv;
-    }    
     void sendMessageClick() {
       GeoPoint messageLocation;
-      /*
+
+      /* Need to base on tab to decide send broadcast message or personal.
       switch(_tabController.index) {
         case 1:
           messageLocation = widget.user.homeAddress;
@@ -133,6 +187,7 @@ class _OurlandHomeState extends State<OurlandHome>
         ),
       );
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) => updateAnyMarkerChange(context));
 
     if (_locationPermissionGranted == true) {
       return new Scaffold(
@@ -145,13 +200,22 @@ class _OurlandHomeState extends State<OurlandHome>
             tabs: <Widget>[
               //  new Tab(icon: new Icon(Icons.camera_alt)),
               new Tab(
-                text: LABEL_NEARBY,
+                child: new Row(
+                  children: [
+                    new Icon(Icons.location_city),
+                    new Text(" "),
+                    new DropdownButton(
+                    value: _currentLocationSelection,
+                    items: _locationDropDownMenuItems,
+                    onChanged: updateLocation,
+                    ),
+                  ],
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                )
               ),
               new Tab(
-                text: LABEL_REGION0,
-              ),
-              new Tab(
-                text: LABEL_REGION1,
+                icon: new Icon(Icons.alarm),
               ),
             ],
           ),
@@ -167,9 +231,8 @@ class _OurlandHomeState extends State<OurlandHome>
           controller: _tabController,
           children: <Widget>[
             //new CameraScreen(widget.cameras),
-            showNearby(),
-            showHome(),
-            showOffice()
+            _nearBySelection,
+            showNotification()
             //new StatusScreen(),
           ],
         ),
@@ -208,6 +271,15 @@ class _OurlandHomeState extends State<OurlandHome>
           ],
         )),
       );
+    }
+  }
+  void updateAnyMarkerChange(BuildContext context) {
+    if(_pendingWidget != null) {
+      Widget temp = _pendingWidget;
+      setState(() {
+        _pendingWidget = null;
+        _nearBySelection = temp;
+      });
     }
   }
 }

@@ -28,11 +28,18 @@ final auth = FirebaseAuth.instance;
 class TopicScreen extends StatefulWidget {
   final GeoPoint fixLocation;
   final User user;
+  TopicScreenState _state;
 
   TopicScreen({Key key, @required this.user, this.fixLocation}) : super(key: key);
+  void setLocation(GeoPoint location) {
+    _state.setLocation(location);
+  }
 
   @override
-  State createState() => new TopicScreenState(fixLocation: this.fixLocation);
+  State createState() {
+    _state = new TopicScreenState(fixLocation: this.fixLocation);
+    return _state;
+  } 
 }
 class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin  {
   TopicScreenState({Key key, @required this.fixLocation});
@@ -129,6 +136,14 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
           }
       });
     }
+  }
+
+  void setLocation(GeoPoint location) {
+    print("${location}");
+    setState(() {
+      this.fixLocation = location;
+      this.messageLocation = location;
+    });
   }
 
   void onFocusChange() {
