@@ -236,7 +236,6 @@ class _OurlandHomeState extends State<OurlandHome>
             //new StatusScreen(),
           ],
         ),
-        //persistentFooterButtons: <Widget>[SendMessage(chatModel: ChatModel(TOPIC_ROOT_ID), listScrollController: null, messageLocation: new GeoPoint(22.4, 114)),],
         floatingActionButton:  new Opacity(
             opacity: _isFabShow ? 1.0 : 0.0,
             child: new FloatingActionButton(

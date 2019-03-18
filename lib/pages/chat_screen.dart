@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:ourland_native/helper/geo_helper.dart';
+import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
@@ -66,7 +66,7 @@ class ChatScreenBody extends StatefulWidget {
 }
 
 class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderStateMixin  {
-  ChatModel chatModel;
+  MessageService messageService;
   ValueNotifier<Stream> chatStream;
   ChatSummary chatSummary;
   //ValueNotifier<Stream> chatStream1;
@@ -114,7 +114,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
               // List of messages
               ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, listScrollController: this.listScrollController),
               (this.messageLocation != null) ?
-                new SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
+                new SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
             ],
           ),
 
@@ -185,7 +185,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-    chatModel = new ChatModel(widget.topic.id, widget.user);
+    messageService = new MessageService(widget.user);
     chatSummary = null;
  //   chatMap = null;
 
@@ -193,8 +193,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
 
     //readLocal();
     initPlatformState();
-    chatStream = new ValueNotifier(this.chatModel.getMessageSnap(this._currentLocation, 1));
-    //chatStream1 = new ValueNotifier(this.chatModel.getMessageSnap(this._currentLocation, 1));
+    chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
     if(widget.topic.geoTopLeft == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {
