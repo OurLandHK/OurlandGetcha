@@ -13,7 +13,7 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
-import 'package:ourland_native/models/chat_model.dart';
+import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -30,7 +30,7 @@ class NotificationScreen extends StatefulWidget {
 }
 class NotificationScreenState extends State<NotificationScreen> with TickerProviderStateMixin  {
   NotificationScreenState({Key key});
-  ChatModel chatModel;
+  MessageService messageService;
   SharedPreferences prefs;
   TabController _tabController;
 
@@ -43,7 +43,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
   @override
   void initState() {
     super.initState();
-    chatModel = new ChatModel(TOPIC_ROOT_ID, widget.user);
+    messageService = new MessageService(widget.user);
 
     isLoading = false;
     _tabController = new TabController(vsync: this, initialIndex: 0, length: 2);
@@ -140,7 +140,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
   Widget buildNotifcationView(Function _onTap, BuildContext context) {
     return new Container(
       child: StreamBuilder(
-        stream: this.chatModel.getMessageSnap(null, 1),
+        stream: this.messageService.getBroadcastSnap(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(

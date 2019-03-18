@@ -15,30 +15,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
-import '../models/chat_model.dart';
-
+import 'package:ourland_native/services/message_service.dart';
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final messageReference = FirebaseDatabase.instance.reference().child('messages');
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class SendMessage extends StatefulWidget {
-  final ChatModel chatModel;
+  final MessageService messageService;
   final GeoPoint messageLocation;
   final ScrollController listScrollController;
+  final String parentID;
 
-  SendMessage({Key key, @required this.chatModel, @required this.messageLocation, @required this.listScrollController}) : super(key: key);
+  SendMessage({Key key, @required this.parentID, @required this.messageService, @required this.messageLocation, @required this.listScrollController}) : super(key: key);
 
   @override
-  State createState() => new SendMessageState(chatModel: this.chatModel, messageLocation: this.messageLocation, listScrollController: this.listScrollController);
+  State createState() => new SendMessageState(messageService: this.messageService, messageLocation: this.messageLocation, listScrollController: this.listScrollController);
 }
 
 class SendMessageState extends State<SendMessage> with TickerProviderStateMixin  {
-  ChatModel chatModel;
+  MessageService messageService;
   GeoPoint messageLocation;
   ScrollController listScrollController;
 
-  SendMessageState({Key key, @required this.chatModel, @required this.messageLocation, @required this.listScrollController}) {
+  SendMessageState({Key key, @required this.messageService, @required this.messageLocation, @required this.listScrollController}) {
     print('SendMessageState ${this.messageLocation}');
   }
 
@@ -139,7 +139,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
     // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
       textEditingController.clear();  
-      chatModel.sendChildMessage(this.messageLocation, content, type);
+      messageService.sendChildMessage(widget.parentID, this.messageLocation, content, type);
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_NTH_TO_SEND)));

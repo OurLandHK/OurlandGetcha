@@ -18,6 +18,7 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/models/chat_model.dart';
+import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
@@ -44,7 +45,7 @@ class TopicScreen extends StatefulWidget {
 class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin  {
   TopicScreenState({Key key, @required this.fixLocation});
   GeoPoint fixLocation;
-  ChatModel chatModel;
+  MessageService messageService;
   ChatMap chatMap;
 
   var listMessage;
@@ -71,7 +72,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-    chatModel = new ChatModel(TOPIC_ROOT_ID, widget.user);
+    messageService = new MessageService(widget.user);
     chatMap = null; 
 
     isLoading = false;
@@ -173,7 +174,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     void _onTap(Topic topic, String parentTitle) {
-      GeoPoint _messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+      GeoPoint _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
       if(this.fixLocation != null) {
         _messageLocation = this.fixLocation;
       }
@@ -243,17 +244,13 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
           ),
         ),
         buildSilverListMessage(_onTap, context),
-        /*
-        (this.messageLocation != null) ? 
-              SendMessage(chatModel: this.chatModel, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),            
-        */
       ],
     );
   }
 
     Widget buildSilverListMessage(Function _onTap, BuildContext context) {
     return StreamBuilder(
-      stream: this.chatModel.getMessageSnap(this._currentLocation, 1),
+      stream: this.messageService.getTopicSnap(this.messageLocation, 1),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           listMessage = snapshot.data.documents;

@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
-import 'package:ourland_native/models/chat_model.dart';
+import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 
@@ -37,7 +37,7 @@ class SendTopicScreen extends StatefulWidget {
 class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixin  {
   SendTopicState({Key key, this.messageLocation});
   String id;
-  ChatModel chatModel;
+  MessageService messageService;
   ChatMap chatMap;
   File imageFile;
 
@@ -75,7 +75,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-    chatModel = new ChatModel(TOPIC_ROOT_ID, widget.user);
+    messageService = new MessageService(widget.user);
     chatMap = null; 
     _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION);
     _firstTag = _tagDropDownMenuItems[0].value;
@@ -337,7 +337,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         // TODO GeoBox this.messageLocation
         Topic topic = new Topic(widget.user, this.messageLocation, this.messageLocation,
               null, this._isShowGeo, tags, this._parentTitle, this._desc);
-        chatModel.sendTopicMessage(this.messageLocation, topic, this.imageFile);
+        messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
         onBackPress();
       }
     };
