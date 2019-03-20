@@ -5,6 +5,7 @@ import 'package:ourland_native/helper/geo_helper.dart';
 class Topic {
   String _id;
   bool _isShowGeo;
+  bool _isPublic;
   DateTime _lastUpdate;
   DateTime _created;
   User _createdUser;
@@ -16,7 +17,7 @@ class Topic {
   GeoPoint _geobottomright;
   GeoPoint _geotopleft;
 
-  Topic(this._createdUser, this._geobottomright, this._geotopleft,
+  Topic(this._isPublic, this._createdUser, this._geobottomright, this._geotopleft,
     this._imageUrl, this._isShowGeo, this._tags,
     this._topic, this._content) {
         this._created = DateTime.now();
@@ -37,6 +38,7 @@ class Topic {
   bool get isShowGeo => _isShowGeo;
   User get createdUser => _createdUser;
   User get lastUpdateUser => _lastUpdateUser;
+  bool get isPublic => _isPublic;
 
   GeoPoint get geoCenter => 
     GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
@@ -91,6 +93,10 @@ class Topic {
       map['lastUpdateUser'] = this._lastUpdateUser.toBasicMap();
     }
 
+    if(this._isPublic != null) {
+      map['public'] = this._isPublic;
+    }
+
     return map;
   }
 
@@ -110,5 +116,6 @@ class Topic {
     }
     this._created = map['created'].toDate();
     this._lastUpdate = map['lastUpdate'].toDate();
+    this._isPublic = map['public'];
   }
 }

@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/message_service.dart';
+import 'package:ourland_native/services/user_service.dart';
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final messageReference = FirebaseDatabase.instance.reference().child('messages');
@@ -37,6 +38,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
   MessageService messageService;
   GeoPoint messageLocation;
   ScrollController listScrollController;
+  UserService userService;
 
   SendMessageState({Key key, @required this.messageService, @required this.messageLocation, @required this.listScrollController}) {
     print('SendMessageState ${this.messageLocation}');
@@ -58,7 +60,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
-
+    userService = new UserService();
     isLoading = false;
     isShowSticker = false;
     imageUrl = '';
@@ -140,6 +142,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
     if (content.trim() != '') {
       textEditingController.clear();  
       messageService.sendChildMessage(widget.parentID, this.messageLocation, content, type);
+      userService.updateRecentTopic(messageService.user.uuid, widget.parentID, this.messageLocation);
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_NTH_TO_SEND)));

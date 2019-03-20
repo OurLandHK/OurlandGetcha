@@ -15,6 +15,8 @@ import 'package:ourland_native/models/topic_model.dart';
 class MessageService {
   User _user;
 
+  User get user => _user;
+
   MessageService(this._user);
 
   Stream<QuerySnapshot> getTopicSnap(GeoPoint position, int distanceInKM) {
@@ -61,7 +63,7 @@ class MessageService {
     if(imageUrl != null) {
       indexData['imageUrl'] =  imageUrl;
     }
-    indexData['public'] = false;
+    //indexData['public'] = false;
     String chatText = topic.content;
     if(chatText == null || chatText.length == 0) {
       chatText = topic.topic;

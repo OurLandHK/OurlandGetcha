@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/services/message_service.dart';
+import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 
@@ -28,7 +29,8 @@ final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 class SendTopicScreen extends StatefulWidget {
   final GeoPoint messageLocation;
   final User user;
-  SendTopicScreen({Key key, @required this.messageLocation, @required this.user}) : super(key: key);
+  bool isBroadcast = false;
+  SendTopicScreen({Key key, @required this.messageLocation, @required this.user, this.isBroadcast}) : super(key: key);
 
   @override
   State createState() => new SendTopicState(messageLocation: this.messageLocation);
@@ -38,6 +40,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   SendTopicState({Key key, this.messageLocation});
   String id;
   MessageService messageService;
+  UserService userService;
   ChatMap chatMap;
   File imageFile;
 
@@ -63,6 +66,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   List<DropdownMenuItem<String>> _locationDropDownMenuItems;
 
   String _parentTitle;
+  String _newTopicLabel;
   String _desc;
   String _firstTag;
   int _type;
@@ -76,11 +80,12 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     super.initState();
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
+    userService = new UserService();
     chatMap = null; 
     _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION);
     _firstTag = _tagDropDownMenuItems[0].value;
     
-    
+    _newTopicLabel = widget.isBroadcast ? LABEL_NEW_BROADCAST_TOPIC : LABEL_NEW_TOPIC;
     _buttonText = new Text(LABEL_MISSING_TOPIC);
     _isShowGeo = false;
     _desc = "";
@@ -229,7 +234,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
       key: _scaffoldKey,
       appBar: new AppBar(
         title: new Text(
-          "New Topic",
+          _newTopicLabel,
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -335,9 +340,10 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         _formKey.currentState.save();
         List<String> tags = [this._firstTag];
         // TODO GeoBox this.messageLocation
-        Topic topic = new Topic(widget.user, this.messageLocation, this.messageLocation,
+        Topic topic = new Topic(widget.isBroadcast, widget.user, this.messageLocation, this.messageLocation,
               null, this._isShowGeo, tags, this._parentTitle, this._desc);
         messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
+        userService.updateRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
         onBackPress();
       }
     };

@@ -99,7 +99,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
           controller: _tabController,
           children: <Widget>[
             buildNotification(context),
-            buildNotification(context)
+            buildBroadcast(context)
           ],
         ),     
     );
@@ -138,6 +138,51 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
   }
 
   Widget buildNotifcationView(Function _onTap, BuildContext context) {
+    return new Container(
+      child: StreamBuilder(
+        stream: this.messageService.getBroadcastSnap(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+              ),
+            );
+          } else {
+            return ListView.builder(
+              padding: EdgeInsets.all(10.0),
+              itemBuilder: (context, index) => buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context),
+              itemCount: snapshot.data.documents.length,
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Widget buildBroadcast(BuildContext context) {
+    void _onBroadcastTap(Topic topic, String parentTitle) {
+      GeoPoint _messageLocation = lastAccessLocation;
+      //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
+      Navigator.of(context).push(
+        new MaterialPageRoute<void>(
+          builder: (BuildContext context) {
+            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+          },
+        ),
+      );
+    }
+
+    return Stack(
+      children: <Widget>[
+        buildBroadcastView(_onBroadcastTap, context),     
+        buildLoading(),
+      ],
+    );
+  }
+
+
+  Widget buildBroadcastView(Function _onTap, BuildContext context) {
     return new Container(
       child: StreamBuilder(
         stream: this.messageService.getBroadcastSnap(),

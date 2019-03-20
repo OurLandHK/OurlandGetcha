@@ -123,3 +123,38 @@ class User {
   }
 }
 
+class RecentTopic {
+  String _id;
+  DateTime _lastUpdate;
+  GeoPoint _messageLocation;
+
+  RecentTopic(this._id, this._lastUpdate, this._messageLocation);
+
+  String get id => _id;
+  DateTime get lastUpdate => _lastUpdate;
+  GeoPoint get messageLocation => _messageLocation;
+
+  Map<String, dynamic> toMap() {
+    var map = new Map<String, dynamic>();
+    if (_id != null) {
+      map['id'] = _id;
+    }
+
+    if (this._messageLocation != null) {
+      map['messageLocation'] = this._messageLocation;
+    }
+
+    if (this._lastUpdate != null) {
+      map['lastUpdate'] = this._lastUpdate;
+    }
+
+    return map;
+  }
+
+  RecentTopic.fromMap(Map<String, dynamic> map) {
+    this._id = map['id'];
+    this._messageLocation = map['messageLocation'];
+    this._lastUpdate = map['lastUpdate'].toDate();
+  }
+}
+

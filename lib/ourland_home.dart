@@ -182,7 +182,7 @@ class _OurlandHomeState extends State<OurlandHome>
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             return new SendTopicScreen(
-                messageLocation: messageLocation, user: widget.user);
+                messageLocation: messageLocation, user: widget.user, isBroadcast: (_tabController.index == 1),);
           },
         ),
       );
