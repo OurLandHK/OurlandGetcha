@@ -53,6 +53,35 @@ class UserService {
     });
   }
 
+  Future<User> updateRecentTopic(String userID, String topicID, GeoPoint messageLocation) 
+    async {
+    final TransactionHandler createTransaction = (Transaction tx) async {
+      final DocumentSnapshot ds = await tx.get(userCollection.document(userID).collection('recentTopic').document(topicID));
+
+      DateTime now = new DateTime.now();
+      final RecentTopic recentTopic = 
+          new RecentTopic(topicID, now, messageLocation);
+      final Map<String, dynamic> data = recentTopic.toMap();
+      await tx.set(ds.reference, data);
+      return data;
+    };
+
+    return Firestore.instance.runTransaction(createTransaction).then((mapData) {
+      return User.fromMap(mapData);
+    }).catchError((error) {
+      print('error: $error');
+      return null;
+    });
+  }
+
+  Stream<QuerySnapshot> getRecentTopicSnap(String userID) {
+    Stream<QuerySnapshot> rv;
+    rv = userCollection.document(userID).collection('recentTopic')
+          .orderBy('lastUpdate', descending: true)
+          .snapshots();
+    return rv;
+  }
+
   Future<Map> getUserMap(String uuid) async {
     var userReference = userCollection.document(uuid);
     return userReference.get().then((onValue) {

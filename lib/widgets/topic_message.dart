@@ -14,13 +14,14 @@ class TopicMessage extends StatelessWidget {
   final Topic topic;
   final User user;
   final Function onTap;
+  final GeoPoint messageLocation;
 
   TopicMessage(
       {Key key,
-  //    @required this.topic,
       @required this.topic,
       @required this.user,
-      @required this.onTap})
+      @required this.onTap,
+      @required this.messageLocation})
       : super(key: key);
 
   bool isLink() {
@@ -32,10 +33,10 @@ class TopicMessage extends StatelessWidget {
     void _onTap() {
       if(isLink()) {
         OpenGraphParser.getOpenGraphData(this.topic.topic).then((Map data) {
-          this.onTap(this.topic, data['title']);
+          this.onTap(this.topic, data['title'], this.messageLocation);
         });
       } else {
-        this.onTap(this.topic, this.topic.topic);
+        this.onTap(this.topic, this.topic.topic, this.messageLocation);
       }
     }
 

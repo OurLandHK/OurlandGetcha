@@ -15,6 +15,8 @@ import 'package:ourland_native/models/topic_model.dart';
 class MessageService {
   User _user;
 
+  User get user => _user;
+
   MessageService(this._user);
 
   Stream<QuerySnapshot> getTopicSnap(GeoPoint position, int distanceInKM) {
@@ -24,6 +26,19 @@ class MessageService {
           .orderBy('lastUpdate', descending: true)
           .snapshots();
     return rv;
+  }
+
+  Future<Topic> getTopic(String topicID) {
+    var topicReference = Firestore.instance
+          .collection('index')
+            .document(topicID);
+    return topicReference.get().then((onValue) {
+      if(onValue.exists) {
+        return Topic.fromMap(onValue.data);
+      } else {
+        return null;
+      }
+    });
   }
 
   Stream<QuerySnapshot> getBroadcastSnap() {
@@ -61,7 +76,7 @@ class MessageService {
     if(imageUrl != null) {
       indexData['imageUrl'] =  imageUrl;
     }
-    indexData['public'] = false;
+    //indexData['public'] = false;
     String chatText = topic.content;
     if(chatText == null || chatText.length == 0) {
       chatText = topic.topic;

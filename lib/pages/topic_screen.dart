@@ -167,18 +167,29 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     if(this.chatMap != null) {
       this.chatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
     }
-    rv = new TopicMessage(user: widget.user, topic: topic, onTap: _onTap);
+    GeoPoint _messageLocation;
+    if(this.fixLocation != null) {
+      _messageLocation = this.fixLocation;
+    } else {
+      if(this.messageLocation != null) {
+        _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
+      }
+    }
+    rv = new TopicMessage(user: widget.user, topic: topic, onTap: _onTap, messageLocation: _messageLocation);
     return rv;
   }
 
   @override
   Widget build(BuildContext context) {
-    void _onTap(Topic topic, String parentTitle) {
-      GeoPoint _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
-      if(this.fixLocation != null) {
-        _messageLocation = this.fixLocation;
-      }
+    void _onTap(Topic topic, String parentTitle, GeoPoint messageLocation) {
       //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
+      GeoPoint _messageLocation = messageLocation;
+      if(_messageLocation == null && this.fixLocation != null) {
+        _messageLocation = this.fixLocation;
+      } 
+      if(_messageLocation == null && this.messageLocation != null) {
+        _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
+      }
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
