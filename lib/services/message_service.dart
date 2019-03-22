@@ -28,6 +28,19 @@ class MessageService {
     return rv;
   }
 
+  Future<Topic> getTopic(String topicID) {
+    var topicReference = Firestore.instance
+          .collection('index')
+            .document(topicID);
+    return topicReference.get().then((onValue) {
+      if(onValue.exists) {
+        return Topic.fromMap(onValue.data);
+      } else {
+        return null;
+      }
+    });
+  }
+
   Stream<QuerySnapshot> getBroadcastSnap() {
     Stream<QuerySnapshot> rv;
     rv = Firestore.instance

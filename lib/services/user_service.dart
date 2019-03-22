@@ -74,6 +74,14 @@ class UserService {
     });
   }
 
+  Stream<QuerySnapshot> getRecentTopicSnap(String userID) {
+    Stream<QuerySnapshot> rv;
+    rv = userCollection.document(userID).collection('recentTopic')
+          .orderBy('lastUpdate', descending: true)
+          .snapshots();
+    return rv;
+  }
+
   Future<Map> getUserMap(String uuid) async {
     var userReference = userCollection.document(uuid);
     return userReference.get().then((onValue) {
