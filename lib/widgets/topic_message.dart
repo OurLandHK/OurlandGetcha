@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:open_graph_parser/open_graph_parser.dart';
 
 class TopicMessage extends StatelessWidget {
@@ -96,38 +97,7 @@ class TopicMessage extends StatelessWidget {
     } else {
       Widget imageWidget;
       if(this.topic.imageUrl == null) {
-        imageWidget = Column(
-                children: <Widget>[
-                  Material(
-                    child: CachedNetworkImage(
-                      placeholder: (context, url) => 
-                        new Container(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 1.0,
-                            valueColor: AlwaysStoppedAnimation<Color>(themeColor),
-                          ),
-                          width: 50.0,
-                          height: 50.0,
-                          padding: EdgeInsets.all(15.0),
-                        ),
-                      imageUrl: (this.topic.createdUser != null) ? this.topic.createdUser.avatarUrl : 'assets/images/default-avatar.jpg',
-                      width: 50.0,
-                      height: 50.0,
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                    clipBehavior: Clip.hardEdge,
-                  ),
-                  Container(
-                    child: Text(
-                      (this.topic.createdUser != null) ? this.topic.createdUser.username : LABEL_NOBODY,
-                      style: TextStyle(color: primaryColor),
-                    ),
-                    alignment: Alignment.center,
-                    margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                  ),
-                ]
-              );
+        imageWidget = new BaseProfile(user: this.topic.createdUser);
       } else {
         imageWidget = Material(
                     child: CachedNetworkImage(
