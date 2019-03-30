@@ -4,6 +4,7 @@ class User {
   String _uuid;
   String _username;
   String _avatarUrl;
+  String _fcmToken;
   GeoPoint _homeAddress;
   GeoPoint _officeAddress;
   DateTime _createdAt;
@@ -13,6 +14,7 @@ class User {
   User(this._uuid, this._username, this._avatarUrl, this._homeAddress,
       this._officeAddress, this._createdAt, this._updatedAt) {
         this._sendBroadcastRight = false;
+        this._fcmToken = '';
       }
 
   User.map(dynamic obj) {
@@ -26,7 +28,12 @@ class User {
       this._sendBroadcastRight = obj['sendBroadcastRight'];
     } catch (exception) {
       this._sendBroadcastRight = false;
-    };
+    }
+    try {
+      this._fcmToken = obj['fcm'];
+    } catch (exception) {
+      this._fcmToken = "";
+    }
   }
 
   String get uuid => _uuid;
@@ -36,6 +43,7 @@ class User {
   GeoPoint get officeAddress => _officeAddress;
   DateTime get createdAt => _createdAt;
   DateTime get updatedAt => _updatedAt;
+  String get fcmToken => _fcmToken;
   bool get sendBroadcastRight => _sendBroadcastRight;
 
   Map<String, dynamic> toMap() {
@@ -72,6 +80,10 @@ class User {
       map['sendBroadcastRight'] = _sendBroadcastRight;
     }
 
+    if(_fcmToken != '') {
+     map['fcmToken'] = _fcmToken; 
+    }
+
     return map;
   }
 
@@ -99,6 +111,7 @@ class User {
     this._officeAddress = null;
     this._createdAt = DateTime.now();
     this._updatedAt = this._createdAt;
+    this._fcmToken = '';
   }
 
 
@@ -119,7 +132,16 @@ class User {
       }
     } catch (exception) {
       this._sendBroadcastRight = false;
-    };    
+    }
+    try {
+      if(map['fcmToken'] == null) {
+        this._fcmToken = '';
+      } else {
+        this._fcmToken = map['fcmToken'];
+      }
+    } catch (exception) {
+      this._fcmToken = '';
+    }; 
   }
 }
 

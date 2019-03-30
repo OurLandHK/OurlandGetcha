@@ -55,3 +55,5 @@ service cloud.firestore {
     }
   }
 }
+2. Enable Message:
+https://pub.dartlang.org/packages/firebase_messaging
