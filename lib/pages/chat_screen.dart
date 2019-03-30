@@ -62,7 +62,7 @@ class ChatScreenBody extends StatefulWidget {
   ChatScreenBody({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
 
   @override
-  State createState() => new ChatScreenBodyState();
+  State createState() => new ChatScreenBodyState(messageLocation: this.messageLocation);
 }
 
 class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderStateMixin  {
