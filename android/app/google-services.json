@@ -1,35 +1,35 @@
 {
   "project_info": {
-    "project_number": "757324443294",
-    "firebase_url": "https://ourlandnativetest.firebaseio.com",
-    "project_id": "ourlandnativetest",
-    "storage_bucket": "ourlandnativetest.appspot.com"
+    "project_number": "7572079733",
+    "firebase_url": "https://ourlandtest.firebaseio.com",
+    "project_id": "ourlandtest",
+    "storage_bucket": "ourlandtest.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:757324443294:android:d19ddb48855ce1c3",
+        "mobilesdk_app_id": "1:7572079733:android:0e0903eb17157899",
         "android_client_info": {
-          "package_name": "hk.ourland.post"
+          "package_name": "hk.ourland.wall"
         }
       },
       "oauth_client": [
         {
-          "client_id": "757324443294-rh5mi0ch7aon2v7g8unmjdu9va4rrvb5.apps.googleusercontent.com",
+          "client_id": "7572079733-568vusutq1733r62rdibgl9ne626tkpm.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "hk.ourland.post",
-            "certificate_hash": "ed2850cf0c52c00738fdd5c0c7dfe59cc2c002af"
+            "package_name": "hk.ourland.wall",
+            "certificate_hash": "1234567890111213141516171819202122232425"
           }
         },
         {
-          "client_id": "757324443294-r1cqbhk8j1om1gmt1r4j9706e8tsk8su.apps.googleusercontent.com",
+          "client_id": "7572079733-iomuocv5krdcd9bhinf3bnq27doev38d.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDVOo7BL-UQH_N0qf8nCuvxv5c9b_2tVIg"
+          "current_key": "AIzaSyA0f-lTwvIBGJK8Peuw-C0o9k3UWAGda9E"
         }
       ],
       "services": {
@@ -40,11 +40,11 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "757324443294-r1cqbhk8j1om1gmt1r4j9706e8tsk8su.apps.googleusercontent.com",
+              "client_id": "7572079733-iomuocv5krdcd9bhinf3bnq27doev38d.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "757324443294-j2acrhl8nelgn65e7bo39ulfrgobe3m9.apps.googleusercontent.com",
+              "client_id": "7572079733-uevb39ptc2uhgm5rrvo0a5h44njie5m7.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
                 "bundle_id": "hk.ourland.post"

@@ -1,4 +1,4 @@
-package hk.ourland.post;
+package hk.ourland.wall;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
