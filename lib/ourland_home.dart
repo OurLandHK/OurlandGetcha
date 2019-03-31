@@ -96,14 +96,27 @@ class _OurlandHomeState extends State<OurlandHome>
     this.uid = '';
     messageService = new MessageService(widget.user);
     super.initState();
-    // get GPS
-    initPlatformState();
-    _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
-      if(position != null) {
-        print('initState Poisition ${position}');
-        _currentLocation = new GeoPoint(position.latitude, position.longitude);
+    PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.location)
+        .then((PermissionStatus permission) {
+      if (permission == PermissionStatus.granted) {
+        setState(() {
+          _locationPermissionGranted = true;
+        });
+      } else {
+        requestLocationPermission();
       }
     });
+    // get GPS
+    initPlatformState();
+    if(_locationPermissionGranted) {
+      _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
+        if(position != null) {
+          print('initState Poisition ${position}');
+          _currentLocation = new GeoPoint(position.latitude, position.longitude);
+        }
+      });
+    }
 
     // Firebase Messaging
     firebaseCloudMessaging_Listeners();
@@ -134,48 +147,38 @@ class _OurlandHomeState extends State<OurlandHome>
     });
     _nearBySelection = new TopicScreen(user: widget.user);
     // checking if location permission is granted
-    PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.location)
-        .then((PermissionStatus permission) {
-      if (permission == PermissionStatus.granted) {
-        setState(() {
-          _locationPermissionGranted = true;
-        });
-      } else {
-        requestLocationPermission();
-      }
-    });
   }
 
-    initPlatformState() async {
+  initPlatformState() async {
     Position location;
     // Platform messages may fail, so we use a try/catch PlatformException.
+    if(_locationPermissionGranted) {
+      try {
+        geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
+        location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
+        error = null;
+      } on PlatformException catch (e) {
+        if (e.code == 'PERMISSION_DENIED') {
+          error = 'Permission denied';
+        } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
+          error = 'Permission denied - please ask the user to enable it from the app settings';
+        }
 
-    try {
-      geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
-      location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
-      error = null;
-    } on PlatformException catch (e) {
-      if (e.code == 'PERMISSION_DENIED') {
-        error = 'Permission denied';
-      } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
-        error = 'Permission denied - please ask the user to enable it from the app settings';
+        location = null;
       }
 
-      location = null;
+      // If the widget was removed from the tree while the asynchronous platform
+      // message was in flight, we want to discard the reply rather than calling
+      // setState to update our non-existent appearance.
+      //if (!mounted) return;
+
+      setState(() {
+          print('initPlatformStateLocation: ${location}');
+          if(location != null) {
+            _currentLocation = new GeoPoint(location.latitude, location.longitude);
+          }
+      });
     }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    //if (!mounted) return;
-
-    setState(() {
-        print('initPlatformStateLocation: ${location}');
-        if(location != null) {
-          _currentLocation = new GeoPoint(location.latitude, location.longitude);
-        }
-    });
   }
 
 
@@ -198,7 +201,7 @@ class _OurlandHomeState extends State<OurlandHome>
         _showItemDialog(message);
       },
       onResume: (Map<String, dynamic> message) async {
-        // on resume {notification: {}, data: {collapse_key: hk.ourland.post, google.original_priority: high, google.sent_time: 1553878529834, google.delivered_priority: high, google.ttl: 2419200, from: 757324443294, id: 1553099389364, click_action: FLUTTER_NOTIFICATION_CLICK, google.message_id: 0:1553878530232073%41221c0241221c02}}
+        // on resume {notification: {}, data: {collapse_key: hk.ourland.wall, google.original_priority: high, google.sent_time: 1553878529834, google.delivered_priority: high, google.ttl: 2419200, from: 757324443294, id: 1553099389364, click_action: FLUTTER_NOTIFICATION_CLICK, google.message_id: 0:1553878530232073%41221c0241221c02}}
         var data = message['data'];
         String id = data['id'];
         print('on resume $message    data $data id $id');

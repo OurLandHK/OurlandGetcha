@@ -11,6 +11,11 @@ import 'package:ourland_native/helper/geo_helper.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 
+final CollectionReference _topicCollection =
+    Firestore.instance.collection('topic');
+
+final CollectionReference _chatCollection =
+    Firestore.instance.collection('chat');
 
 class MessageService {
   User _user;
@@ -21,16 +26,14 @@ class MessageService {
 
   Stream<QuerySnapshot> getTopicSnap(GeoPoint position, int distanceInKM) {
     Stream<QuerySnapshot> rv;
-    rv = Firestore.instance
-          .collection('index').where("public", isEqualTo: false)
+    rv = _topicCollection.where("public", isEqualTo: false)
           .orderBy('lastUpdate', descending: true)
           .snapshots();
     return rv;
   }
 
   Future<Topic> getTopic(String topicID) {
-    var topicReference = Firestore.instance
-          .collection('index')
+    var topicReference = _topicCollection
             .document(topicID);
     return topicReference.get().then((onValue) {
       if(onValue.exists) {
@@ -43,8 +46,7 @@ class MessageService {
 
   Stream<QuerySnapshot> getBroadcastSnap() {
     Stream<QuerySnapshot> rv;
-    rv = Firestore.instance
-          .collection('index').where("public", isEqualTo: true)
+    rv = _topicCollection.where("public", isEqualTo: true)
           .orderBy('lastUpdate', descending: true)
           .snapshots();
     return rv;
@@ -52,9 +54,7 @@ class MessageService {
 
   Stream<QuerySnapshot> getChatSnap(String parentID) {
     Stream<QuerySnapshot> rv;
-    rv = Firestore.instance
-          .collection('chat')
-          .document(parentID)
+    rv = _chatCollection.document(parentID)
           .collection("messages")
           .orderBy('created', descending: true)
           .snapshots();
@@ -89,12 +89,8 @@ class MessageService {
           'type': 0,
           'createdUser' : topic.createdUser.toBasicMap(),
     };
-    indexReference = Firestore.instance
-      .collection('index')
-      .document(topic.id);
-    chatReference = Firestore.instance
-      .collection('chat')
-      .document(topic.id).collection("messages").document(topic.id);
+    indexReference = _topicCollection.document(topic.id);
+    chatReference = _chatCollection.document(topic.id).collection("messages").document(topic.id);
     try {
     Firestore.instance.runTransaction((transaction) async {
       await transaction.set(indexReference, indexData);
@@ -110,9 +106,7 @@ class MessageService {
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
       DocumentReference chatReference;
       DocumentReference indexReference;
-      indexReference = Firestore.instance
-        .collection('index')
-        .document(parentID);
+      indexReference = _topicCollection.document(parentID);
       indexReference.get().then((indexDataSnap) {
         if(indexDataSnap.exists) {
           var indexData = indexDataSnap.data;
@@ -131,9 +125,7 @@ class MessageService {
                 'type': type,
                 'createdUser' : basicUserMap,
           };
-          chatReference = Firestore.instance
-            .collection('chat')
-            .document(parentID).collection("messages").document(sendMessageTimeString);
+          chatReference = _chatCollection.document(parentID).collection("messages").document(sendMessageTimeString);
           try{
             Firestore.instance.runTransaction((transaction) async {
               await transaction.set(indexReference, indexData);
@@ -170,7 +162,7 @@ class MessageService {
 //      blob = new Img.PngEncoder({level: 3}).encodeImage(image);
       blob = new Img.JpegEncoder(quality: 75).encodeImage(image);
     }
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+    String fileName = 'getCha//' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
     StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
     StorageUploadTask uploadTask = reference.putData(blob);
     StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;

@@ -7,7 +7,7 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 final CollectionReference userCollection =
-    Firestore.instance.collection('users');
+    Firestore.instance.collection('getChatUsers');
 
 class UserService {
   Future register(
