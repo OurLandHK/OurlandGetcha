@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/widgets/chat_message.dart';
 
 final analytics = new FirebaseAnalytics();
@@ -24,7 +25,7 @@ class ChatList extends StatelessWidget {
   var listMessage;
   ChatList({Key key, @required this.chatStream, @required this.parentId, @required this.user, @required this.listScrollController}) : super(key: key);
 
-  Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
+  Widget buildItem(String messageId, Chat document, Function _onTap, BuildContext context) {
     Widget rv;
     rv = new ChatMessage(user: user, messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
     return rv;
@@ -45,7 +46,8 @@ class ChatList extends StatelessWidget {
                     padding: EdgeInsets.all(10.0),
                     itemBuilder: (context, index) {
                         Map<String, dynamic> chatDocument = snapshot.data.documents[index].data;
-                        return buildItem(snapshot.data.documents[index].data['id'], chatDocument, null, context);
+                        Chat chat = Chat.fromMap(chatDocument);
+                        return buildItem(snapshot.data.documents[index].data['id'], chat, null, context);
                     },
                     itemCount: snapshot.data.documents.length,
                     reverse: true,

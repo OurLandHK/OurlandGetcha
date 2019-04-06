@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/widgets/image_widget.dart';
 
@@ -15,7 +16,7 @@ class ChatMessage extends StatelessWidget {
   final User user;
   final GeoPoint geoTopLeft;
   final GeoPoint geoBottomRight;
-  final Map<String, dynamic> messageBody;
+  final Chat messageBody;
   final Function onTap;
 
   ChatMessage(
@@ -30,7 +31,7 @@ class ChatMessage extends StatelessWidget {
       : super(key: key);
 
   bool isCurrentUser() {
-    return(messageBody['createdUser'] != null && messageBody['createdUser']['uuid'] == this.user.uuid);
+    return(messageBody.createdUser != null && messageBody.createdUser.uuid == this.user.uuid);
   }
 
   Widget build(BuildContext context) {
@@ -39,11 +40,11 @@ class ChatMessage extends StatelessWidget {
     EdgeInsets margin = isCurrentUser() ? EdgeInsets.only(right: 10.0) : EdgeInsets.only(left: 10.0);
     EdgeInsets timeMargin = isCurrentUser() ? EdgeInsets.only(right: 50.0, top: 5.0, bottom: 5.0) : EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0);
     //print(this.messageId);
-    switch (messageBody['type']) {
+    switch (messageBody.type) {
       case 0:
         messageWidget = Container(
           child: RichLinkPreview(
-              link: messageBody['content'],
+              link: messageBody.content,
               appendToLink: true,
               backgroundColor: primaryColor,
               borderColor: primaryColor,
@@ -54,10 +55,10 @@ class ChatMessage extends StatelessWidget {
               color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
           margin: margin,
         );
-        if(messageBody['imageUrl'] != null) {
+        if(messageBody.imageUrl != null) {
           messageWidget = Container(
             child: Column (children: <Widget>[
-              new ImageWidget(imageUrl: messageBody['imageUrl'], height: 200 ,width: 200),
+              new ImageWidget(imageUrl: messageBody.imageUrl, height: 200 ,width: 200),
               messageWidget,
           ]),
           );
@@ -65,14 +66,14 @@ class ChatMessage extends StatelessWidget {
         break;
       case 1:
         messageWidget = Container(
-          child: new ImageWidget(imageUrl: messageBody['content'], height: 200 ,width: 200),
+          child: new ImageWidget(imageUrl: messageBody.content, height: 200 ,width: 200),
           margin: margin,
         );
         break;
-      default:
+      case 2:
         messageWidget = Container(
           child: new Image.asset(
-            'assets/images/${messageBody['content']}.gif',
+            'assets/images/${messageBody.content}.gif',
             width: 100.0,
             height: 100.0,
             fit: BoxFit.cover,
@@ -91,7 +92,7 @@ class ChatMessage extends StatelessWidget {
       child: Text(
         DateFormat('dd MMM kk:mm').format(
             new DateTime.fromMicrosecondsSinceEpoch(
-                messageBody['created'].microsecondsSinceEpoch)),
+                messageBody.created.microsecondsSinceEpoch)),
         style: TextStyle(
             color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
       ),

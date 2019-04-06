@@ -26,8 +26,12 @@ class TopicMessage extends StatelessWidget {
       : super(key: key);
 
   bool isLink() {
-    String title = this.topic.topic;
-    return title.contains("http");
+    if(this.topic != null) {
+      String title = this.topic.topic;
+      return title.contains("http");
+    } else {
+      return false;
+    }
   }
 
   Widget build(BuildContext context) {
