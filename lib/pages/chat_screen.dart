@@ -11,6 +11,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/chat_list.dart';
 import 'package:ourland_native/widgets/chat_message.dart';
@@ -124,13 +125,6 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
       ),
       onWillPop: onBackPress,
     );
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
-    Widget rv;
-    rv = new ChatMessage(user: widget.user, messageBody: document, parentId: widget.topic.id, messageId: messageId, onTap: _onTap);
-    return rv;
   }
 
   Widget buildLoading() {

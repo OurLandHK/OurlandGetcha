@@ -10,6 +10,7 @@ class Topic {
   DateTime _created;
   User _createdUser;
   String _imageUrl;
+  String _searchingId;
   User _lastUpdateUser;
   String _topic;
   String _content;
@@ -23,6 +24,7 @@ class Topic {
         this._created = DateTime.now();
         this._lastUpdate = this._created;
         this._lastUpdateUser = this._createdUser; 
+        this._searchingId = null;
         this._id = this._created.millisecondsSinceEpoch.toString();
     }
 
@@ -39,6 +41,7 @@ class Topic {
   User get createdUser => _createdUser;
   User get lastUpdateUser => _lastUpdateUser;
   bool get isPublic => _isPublic;
+  String get searchingId => _searchingId;
 
   GeoPoint get geoCenter => 
     GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
@@ -97,6 +100,10 @@ class Topic {
       map['public'] = this._isPublic;
     }
 
+    if(this._searchingId != null) {
+      map['searchingId'] = this._searchingId;
+    }
+
     return map;
   }
 
@@ -113,6 +120,16 @@ class Topic {
       this._lastUpdateUser =  User.fromBasicMap(map['lastUpdateUser']);
     } else {
       this._lastUpdateUser = this._createdUser;
+    }
+    if(map['content'] != null) {
+      this._content = map['content'];
+    } else {
+      this._content = null;
+    }
+    if(map['searchingId'] != null) {
+      this._searchingId = map ['searchingId'];
+    } else {
+      this._searchingId = null;
     }
     this._created = map['created'].toDate();
     this._lastUpdate = map['lastUpdate'].toDate();
