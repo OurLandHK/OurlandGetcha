@@ -61,49 +61,23 @@ class ChatMessage extends StatelessWidget {
         if(messageBody.imageUrl != null) {
           messageWidget = Container(
             child: Column (children: <Widget>[
-              new ImageWidget(imageUrl: messageBody.imageUrl, width: messageWidth),
+              new ImageWidget(imageUrl: messageBody.imageUrl, height: null, width: messageWidth),
               messageWidget,
           ]),
           );
         }
         break;
       case 1:
-      /*
-        messageWidget = Container(
-          child: new ImageWidget(imageUrl: messageBody.content, height: 200 ,width: 200),
-          margin: margin,
-        );
-        */
-        messageWidget = new ImageWidget(imageUrl: messageBody.content, width: messageWidth);
+        messageWidget = new ImageWidget(imageUrl: messageBody.content, height: null, width: messageWidth);
         break;
       case 2:
-      /*
-        messageWidget = Container(
-          child: new Image.asset(
-            'assets/images/${messageBody.content}.gif',
-            width: 100.0,
-            height: 100.0,
-            fit: BoxFit.cover,
-          ),
-          margin: margin,
-        );
-       */ 
-      messageWidget = new Image.asset(
+        messageWidget = new Image.asset(
             'assets/images/${messageBody.content}.gif',
             width: 100.0,
             height: 100.0,
             fit: BoxFit.cover,
           );
     }
-/*    
-    Row row = new Row(
-      children: <Widget>[
-        Container(width: 35.0), // Should be fild with user avator
-        messageWidget,
-      ],
-      crossAxisAlignment: crossAxisAlignment,
-    );
-    */
     // Time
     Container timeWidget = Container(
       child: Text(
@@ -115,7 +89,6 @@ class ChatMessage extends StatelessWidget {
       ),
       margin: timeMargin,
     );
-    Widget content = messageWidget;
     List<Widget> widgets = [];
     if(!isCurrentUser()) {
       widgets.add(new Text(this.messageBody.createdUser.username,
