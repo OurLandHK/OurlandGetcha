@@ -435,7 +435,7 @@ class _OurlandHomeState extends State<OurlandHome>
               backgroundColor: Theme.of(context).accentColor,
               child: new Icon(
                   Icons.note_add,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
               onPressed: () => sendMessageClick(),
             )
