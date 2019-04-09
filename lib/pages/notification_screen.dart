@@ -190,7 +190,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
             case ConnectionState.none:
             case ConnectionState.active:
             case ConnectionState.waiting:
-              return new CircularProgressIndicator();
+              return new LinearProgressIndicator();
             case ConnectionState.done:
               return snapshot.data;
           }
@@ -204,7 +204,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(
-              child: CircularProgressIndicator(
+              child: LinearProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(themeColor),
               ),
             );

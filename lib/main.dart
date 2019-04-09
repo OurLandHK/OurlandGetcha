@@ -11,14 +11,14 @@ import 'package:ourland_native/pages/registration_screen.dart';
 
 
 final ThemeData kIOSTheme = new ThemeData(
-  primarySwatch: Colors.orange,
+  primarySwatch: Colors.blue[300],
   primaryColor: Colors.grey[100],
   primaryColorBrightness: Brightness.light,
 );
 
 final ThemeData kDefaultTheme = new ThemeData(
-  primarySwatch: Colors.purple,
-  accentColor: Colors.orangeAccent[400],
+  primarySwatch:  Colors.blue,
+  accentColor: Colors.yellow,
 );
 
 

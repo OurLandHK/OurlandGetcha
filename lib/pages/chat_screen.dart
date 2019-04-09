@@ -99,23 +99,17 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   Widget build(BuildContext context) {
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(widget.topic.geoTopLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(widget.topic.geoBottomRight);
-    ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, desc: widget.topic.content);
+    ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic);
     return WillPopScope(
       child: Stack(
         children: <Widget>[
           Column(
             children: <Widget>[
-
-              new Container(
-                decoration: new BoxDecoration(
-                  color: Theme.of(context).cardColor),
-                child: chatSummary,
-              ),
-
+              chatSummary,
               // List of messages
               ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, listScrollController: this.listScrollController),
               (this.messageLocation != null) ?
-                new SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new CircularProgressIndicator(),
+                new SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new LinearProgressIndicator(),
             ],
           ),
 
