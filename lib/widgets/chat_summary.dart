@@ -8,10 +8,12 @@ import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/image_widget.dart';
+import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:intl/intl.dart';
 
 class ChatSummary extends StatefulWidget {
   final ValueListenable<Stream> chatStream; 
@@ -66,45 +68,74 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     markerList = new List<Map<String, dynamic>>();
     double mapWidth = widget.width;
 
+    List<Widget> summaryInfoWidgets = new List<Widget>();
     if(widget.imageUrl != null && widget.imageUrl.length != 0) {
       summaryImageWidget = new ImageWidget(width: null /*widget.width/2*/, height: widget.height, imageUrl: widget.imageUrl);
       //mapWidth /= 2;
-      _tabViews.add(summaryImageWidget);
     }
-
-    if(widget.topic != null) {
-      // Check title is duplicate with desc
-      if(isBeginWithLink(widget.topic.topic)) {
-        _tabViews.add(RichLinkPreview(
-            link: widget.topic.topic,
-            appendToLink: true,
-            backgroundColor: greyColor2,
-            borderColor: greyColor2,
-            textColor: Colors.black,
-            launchFromLink: true));
+    Text createdDate = Text(
+        DateFormat('dd MMM kk:mm').format(
+            new DateTime.fromMicrosecondsSinceEpoch(
+                widget.topic.created.microsecondsSinceEpoch)),
+        style: TextStyle(
+            color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+    );
+    Widget baseInfo = new Column(children: <Widget>[
+      new BaseProfile(user: widget.topic.createdUser),
+      createdDate,
+      new Text(LABEL_MUST_SHOW_GEO_SIMPLE + ": " +widget.topic.isShowGeo.toString()),
+    ], crossAxisAlignment: CrossAxisAlignment.start,); // need to show hash tag
+    
+    Widget titleLink;
+    // Check title is duplicate with desc
+    if(isBeginWithLink(widget.topic.topic)) {
+      titleLink = RichLinkPreview(
+          //height: widget.height * 0.90,
+          link: widget.topic.topic,
+          appendToLink: true,
+          backgroundColor: greyColor2,
+          borderColor: greyColor2,
+          textColor: Colors.black,
+          launchFromLink: true);
+    }
+    if(summaryImageWidget != null) {
+      summaryInfoWidgets = [summaryImageWidget, baseInfo];
+      _tabViews.add(SizedBox(height: widget.height, child: new Row(children: summaryInfoWidgets)));
+      if(titleLink != null) {
+        _tabViews.add(titleLink);
       }
-      if(widget.topic.topic.compareTo(widget.topic.content) != 0) {
-        if(widget.topic.content.length != 0) {
-          if(isBeginWithLink(widget.topic.content)) {
-            _tabViews.add(Container(
-              child:RichLinkPreview(
-                  link: widget.topic.content,
-                  appendToLink: true,
-                  backgroundColor: greyColor2,
-                  borderColor: greyColor2,
-                  textColor: Colors.black,
-                  launchFromLink: true),
-              alignment: Alignment.center));
-          } else {
-            _tabViews.add(
-                new Scrollbar(child: new SingleChildScrollView(
-                  child: Text(widget.topic.content))));
-          } 
-        }
-      } 
-    }    
+    } else {
+        if(titleLink != null) {
+        _tabViews.add(titleLink);
+      }
+      _tabViews.add(SizedBox(height: widget.height, child: baseInfo));
+    }
+    if(widget.topic.topic.compareTo(widget.topic.content) != 0) {
+      if(widget.topic.content.length != 0) {
+        if(isBeginWithLink(widget.topic.content)) {
+          _tabViews.add(Container(
+            child:RichLinkPreview(
+                //height: widget.height * 0.90,
+                link: widget.topic.content,
+                appendToLink: true,
+                backgroundColor: greyColor2,
+                borderColor: greyColor2,
+                textColor: Colors.black,
+                launchFromLink: true),
+            alignment: Alignment.center));
+        } else {
+          _tabViews.add(
+              new Scrollbar(child: 
+              new SingleChildScrollView(
+                child:  Column(children: <Widget>[
+                        Text(LABEL_DETAIL, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.0), textAlign: TextAlign.left,),
+                        Text(widget.topic.content, textAlign: TextAlign.left)], crossAxisAlignment: CrossAxisAlignment.start,))));
 
-    chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height);
+        } 
+      }
+    }   
+
+    chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height * 0.95);
     _tabViews.add(chatMapWidget);
   
     buildMessageSummaryWidget();

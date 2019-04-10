@@ -52,6 +52,7 @@ const String LABEL_DETAIL = "Detail";
 const String HINT_DEATIL = "Detail Hint";
 const String HELPER_DETAIL = "Hash Tag Support";
 const String LABEL_MUST_SHOW_GEO = "Reply need to show location";
+const String LABEL_MUST_SHOW_GEO_SIMPLE = "Show location";
 const String LABEL_MISSING_TOPIC = "Missing Topic";
 const String LABEL_MORE_DETAIL = "More Detail is Better";
 const String LABEL_SEND = "Send";
