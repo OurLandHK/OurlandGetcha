@@ -15,6 +15,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:ourland_native/helper/geo_helper.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/services/message_service.dart';
@@ -339,8 +340,10 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   //    If all data are correct then save data to out variables
         _formKey.currentState.save();
         List<String> tags = [this._firstTag];
-        // TODO GeoBox this.messageLocation
-        Topic topic = new Topic(widget.isBroadcast, widget.user, this.messageLocation, this.messageLocation,
+        // TODO pass this_desc to extract the hash tag
+        // Find the geo box
+        var destBox = GeoHelper.findBoxGeo(this.messageLocation, 1000.0);
+        Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
               null, this._isShowGeo, tags, this._parentTitle, this._desc);
         messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
         userService.updateRecentTopic(widget.user.uuid, topic.id, this.messageLocation);

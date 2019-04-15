@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -80,6 +82,10 @@ class _OurlandHomeState extends State<OurlandHome>
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   UserService userService = new UserService();
   MessageService messageService;
+  WebViewController _controller;
+  WebView  _webView;
+  WebviewScaffold _webviewPlugin;
+  final flutterWebviewPlugin = new FlutterWebviewPlugin();
 
     // use to get current location
   GeoPoint _currentLocation;
@@ -95,6 +101,14 @@ class _OurlandHomeState extends State<OurlandHome>
   void initState() {
     this.uid = '';
     messageService = new MessageService(widget.user);
+    _webView = new WebView(
+                initialUrl: OUTLAND_SEARCH_HOST,
+                onWebViewCreated: (WebViewController webViewController) {
+                  _controller = webViewController;
+                },
+                javascriptMode: JavascriptMode.unrestricted,
+              );
+    _webviewPlugin = new WebviewScaffold(url: OUTLAND_SEARCH_HOST, geolocationEnabled: true, appCacheEnabled: true, supportMultipleWindows: true, withJavascript: true, withLocalStorage: true,);
     super.initState();
     PermissionHandler()
         .checkPermissionStatus(PermissionGroup.location)
@@ -126,25 +140,7 @@ class _OurlandHomeState extends State<OurlandHome>
     _locationDropDownMenuItems = getDropDownMenuItems(dropDownList);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
 
-    _tabController = new TabController(vsync: this, initialIndex: 0, length: 2);
-    _tabController.addListener(() {
-      switch(_tabController.index) {
-        case 1:
-          print("${widget.user.sendBroadcastRight}");
-          if(widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
-            setState(() {
-              this._isFabShow = true;
-            });
-          } else {
-            setState(() {
-              this._isFabShow = false;
-            });            
-          }
-          break;       
-        default:
-          updateLocation(_currentLocationSelection);
-      }
-    });
+    _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
     _nearBySelection = new TopicScreen(user: widget.user);
     // checking if location permission is granted
   }
@@ -369,6 +365,30 @@ class _OurlandHomeState extends State<OurlandHome>
 
   @override
   Widget build(BuildContext context) {
+    _tabController.addListener(() {
+      switch(_tabController.index) {
+        case 1:
+          print("${widget.user.sendBroadcastRight}");
+          if(widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
+            setState(() {
+              this._isFabShow = true;
+            });
+          } else {
+            setState(() {
+              this._isFabShow = false;
+            });            
+          }
+          break; 
+        case 2:      
+          setState(() {
+            this._isFabShow = false;
+          }); 
+          flutterWebviewPlugin.launch(OUTLAND_SEARCH_HOST, rect: Rect.fromLTWH(0.0, 0.0, MediaQuery.of(context).size.width, 300.0));
+          break;
+        default:
+          updateLocation(_currentLocationSelection);
+      }
+    });
     void sendMessageClick() {
       GeoPoint messageLocation;
       Navigator.of(context).push(
@@ -410,6 +430,11 @@ class _OurlandHomeState extends State<OurlandHome>
               new Tab(
                 icon: new Icon(Icons.alarm),
               ),
+              /* remove tab until fix the tab view
+              new Tab(
+                icon: new Image.asset('assets/images/app-logo.png')
+              ),
+              */
             ],
           ),
           actions: <Widget>[
@@ -425,8 +450,9 @@ class _OurlandHomeState extends State<OurlandHome>
           children: <Widget>[
             //new CameraScreen(widget.cameras),
             _nearBySelection,
-            showNotification()
-            //new StatusScreen(),
+            showNotification(),
+            //_webView
+            _webviewPlugin,
           ],
         ),
         floatingActionButton:  new Opacity(

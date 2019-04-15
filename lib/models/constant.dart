@@ -1,10 +1,11 @@
 import 'dart:ui';
 
-const String APP_NAME = "我地.佳招";
+const String APP_NAME = "我地.壁報";
 const String SMS_CODE_DIALOG_TITLE = "Enter SMS Code";
 const String SMS_CODE_DIALOG_BUTTON_TEXT = "Verify";
 const String REG_BUTTON_TEXT = "Submit";
 const String REG_USERNAME_HINT_TEXT = "Enter Username";
+const String OUTLAND_SEARCH_HOST = "https://ourlandtest.firebaseapp.com";
 
 const String REG_PHONE_NUMBER_HINT_TEXT = "Enter Phone number: XXXX XXXX";
 const String REG_FAILED_TO_CREATE_USER_TEXT = "Failed to create a user";

@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firestore_helpers/firestore_helpers.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import 'package:ourland_native/models/user_model.dart';
@@ -23,14 +24,40 @@ class MessageService {
   User get user => _user;
 
   MessageService(this._user);
-
-  Stream<QuerySnapshot> getTopicSnap(GeoPoint position, int distanceInKM) {
+/*  
+  Stream<QuerySnapshot> getTopicSnap(GeoPoint position, double distanceInKM) {
     Stream<QuerySnapshot> rv;
     rv = _topicCollection.where("public", isEqualTo: false)
           .orderBy('lastUpdate', descending: true)
           .snapshots();
     return rv;
   }
+*/
+
+  Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter) {
+    Stream<List<Topic>> rv;
+    Area area = new Area(position, distanceInMeter/1000);
+    rv = getDataInArea(
+      source: _topicCollection, 
+      area: area, 
+      locationFieldNameInDB: 'geocenter',
+      mapper: (doc) => Topic.fromMap(doc.data),
+      serverSideOrdering: [OrderConstraint('lastUpdate', true)],
+      locationAccessor: (item) => item.geoCenter,
+        // The distancemapper is applied after the mapper
+        distanceMapper: (item, dist) {
+            item.distance = dist;
+            return item;
+        });
+/*
+    rv = _topicCollection.where("public", isEqualTo: false)
+          .orderBy('lastUpdate', descending: true)
+          .snapshots();
+*/          
+    return rv;
+  }
+
+  
 
   Future<Topic> getTopic(String topicID) {
     var topicReference = _topicCollection
@@ -109,14 +136,17 @@ class MessageService {
       indexReference = _topicCollection.document(parentID);
       indexReference.get().then((indexDataSnap) {
         if(indexDataSnap.exists) {
-          var indexData = indexDataSnap.data;
+          Topic topic = Topic.fromMap(indexDataSnap.data);
           var basicUserMap = _user.toBasicMap();
-          indexData['lastUpdate'] = sendMessageTime;
           GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
-          Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(indexData['geotopleft'], indexData['geobottomright'], dest);
+
+          Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(topic.geoTopLeft, topic.geoBottomRight, dest, 1000);
+          Map<String, dynamic> indexData = topic.toMap();
           indexData['geotopleft'] = enlargeBox['topLeft'];
           indexData['geobottomright'] = enlargeBox['bottomRight'];
+          indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
           indexData['lastUpdateUser'] = basicUserMap;
+          indexData['lastUpdate'] = sendMessageTime;
           var chatData = {
                 'created': sendMessageTime,
                 'id': sendMessageTimeString,

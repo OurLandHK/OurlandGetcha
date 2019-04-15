@@ -17,14 +17,17 @@ class Topic {
   List<dynamic> _tags;
   GeoPoint _geobottomright;
   GeoPoint _geotopleft;
+  GeoPoint _geocenter;
+  double distance;
 
-  Topic(this._isPublic, this._createdUser, this._geobottomright, this._geotopleft,
+  Topic(this._isPublic, this._createdUser, this._geobottomright, this._geotopleft, this._geocenter,
     this._imageUrl, this._isShowGeo, this._tags,
     this._topic, this._content) {
         this._created = DateTime.now();
         this._lastUpdate = this._created;
         this._lastUpdateUser = this._createdUser; 
         this._searchingId = null;
+        this.distance = 0;
         this._id = this._created.millisecondsSinceEpoch.toString();
     }
 
@@ -42,9 +45,7 @@ class Topic {
   User get lastUpdateUser => _lastUpdateUser;
   bool get isPublic => _isPublic;
   String get searchingId => _searchingId;
-
-  GeoPoint get geoCenter => 
-    GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
+  GeoPoint get geoCenter => (this._geocenter != null)? this._geocenter: GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
   
 
   Map<String, dynamic> toMap() {
@@ -79,6 +80,10 @@ class Topic {
 
     if (this._geotopleft != null) {
       map['geotopleft'] = this._geotopleft;
+    }
+
+    if(this._geobottomright != null && this._geotopleft != null) {
+      map['geocenter'] = GeoHelper.boxCenter(this._geotopleft, this._geobottomright);
     }
 
     if (this._lastUpdate != null) {
@@ -130,6 +135,11 @@ class Topic {
       this._searchingId = map ['searchingId'];
     } else {
       this._searchingId = null;
+    }
+    if(map['geocenter'] != null) {
+      this._geocenter = map['geocenter'];
+    } else {
+      this._geocenter = null;
     }
     this._created = map['created'].toDate();
     this._lastUpdate = map['lastUpdate'].toDate();

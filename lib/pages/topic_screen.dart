@@ -48,7 +48,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   MessageService messageService;
   ChatMap chatMap;
 
-  var listMessage;
+  //var listMessage;
   SharedPreferences prefs;
 
   bool isLoading;
@@ -155,14 +155,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     }
   }
 
-  Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
+  Widget buildItem(String messageId, Topic topic, Function _onTap, BuildContext context) {
     Widget rv; 
     int type = 0;
-    if(document['createdUser'] == null) {
-      document['createdUser']['user'] = "Test";
-    }
-
-    Topic topic = Topic.fromMap(document);
     GeoPoint location = topic.geoCenter;
     if(this.chatMap != null) {
       this.chatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
@@ -260,16 +255,16 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   }
 
     Widget buildSilverListMessage(Function _onTap, BuildContext context) {
-    return StreamBuilder(
-      stream: this.messageService.getTopicSnap(this.messageLocation, 1),
+    return StreamBuilder<List<Topic>>(
+      stream: this.messageService.getTopicSnap(this.messageLocation, 2500),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          listMessage = snapshot.data.documents;
+          //listMessage = snapshot.data.documents;
           return SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
-                return buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context);
+                return buildItem(snapshot.data[index].id, snapshot.data[index], _onTap, context);
               },
-              childCount: snapshot.data.documents.length,
+              childCount: snapshot.data.length,
             ),
           );
         } else {
