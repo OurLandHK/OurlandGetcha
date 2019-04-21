@@ -66,7 +66,7 @@ class OurlandHome extends StatefulWidget {
   _OurlandHomeState createState() => new _OurlandHomeState();
 }
 
-const String _app_name = "我地.佳招";
+const String _app_name = APP_NAME;
 
 class _OurlandHomeState extends State<OurlandHome>
     with SingleTickerProviderStateMixin {

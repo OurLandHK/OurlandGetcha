@@ -45,109 +45,111 @@ class TopicMessage extends StatelessWidget {
       }
     }
 
-    Widget rv;
-    Container messageWidget;
-    //print(this.messageId);
-    if(isLink()) {
-      messageWidget = Container(
-        child: RichLinkPreview(
-            link: this.topic.topic,
-            appendToLink: true,
-            backgroundColor: greyColor2,
-            borderColor: greyColor2,
-            textColor: Colors.black,
-            launchFromLink: false),
-        padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
-        // width: 200.0,
-        //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
-        // margin: EdgeInsets.only(left: 10.0),
-      );
-    } else {
+    Widget rv = new Container();
+    if(this.topic != null) {
+      Container messageWidget;
+      //print(this.messageId);
+      if(isLink()) {
         messageWidget = Container(
-        child: Text(
-          this.topic.topic,
-            style: TextStyle(
-              color: Colors.black, fontSize: 14.0, fontStyle: FontStyle.normal),
-          ),
-          padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-          //width: 200.0,
+          child: RichLinkPreview(
+              link: this.topic.topic,
+              appendToLink: true,
+              backgroundColor: greyColor2,
+              borderColor: greyColor2,
+              textColor: Colors.black,
+              launchFromLink: false),
+          padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
+          // width: 200.0,
           //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
-          margin: EdgeInsets.only(left: 10.0),
-        );         
-    }
-    // Time
-    Container timeWidget = Container(
-      child: Text(
-        DateFormat('dd MMM kk:mm').format(
-            new DateTime.fromMicrosecondsSinceEpoch(
-                this.topic.created.microsecondsSinceEpoch)),
-        style: TextStyle(
-            color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
-      ),
-      //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
-    );
-    if(isLink()) {
-      Widget content = new GestureDetector(onTap: _onTap, child: messageWidget);
-      rv = Container(
-        child: Column(
-          children: <Widget>[
-            content,
-            timeWidget,
-          ],
-          crossAxisAlignment: CrossAxisAlignment.start,
-        ),
-        margin: EdgeInsets.only(bottom: 10.0),
-      );
-    } else {
-      Widget imageWidget;
-      if(this.topic.imageUrl == null) {
-        imageWidget = new BaseProfile(user: this.topic.createdUser);
+          // margin: EdgeInsets.only(left: 10.0),
+        );
       } else {
-        imageWidget = Material(
-                    child: CachedNetworkImage(
-                      placeholder: (context, url) => new Container(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 1.0,
-                            valueColor: AlwaysStoppedAnimation<Color>(themeColor),
-                          ),
-                          width: 75.0,
-                          height: 75.0,
-                          padding: EdgeInsets.all(15.0),
-                        ),
-                      imageUrl: this.topic.imageUrl,
-                      width: 75.0,
-                      height: 75.0,
-                      fit: BoxFit.cover,
-                    ),
-//                    borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                    clipBehavior: Clip.hardEdge,
-                  );
+          messageWidget = Container(
+          child: Text(
+            this.topic.topic,
+              style: TextStyle(
+                color: Colors.black, fontSize: 14.0, fontStyle: FontStyle.normal),
+            ),
+            padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+            //width: 200.0,
+            //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
+            margin: EdgeInsets.only(left: 10.0),
+          );         
       }
-      rv = Container(
-        child: FlatButton(
-          child: Row(
-            children: <Widget>[
-              imageWidget,
-              Flexible(
-                child: Container(
-                  child: Column(
-                    children: <Widget>[
-                      messageWidget,
-                      timeWidget
-                    ],
-                  ),
-                  margin: EdgeInsets.only(left: 20.0),
-                ),
-              ),
-            ],
-          ),
-          onPressed: _onTap,
-          color: greyColor2,
-          padding: EdgeInsets.fromLTRB(5.0, 10.0, 10.0, 5.0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      // Time
+      Container timeWidget = Container(
+        child: Text(
+          DateFormat('dd MMM kk:mm').format(
+              new DateTime.fromMicrosecondsSinceEpoch(
+                  this.topic.created.microsecondsSinceEpoch)),
+          style: TextStyle(
+              color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
         ),
-        margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
+        //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
       );
+      if(isLink()) {
+        Widget content = new GestureDetector(onTap: _onTap, child: messageWidget);
+        rv = Container(
+          child: Column(
+            children: <Widget>[
+              content,
+              timeWidget,
+            ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          margin: EdgeInsets.only(bottom: 10.0),
+        );
+      } else {
+        Widget imageWidget;
+        if(this.topic.imageUrl == null) {
+          imageWidget = new BaseProfile(user: this.topic.createdUser);
+        } else {
+          imageWidget = Material(
+                      child: CachedNetworkImage(
+                        placeholder: (context, url) => new Container(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.0,
+                              valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                            ),
+                            width: 75.0,
+                            height: 75.0,
+                            padding: EdgeInsets.all(15.0),
+                          ),
+                        imageUrl: this.topic.imageUrl,
+                        width: 75.0,
+                        height: 75.0,
+                        fit: BoxFit.cover,
+                      ),
+  //                    borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                      clipBehavior: Clip.hardEdge,
+                    );
+        }
+        rv = Container(
+          child: FlatButton(
+            child: Row(
+              children: <Widget>[
+                imageWidget,
+                Flexible(
+                  child: Container(
+                    child: Column(
+                      children: <Widget>[
+                        messageWidget,
+                        timeWidget
+                      ],
+                    ),
+                    margin: EdgeInsets.only(left: 20.0),
+                  ),
+                ),
+              ],
+            ),
+            onPressed: _onTap,
+            color: greyColor2,
+            padding: EdgeInsets.fromLTRB(5.0, 10.0, 10.0, 5.0),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          ),
+          margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
+        );
+      }
     }
     return rv;
   }
