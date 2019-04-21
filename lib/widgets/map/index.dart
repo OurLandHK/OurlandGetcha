@@ -30,7 +30,7 @@ class GoogleMapWidget extends StatefulWidget {
       markerId: markerId,
       position: LatLng(location.latitude, location.longitude),
       infoWindow: InfoWindow(title: label, snippet: '*'),
-      icon: BitmapDescriptor.fromAsset('assets/images/app-logo.png')
+      icon: BitmapDescriptor.fromAsset('assets/images/smallnote.png')
 /*      onTap: () {
         _onMarkerTapped(markerId);
       },*/

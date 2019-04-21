@@ -24,36 +24,24 @@ class MessageService {
   User get user => _user;
 
   MessageService(this._user);
-/*  
-  Stream<QuerySnapshot> getTopicSnap(GeoPoint position, double distanceInKM) {
-    Stream<QuerySnapshot> rv;
-    rv = _topicCollection.where("public", isEqualTo: false)
-          .orderBy('lastUpdate', descending: true)
-          .snapshots();
-    return rv;
-  }
-*/
 
   Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter) {
     Stream<List<Topic>> rv;
-    Area area = new Area(position, distanceInMeter/1000);
-    rv = getDataInArea(
-      source: _topicCollection, 
-      area: area, 
-      locationFieldNameInDB: 'geocenter',
-      mapper: (doc) => Topic.fromMap(doc.data),
-      serverSideOrdering: [OrderConstraint('lastUpdate', true)],
-      locationAccessor: (item) => item.geoCenter,
-        // The distancemapper is applied after the mapper
-        distanceMapper: (item, dist) {
-            item.distance = dist;
-            return item;
-        });
-/*
-    rv = _topicCollection.where("public", isEqualTo: false)
-          .orderBy('lastUpdate', descending: true)
-          .snapshots();
-*/          
+    if(position != null) {
+      Area area = new Area(position, distanceInMeter/1000);
+      rv = getDataInArea(
+        source: _topicCollection, 
+        area: area, 
+        locationFieldNameInDB: 'geocenter',
+        mapper: (doc) => Topic.fromMap(doc.data),
+        serverSideOrdering: [OrderConstraint('lastUpdate', false)],
+        locationAccessor: (item) => item.geoCenter,
+          // The distancemapper is applied after the mapper
+          distanceMapper: (item, dist) {
+              item.distance = dist;
+              return item;
+          });     
+    }  
     return rv;
   }
 
