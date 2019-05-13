@@ -17,7 +17,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="ourland_native"
+        android:label="我地.壁報"
         android:icon="@mipmap/ic_launcher">
         <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyB9zmMt3yKs_cIs-mPrFesuZIflJP5KFJU"/>
         <activity
