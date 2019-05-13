@@ -1,5 +1,5 @@
 name: ourland_native
-description: A new Flutter project.
+description: Location Base Forum.
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -7,10 +7,10 @@ description: A new Flutter project.
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
 # Read more about versioning at semver.org.
-version: 1.0.0+1
+version: 2.1.0
 
 environment:
-  sdk: ">=2.1.0 <2.2.0"
+  sdk: ">=2.1.0 <2.3.0"
 
 dependencies:
   flutter:
@@ -36,7 +36,8 @@ dependencies:
   permission_handler: ^3.0.0
   webview_flutter: ^0.3.5+3
   flutter_webview_plugin: ^0.3.3
-  open_graph_parser: 0.0.4
+  open_graph_parser: ^0.0.6
+  url_launcher: ^5.0.2
   http: 0.11.3+17
 
   # The following adds the Cupertino Icons font to your application.

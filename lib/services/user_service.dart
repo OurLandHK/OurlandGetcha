@@ -24,19 +24,22 @@ class UserService {
 
   Future<User> createUser(String uuid, String username, File avatarImage,
       String avatarUrl) async {
+    DateTime now = new DateTime.now();
+    final User user =
+          new User(uuid, username, avatarUrl, null, null, now, now);
+    final Map<String, dynamic> data = user.toMap();
     final TransactionHandler createTransaction = (Transaction tx) async {
       final DocumentSnapshot ds = await tx.get(userCollection.document(uuid));
-
-      DateTime now = new DateTime.now();
-      final User user =
-          new User(uuid, username, avatarUrl, null, null, now, now);
-      final Map<String, dynamic> data = user.toMap();
       await tx.set(ds.reference, data);
       return data;
     };
 
     return Firestore.instance.runTransaction(createTransaction).then((mapData) {
-      return User.fromMap(mapData);
+      if(data.length == mapData.length) {
+        return user;
+      } else {
+        return null;
+      }
     }).catchError((error) {
       print('error: $error');
       return null;

@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/pages/registration_screen.dart';
@@ -24,7 +25,10 @@ final ThemeData kDefaultTheme = new ThemeData(
 
 void main() {
   initFirestoreSettings();
-  runApp(new OurlandApp());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
+    runApp(new OurlandApp());
+  });
 }
 
 void initFirestoreSettings() async {

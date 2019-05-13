@@ -17,7 +17,7 @@ import 'package:ourland_native/pages/settings.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -381,9 +381,11 @@ class _OurlandHomeState extends State<OurlandHome>
           break; 
         case 2:      
           setState(() {
-            this._isFabShow = false;
-          }); 
-          flutterWebviewPlugin.launch(OUTLAND_SEARCH_HOST, rect: Rect.fromLTWH(0.0, 0.0, MediaQuery.of(context).size.width, 300.0));
+            _tabController.index = 0;
+//            this._isFabShow = false;
+          });
+          launch(OUTLAND_SEARCH_HOST);
+//          flutterWebviewPlugin.launch(OUTLAND_SEARCH_HOST, rect: Rect.fromLTWH(0.0, 0.0, MediaQuery.of(context).size.width, 300.0));
           break;
         default:
           updateLocation(_currentLocationSelection);
@@ -430,11 +432,9 @@ class _OurlandHomeState extends State<OurlandHome>
               new Tab(
                 icon: new Icon(Icons.alarm),
               ),
-              /* remove tab until fix the tab view
               new Tab(
                 icon: new Image.asset('assets/images/app-logo.png')
               ),
-              */
             ],
           ),
           actions: <Widget>[
