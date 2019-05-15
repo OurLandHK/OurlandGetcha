@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
+//import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -21,7 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/chat_model.dart';
 import '../widgets/send_message.dart';
 
-final analytics = new FirebaseAnalytics();
+//final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 

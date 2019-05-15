@@ -9,6 +9,7 @@ import 'package:ourland_native/ourland_home.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+final FirebaseAuth _auth = FirebaseAuth.instance;
 class PhoneAuthenticationScreen extends StatefulWidget {
   @override
   _PhoneAuthenticationScreenState createState() =>
@@ -30,7 +31,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   }
 
   checkAuth() async {
-    FirebaseUser fbuser = await FirebaseAuth.instance.currentUser();
+    FirebaseUser fbuser = await _auth.currentUser();
     if (fbuser != null) {
       UserService userService = new UserService();
       userService.getUser(fbuser.uid).then((user) {
@@ -65,8 +66,9 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
       });
     };
 
-    final PhoneVerificationCompleted verifiedSuccess = (FirebaseUser user) {
+    final PhoneVerificationCompleted verifiedSuccess = (AuthCredential phoneAuthCredential){
       print('verified');
+      _auth.signInWithCredential(phoneAuthCredential);
     };
 
     final PhoneVerificationFailed veriFailed = (AuthException exception) {
@@ -74,7 +76,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
           .showSnackBar(new SnackBar(content: new Text(exception.message)));
     };
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
+    await _auth.verifyPhoneNumber(
         // set +852 as default dial code temporarily
         phoneNumber: '+852' + this.phoneNumber,
         codeAutoRetrievalTimeout: autoRetrieve,
@@ -101,7 +103,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               new FlatButton(
                 child: Text(SMS_CODE_DIALOG_BUTTON_TEXT),
                 onPressed: () {
-                  FirebaseAuth.instance.currentUser().then((fbuser) {
+                  _auth.currentUser().then((fbuser) {
                     if (fbuser != null) {
                       userService.getUser(fbuser.uid).then((user) {
                         if (user != null) {
@@ -132,8 +134,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
       verificationId: verificationId,
       smsCode: smsCode,
     );
-    FirebaseAuth.instance
-        .signInWithCredential(credential)
+    _auth.signInWithCredential(credential)
         .then((FirebaseUser fbuser) {
       print("${fbuser}");
       if (fbuser != null) {

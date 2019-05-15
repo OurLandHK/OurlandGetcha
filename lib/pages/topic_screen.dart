@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
-import 'package:firebase_analytics/firebase_analytics.dart';
+//import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 
@@ -23,7 +23,7 @@ import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 
-final analytics = new FirebaseAnalytics();
+//final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 
 class TopicScreen extends StatefulWidget {

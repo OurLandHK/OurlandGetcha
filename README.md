@@ -13,6 +13,18 @@ For help getting started with Flutter, view our online
 [documentation](https://flutter.io/docs/get-started/install).
 
 
+### Use Stable Flutter
+'
+flutter channel stable
+flutter channel
+flutter upgrade
+'
+
+### Clean up all flutter pub .cache
+'
+<Flutter Home>\.pub-cache\hosted\pub.dartlang.org
+'
+
 ### Check environment
 `
 flutter doctor

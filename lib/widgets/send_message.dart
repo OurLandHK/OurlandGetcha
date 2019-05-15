@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as Img;
 
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
+//import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
-final analytics = new FirebaseAnalytics();
+//final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final messageReference = FirebaseDatabase.instance.reference().child('messages');
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
