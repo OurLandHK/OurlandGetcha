@@ -52,8 +52,8 @@ const String HINT_TOPIC = "Topic Hint";
 const String LABEL_DETAIL = "Detail";
 const String HINT_DEATIL = "Detail Hint";
 const String HELPER_DETAIL = "Hash Tag Support";
-const String LABEL_MUST_SHOW_GEO = "Reply need to show location";
-const String LABEL_MUST_SHOW_GEO_SIMPLE = "Show location";
+const String LABEL_MUST_SHOW_NAME = "不可匿名回答";
+const String LABEL_MUST_SHOW_NAME_SIMPLE = "匿名";
 const String LABEL_MISSING_TOPIC = "Missing Topic";
 const String LABEL_MORE_DETAIL = "More Detail is Better";
 const String LABEL_SEND = "Send";
@@ -75,3 +75,16 @@ final themeColor = Color(0xfff5a623);
 final primaryColor = Color(0xff203152);
 final greyColor = Color(0xffaeaeae);
 final greyColor2 = Color(0xffE8E8E8);
+
+const List<Color> TOPIC_COLORS = [
+  Color(0xFFFFFFFF),
+  Color(0xffF28B83),
+  Color(0xFFFCBC05),
+  Color(0xFFFFF476),
+  Color(0xFFCBFF90),
+  Color(0xFFA7FEEA),
+  Color(0xFFE6C9A9),
+  Color(0xFFE8EAEE),
+  Color(0xFFA7FEEA),
+  Color(0xFFCAF0F8)
+];

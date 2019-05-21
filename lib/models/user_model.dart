@@ -141,7 +141,7 @@ class User {
       }
     } catch (exception) {
       this._fcmToken = '';
-    }; 
+    }
   }
 }
 

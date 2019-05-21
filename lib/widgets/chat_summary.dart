@@ -83,7 +83,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     Widget baseInfo = new Column(children: <Widget>[
       new BaseProfile(user: widget.topic.createdUser),
       createdDate,
-      new Text(LABEL_MUST_SHOW_GEO_SIMPLE + ": " +widget.topic.isShowGeo.toString()),
+      new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowGeo.toString()),
     ], crossAxisAlignment: CrossAxisAlignment.start,); // need to show hash tag
     
     Widget titleLink;

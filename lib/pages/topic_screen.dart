@@ -17,11 +17,10 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
-import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
-import 'package:ourland_native/helper/geo_helper.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 //final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -48,7 +47,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   MessageService messageService;
   ChatMap chatMap;
 
-  //var listMessage;
+  var listMessage;
   SharedPreferences prefs;
 
   bool isLoading;
@@ -193,13 +192,21 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         ),
       );
     }
-
-    return Stack(
-      children: <Widget>[
-        buildScrollView(_onTap, context),     
-        buildLoading(),
-      ],
-    );
+    return new Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(MAP_HEIGHT), // here the desired height
+            child: new AppBar( 
+              flexibleSpace: (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT)
+            ),
+        ),
+        body: new Stack(
+          children: <Widget>[
+          // buildScrollView(_onTap, context),
+            buildListView(_onTap, context),
+            buildLoading(),
+          ],
+        ),
+    );     
   }
   Widget buildLoading() {
     return Positioned(
@@ -214,6 +221,47 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     );
   }
 
+
+  Widget buildListView(Function _onTap, BuildContext context) {
+    return new StreamBuilder<List<Topic>>(
+      stream: this.messageService.getTopicSnap(this.messageLocation, 2500),
+      builder: (BuildContext context, AsyncSnapshot<List<Topic>> snapshot) {
+        if (!snapshot.hasData) {
+          return new Center(child: new CircularProgressIndicator());
+        } else {
+          print("buildListView ${snapshot.data.length}");
+          List<Widget> children =  buildGrid(snapshot.data, _onTap, context);
+          return new StaggeredGridView.count(
+            physics: new BouncingScrollPhysics(),
+            crossAxisCount: 4,
+            children: children, 
+            staggeredTiles: staggeredTileBuilder(children),
+          );
+          //staggeredTiles: generateRandomTiles(snapshot.data.length),
+        };
+      },
+    );
+  }
+
+  List<StaggeredTile> staggeredTileBuilder(List<Widget> widgets) {
+    List<StaggeredTile> _staggeredTiles = [];
+//    _staggeredTiles.add(new StaggeredTile.fit(4));
+    for (Widget widget in widgets) {
+      _staggeredTiles.add(new StaggeredTile.fit(2));
+    }
+    return _staggeredTiles;
+  }
+
+  List<Widget> buildGrid(List<Topic> documents, Function _onTap, BuildContext context) {
+    List<Widget> _gridItems = [];
+//    _gridItems.add((this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT));
+    for (Topic topic in documents) {
+      _gridItems.add(buildItem(topic.id, topic, _onTap, context));
+    }
+    return _gridItems;
+  }  
+
+/*
   Widget buildScrollView(Function _onTap, BuildContext context) {
     return CustomScrollView(
       slivers: <Widget>[
@@ -254,12 +302,12 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     );
   }
 
-    Widget buildSilverListMessage(Function _onTap, BuildContext context) {
+  Widget buildSilverListMessage(Function _onTap, BuildContext context) {
     return StreamBuilder<List<Topic>>(
       stream: this.messageService.getTopicSnap(this.messageLocation, 2500),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          //listMessage = snapshot.data.documents;
+          listMessage = snapshot.data;
           return SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
                 return buildItem(snapshot.data[index].id, snapshot.data[index], _onTap, context);
@@ -268,6 +316,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
             ),
           );
         } else {
+          
           return SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
@@ -279,4 +328,5 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       },
     );
   }
+ */ 
 }

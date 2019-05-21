@@ -143,7 +143,7 @@ class TopicMessage extends StatelessWidget {
               ],
             ),
             onPressed: _onTap,
-            color: greyColor2,
+            color: TOPIC_COLORS[topic.color],
             padding: EdgeInsets.fromLTRB(5.0, 10.0, 10.0, 5.0),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
           ),

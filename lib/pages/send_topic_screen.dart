@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -22,6 +23,7 @@ import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
+import 'package:ourland_native/widgets/color_picker.dart';
 
 //final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -72,8 +74,9 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   String _firstTag;
   int _type;
   String _currentLocationSelection;
-  bool _isShowGeo;
+  bool _isShowName;
   bool _isSubmitDisable;
+  int _color;
   Text _buttonText;
 
   @override
@@ -88,7 +91,9 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     
     _newTopicLabel = widget.isBroadcast ? LABEL_NEW_BROADCAST_TOPIC : LABEL_NEW_TOPIC;
     _buttonText = new Text(LABEL_MISSING_TOPIC);
-    _isShowGeo = false;
+    _isShowName = false;
+    Random rng = new Random();
+    _color = rng.nextInt(TOPIC_COLORS.length);
     _desc = "";
     _parentTitle = "";
     _type = 0;
@@ -234,6 +239,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     return new Scaffold(
       key: _scaffoldKey,
       appBar: new AppBar(
+        backgroundColor: TOPIC_COLORS[_color],
         title: new Text(
           _newTopicLabel,
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
@@ -241,11 +247,14 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         centerTitle: true,
         elevation: 0.7,
       ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: SingleChildScrollView(
-          child: body
+      body: Container(
+        color: TOPIC_COLORS[_color],
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: SingleChildScrollView(
+            child: body
+          ),
         ),
       ),
     ); 
@@ -344,7 +353,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         // Find the geo box
         var destBox = GeoHelper.findBoxGeo(this.messageLocation, 1000.0);
         Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
-              null, this._isShowGeo, tags, this._parentTitle, this._desc);
+              null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
         messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
         userService.updateRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
         onBackPress();
@@ -371,8 +380,14 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
               )),
             ]
           ),
-          const SizedBox(height: 12.0),
-          topicImageUI(context), 
+                          ColorPicker(
+                  selectedIndex: _color,
+                  onTap: (index) {
+                    setState(() {
+                      _color = index;
+                    });
+                  },
+                ),
           const SizedBox(height: 12.0),
           TextFormField(
             textCapitalization: TextCapitalization.words,
@@ -390,6 +405,8 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         // validator: _validateName,
           ),
           const SizedBox(height: 12.0),
+          topicImageUI(context), 
+          const SizedBox(height: 12.0),
           TextFormField(
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
@@ -406,12 +423,12 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           Row(
             children: <Widget> [
                 Switch.adaptive(
-                  value: _isShowGeo,
+                  value: _isShowName,
                   onChanged: (bool value) {
-                      _isShowGeo = value;
+                      _isShowName = value;
                   }
                 ),
-                Text(LABEL_MUST_SHOW_GEO)
+                Text(LABEL_MUST_SHOW_NAME)
             ]
           ),
           RaisedButton(
