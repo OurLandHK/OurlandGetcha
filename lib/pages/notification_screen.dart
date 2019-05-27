@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
@@ -17,6 +18,8 @@ import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
+
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class NotificationScreen extends StatefulWidget {
   final User user;
@@ -198,6 +201,22 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
         },
       );
     }
+    List<StaggeredTile> staggeredTileBuilder(List<Widget> widgets) {
+      List<StaggeredTile> _staggeredTiles = [];
+      for (Widget widget in widgets) {
+        _staggeredTiles.add(new StaggeredTile.fit(2));
+      }
+      return _staggeredTiles;
+    }
+
+    List<Widget> buildGrid(List<DocumentSnapshot> querySnapshot, Function _onTap, BuildContext context) {
+      List<Widget> _gridItems = [];
+      for (DocumentSnapshot snapshot in querySnapshot) {
+        RecentTopic recentTopic = RecentTopic.fromMap(snapshot.data);
+        _gridItems.add(buildItem(recentTopic, _onTap, context));
+      }
+      return _gridItems;
+    } 
     return new Container(
       child: StreamBuilder(
         stream: userService.getRecentTopicSnap(widget.user.uuid),
@@ -209,6 +228,14 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
               ),
             );
           } else {
+            List<Widget> children =  buildGrid(snapshot.data.documents, _onTap, context);
+            return new StaggeredGridView.count(
+              physics: new BouncingScrollPhysics(),
+              crossAxisCount: 4,
+              children: children, 
+              staggeredTiles: staggeredTileBuilder(children),
+            );
+            /*
             return ListView.builder(
               padding: EdgeInsets.all(10.0),
               itemBuilder: (context, index) {
@@ -217,6 +244,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
               },
               itemCount: snapshot.data.documents.length,
             );
+            */
           }
         },
       ),

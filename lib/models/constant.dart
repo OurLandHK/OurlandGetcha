@@ -1,4 +1,7 @@
 import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 const String APP_NAME = "我地.壁報";
 const String SMS_CODE_DIALOG_TITLE = "Enter SMS Code";
@@ -41,6 +44,7 @@ const String MENU_ITEM_LOGOUT = "Logout";
 
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
+const String TAG_ALL = "所有";
 const List<String> TAG_SELECTION =  ["吹水", "活動", "優惠", "美食", "秘境", "維修"];
 const String LABEL_TOPIC = "Topic";
 const String LABEL_NEW_TOPIC = "New Topic";
@@ -88,3 +92,20 @@ const List<Color> TOPIC_COLORS = [
   Color(0xFFA7FEEA),
   Color(0xFFCAF0F8)
 ];
+
+List<DropdownMenuItem<String>> getDropDownMenuItems(List<String> labelList, bool wildcard) {
+    List<DropdownMenuItem<String>> items = new List();
+    if(wildcard) {
+      items.add(new DropdownMenuItem(
+          value: null,
+          child: new Text(TAG_ALL)
+      ));      
+    }
+    for (String label in labelList) {
+      items.add(new DropdownMenuItem(
+          value: label,
+          child: new Text(label)
+      ));
+    }
+    return items;
+  }

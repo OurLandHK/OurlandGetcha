@@ -18,10 +18,32 @@ final ThemeData kIOSTheme = new ThemeData(
 );
 
 final ThemeData kDefaultTheme = new ThemeData(
-  primarySwatch:  Colors.blue,
-  accentColor: Colors.yellow,
-);
-
+        primarySwatch:  Colors.blue,
+        accentColor: Colors.yellow,
+        //backgroundColor: Colors.black,
+        textTheme: TextTheme(
+          headline: TextStyle(
+              fontFamily: 'Sans',
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              fontSize: 20),
+          body1: TextStyle(
+              fontFamily: 'Sans',
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              fontSize: 18),
+          body2: TextStyle(
+              fontFamily: 'Sans',
+              fontWeight: FontWeight.normal,
+              color: Colors.black,
+              fontSize: 15),
+          subtitle: TextStyle(
+              fontFamily: 'Sans',
+              fontWeight: FontWeight.normal,
+              color: Colors.black,
+              fontSize: 11),
+        ),
+      );
 
 void main() {
   initFirestoreSettings();

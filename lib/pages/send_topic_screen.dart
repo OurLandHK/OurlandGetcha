@@ -86,7 +86,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     messageService = new MessageService(widget.user);
     userService = new UserService();
     chatMap = null; 
-    _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION);
+    _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION, false);
     _firstTag = _tagDropDownMenuItems[0].value;
     
     _newTopicLabel = widget.isBroadcast ? LABEL_NEW_BROADCAST_TOPIC : LABEL_NEW_TOPIC;
@@ -105,7 +105,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     if(widget.user.officeAddress != null) {
       dropDownList.add(LABEL_REGION1);
     }    
-    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList);
+    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList, false);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
 
     initPlatformState();
@@ -129,18 +129,6 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
       this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: CREATE_TOPIC_MAP_HEIGHT);
     }
   }
-
-  List<DropdownMenuItem<String>> getDropDownMenuItems(List<String> labelList) {
-    List<DropdownMenuItem<String>> items = new List();
-    for (String label in labelList) {
-      items.add(new DropdownMenuItem(
-          value: label,
-          child: new Text(label)
-      ));
-    }
-    return items;
-  }
-
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {

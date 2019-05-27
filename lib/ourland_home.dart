@@ -68,25 +68,23 @@ class OurlandHome extends StatefulWidget {
 
 const String _app_name = APP_NAME;
 
-class _OurlandHomeState extends State<OurlandHome>
-    with SingleTickerProviderStateMixin {
+class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin {
   TabController _tabController;
   String uid = '';
-  String _currentLocationSelection;
-  List<DropdownMenuItem<String>> _locationDropDownMenuItems;
   bool _isFabShow = true;
 //  List<CameraDescription> cameras;
-  bool _locationPermissionGranted = false;
+  bool _locationPermissionGranted = true;
   Widget _nearBySelection;
   Widget _pendingWidget;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   UserService userService = new UserService();
   MessageService messageService;
+/*
   WebViewController _controller;
   WebView  _webView;
   WebviewScaffold _webviewPlugin;
   final flutterWebviewPlugin = new FlutterWebviewPlugin();
-
+*/
     // use to get current location
   GeoPoint _currentLocation;
 
@@ -100,7 +98,9 @@ class _OurlandHomeState extends State<OurlandHome>
   @override
   void initState() {
     this.uid = '';
+    _nearBySelection = new CircularProgressIndicator();
     messageService = new MessageService(widget.user);
+    /*
     _webView = new WebView(
                 initialUrl: OUTLAND_SEARCH_HOST,
                 onWebViewCreated: (WebViewController webViewController) {
@@ -109,15 +109,15 @@ class _OurlandHomeState extends State<OurlandHome>
                 javascriptMode: JavascriptMode.unrestricted,
               );
     _webviewPlugin = new WebviewScaffold(url: OUTLAND_SEARCH_HOST, geolocationEnabled: true, appCacheEnabled: true, supportMultipleWindows: true, withJavascript: true, withLocalStorage: true,);
+    */
     super.initState();
     PermissionHandler()
         .checkPermissionStatus(PermissionGroup.location)
         .then((PermissionStatus permission) {
       if (permission == PermissionStatus.granted) {
-        setState(() {
           _locationPermissionGranted = true;
-        });
       } else {
+          _locationPermissionGranted = false;
         requestLocationPermission();
       }
     });
@@ -127,7 +127,10 @@ class _OurlandHomeState extends State<OurlandHome>
       _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
         if(position != null) {
           print('initState Poisition ${position}');
-          _currentLocation = new GeoPoint(position.latitude, position.longitude);
+          setState(() {
+            _currentLocation = new GeoPoint(position.latitude, position.longitude);
+            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
+          });
         }
       });
     }
@@ -135,13 +138,9 @@ class _OurlandHomeState extends State<OurlandHome>
     // Firebase Messaging
     firebaseCloudMessaging_Listeners();
 
-    // Init UI
-    List<String> dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
-    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList);
-    _currentLocationSelection = _locationDropDownMenuItems[0].value;
-
     _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
-    _nearBySelection = new TopicScreen(user: widget.user);
+    print('initState Poisition, updateLocation ${_currentLocation}');
+    //updateLocation();
     // checking if location permission is granted
   }
 
@@ -172,11 +171,22 @@ class _OurlandHomeState extends State<OurlandHome>
           print('initPlatformStateLocation: ${location}');
           if(location != null) {
             _currentLocation = new GeoPoint(location.latitude, location.longitude);
+            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
+            //updateLocation();
           }
       });
     }
   }
 
+  GeoPoint getCurrentLocation() {
+    GeoPoint rv;
+    if(_currentLocation != null) {
+      rv = _currentLocation; 
+    } else {
+      rv = new GeoPoint(22.266455999999998, 114.23257000000001);
+    }
+    return rv;
+  }
 
   void firebaseCloudMessaging_Listeners() {
   if (Platform.isIOS) iOS_Permission();
@@ -288,80 +298,35 @@ class _OurlandHomeState extends State<OurlandHome>
       }
     });
   }
-
-  
-  List<DropdownMenuItem<String>> getDropDownMenuItems(List<String> labelList) {
-    List<DropdownMenuItem<String>> items = new List();
-    for (String label in labelList) {
-      items.add(new DropdownMenuItem(
-          value: label,
-          child: new Text(label)
-      ));
-    }
-    return items;
-  }
-
-  Widget showNearby() {
-    _pendingWidget = new TopicScreen(user: widget.user);
-    return new CircularProgressIndicator();
-  }
-  Widget showHome() {
-    Widget rv = new UpdateLocationScreen(locationType: LABEL_REGION0, user: widget.user);
-    if(widget.user.homeAddress != null) {
-      _pendingWidget = new TopicScreen(user: widget.user, fixLocation: widget.user.homeAddress);
-      rv = new CircularProgressIndicator();
-    }
-    return rv;
-  }
-  Widget showOffice() {
-    Widget rv = new UpdateLocationScreen(locationType: LABEL_REGION1, user: widget.user);
-    if(widget.user.officeAddress != null) {
-      _pendingWidget = TopicScreen(user: widget.user, fixLocation: widget.user.officeAddress);
-      rv = new CircularProgressIndicator();
-    }
-    return rv;
-  }
-
     // TODO for Real Notification Screen
   Widget showNotification() {
     return new NotificationScreen(user: widget.user);
   }
 
-  void updateLocation(String locationSelection) {
+  void updateLocation() {
     Widget rv;
     bool isFabShow;
-    switch(locationSelection) {
-      case LABEL_REGION0:
-        rv = showHome();
-        //_nearBySelection.setLocation(widget.user.homeAddress);
-        if(widget.user.homeAddress == null) {
-          isFabShow = false;
-        } else {
-          isFabShow = true;         
-        }
-        break;
-      case LABEL_REGION1:
-        rv = showOffice();
-        //_nearBySelection.setLocation(widget.user.officeAddress);
-        if(widget.user.officeAddress == null) {
-          isFabShow = false;
-        } else {
-          isFabShow = true;           
-        }
-        break;          
-      default:
-        isFabShow = true;
-        rv = showNearby();
-        //_nearBySelection.setLocation(null);
-        
-    }                
+    isFabShow = true;
+    rv = showNearby();
     setState((){
-      _currentLocationSelection = locationSelection;
       this._isFabShow = isFabShow;
-      _nearBySelection = rv;
-      _tabController.index = 0;
+      this._nearBySelection = rv;
+//      _pendingWidget = rv;
+//      _nearBySelection = new CircularProgressIndicator();
     });
-  } 
+  }   
+
+  Widget showNearby() {
+    print('show Nearby ${_currentLocation}');
+    Widget rv;
+    if(_currentLocation != null) {
+      // _pendingWidget = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
+      rv = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);  
+    } else {
+      rv = new CircularProgressIndicator();
+    }
+    return rv;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -388,7 +353,8 @@ class _OurlandHomeState extends State<OurlandHome>
 //          flutterWebviewPlugin.launch(OUTLAND_SEARCH_HOST, rect: Rect.fromLTWH(0.0, 0.0, MediaQuery.of(context).size.width, 300.0));
           break;
         default:
-          updateLocation(_currentLocationSelection);
+//         _nearBySelection;
+          updateLocation();
       }
     });
     void sendMessageClick() {
@@ -415,19 +381,7 @@ class _OurlandHomeState extends State<OurlandHome>
             tabs: <Widget>[
               //  new Tab(icon: new Icon(Icons.camera_alt)),
               new Tab(
-                child: new Row(
-                  children: [
-                    new Icon(Icons.location_city),
-                    new Text(" "),
-                    new DropdownButton(
-                    value: _currentLocationSelection,
-                    items: _locationDropDownMenuItems,
-                    onChanged: updateLocation,
-                    ),
-                  ],
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                )
+                child: new Icon(Icons.location_city)
               ),
               new Tab(
                 icon: new Icon(Icons.alarm),
@@ -451,8 +405,9 @@ class _OurlandHomeState extends State<OurlandHome>
             //new CameraScreen(widget.cameras),
             _nearBySelection,
             showNotification(),
+            new CircularProgressIndicator(),
             //_webView
-            _webviewPlugin,
+            //_webviewPlugin,
           ],
         ),
         floatingActionButton:  new Opacity(
@@ -492,6 +447,7 @@ class _OurlandHomeState extends State<OurlandHome>
     }
   }
   void updateAnyMarkerChange(BuildContext context) {
+    print('swap ${_pendingWidget}');
     if(_pendingWidget != null) {
       Widget temp = _pendingWidget;
       setState(() {

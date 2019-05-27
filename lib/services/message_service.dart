@@ -25,7 +25,7 @@ class MessageService {
 
   MessageService(this._user);
 
-  Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter) {
+  Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter, String firstTag) {
     Stream<List<Topic>> rv;
     if(position != null) {
       Area area = new Area(position, distanceInMeter/1000);

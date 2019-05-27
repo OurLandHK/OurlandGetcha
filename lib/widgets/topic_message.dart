@@ -9,6 +9,7 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/widgets/base_profile.dart';
+import 'package:ourland_native/widgets/image_widget.dart';
 import 'package:open_graph_parser/open_graph_parser.dart';
 
 class TopicMessage extends StatelessWidget {
@@ -33,7 +34,140 @@ class TopicMessage extends StatelessWidget {
       return false;
     }
   }
+  Widget build(BuildContext context) {
+    void _onTap() {
+      if(isLink()) {
+        OpenGraphParser.getOpenGraphData(this.topic.topic).then((Map data) {
+          this.onTap(this.topic, data['title'], this.messageLocation);
+        });
+      } else {
+        this.onTap(this.topic, this.topic.topic, this.messageLocation);
+      }
+    }
 
+    Widget rv = new Container();
+    if(this.topic != null) {
+      Container messageWidget;
+      //print(this.messageId);
+      if(isLink()) {
+        messageWidget = Container(
+          child: RichLinkPreview(
+              link: this.topic.topic,
+              appendToLink: true,
+              backgroundColor: TOPIC_COLORS[topic.color],
+              borderColor: greyColor2,
+              textColor: Colors.black,
+              launchFromLink: false),
+          padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
+          // width: 200.0,
+          //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
+          // margin: EdgeInsets.only(left: 10.0),
+        );
+      } else {
+          messageWidget = Container(child:Text(
+                                this.topic.topic,
+                                style: Theme.of(context).textTheme.body1,
+                              )
+          );
+      }
+      // Time
+      Container timeWidget = Container(
+        child: Text(
+          DateFormat('dd MMM kk:mm').format(
+              new DateTime.fromMicrosecondsSinceEpoch(
+                  this.topic.created.microsecondsSinceEpoch)),
+          style: Theme.of(context).textTheme.subtitle),
+        );
+        //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0)
+      if(isLink()) {
+        Widget content = new GestureDetector(onTap: _onTap, child: messageWidget);
+        rv = Container(
+          child: Column(
+            children: <Widget>[
+              content,
+              timeWidget,
+            ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          margin: EdgeInsets.only(bottom: 10.0),
+        );
+      } else {
+        Widget imageWidget;
+        if(this.topic.imageUrl == null) {
+          imageWidget = new BaseProfile(user: this.topic.createdUser);
+        } else {
+          imageWidget = new ImageWidget(height: null, width: MediaQuery.of(context).size.width * 0.45, imageUrl: this.topic.imageUrl); 
+          messageWidget = Container(child: new Column(children: <Widget>[imageWidget, messageWidget]));
+        }
+        rv = GestureDetector(
+              onTap: _onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Container(
+                  padding: EdgeInsets.all(4.0),
+                  decoration: BoxDecoration(
+                    color: TOPIC_COLORS[topic.color],
+                    border: Border.all(width: 1, color: Colors.grey),
+                    boxShadow: [
+                      new BoxShadow(
+                        color: Colors.grey,
+                        offset: new Offset(0.0, 2.5),
+                        blurRadius: 4.0,
+                        spreadRadius: 0.0
+                      )
+                    ],
+                    //borderRadius: BorderRadius.circular(6.0)
+                    ),
+                  child: Column(
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: messageWidget,
+                            ),
+                          ),
+                          /*
+                          Text(
+                            getPriorityText(this.noteList[index].priority),
+                            style: TextStyle(
+                              color: getPriorityColor(
+                                  this.noteList[index].priority)),
+                          ),
+                          */
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            Expanded(
+                              child: Text(
+                                  this.topic.content == null
+                                      ? ''
+                                      : this.topic.content,
+                                  style: Theme.of(context).textTheme.body2),
+                            )
+                          ],
+                        ),
+                      ),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[timeWidget
+                          ])
+                    ],
+                  ),
+                ),
+              ),
+        );
+      }
+    }
+    return rv;
+  }  
+/*
   Widget build(BuildContext context) {
     void _onTap() {
       if(isLink()) {
@@ -153,4 +287,5 @@ class TopicMessage extends StatelessWidget {
     }
     return rv;
   }
+*/  
 }
