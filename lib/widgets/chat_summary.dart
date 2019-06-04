@@ -10,7 +10,8 @@ import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/image_widget.dart';
 import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:ourland_native/models/user_model.dart';
-import 'package:rich_link_preview/rich_link_preview.dart';
+//import 'package:rich_link_preview/rich_link_preview.dart';
+import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
@@ -41,8 +42,10 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   List<String> galleryImageUrlList;
   List<Map<String, dynamic>> markerList;
   List<Widget> _tabViews;
-  ChatMap chatMapWidget;
-  ImageWidget summaryImageWidget;
+  Widget _titleLink;
+  Widget _contentLink;
+  ChatMap _chatMapWidget;
+  ImageWidget _summaryImageWidget;
   bool _progressBarActive;
   int _currentIndex;
 
@@ -70,7 +73,11 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
 
     List<Widget> summaryInfoWidgets = new List<Widget>();
     if(widget.imageUrl != null && widget.imageUrl.length != 0) {
-      summaryImageWidget = new ImageWidget(width: null /*widget.width/2*/, height: widget.height, imageUrl: widget.imageUrl);
+      if(isBeginWithLink(widget.topic.topic)) {
+        _summaryImageWidget = new ImageWidget(width: null /*widget.width/2*/, height: widget.height, imageUrl: widget.imageUrl, link: widget.topic.topic);
+      } else {
+        _summaryImageWidget = new ImageWidget(width: null /*widget.width/2*/, height: widget.height, imageUrl: widget.imageUrl);
+      }
       //mapWidth /= 2;
     }
     Text createdDate = Text(
@@ -86,44 +93,46 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowGeo.toString()),
     ], crossAxisAlignment: CrossAxisAlignment.start,); // need to show hash tag
     
-    Widget titleLink;
     // Check title is duplicate with desc
-    if(isBeginWithLink(widget.topic.topic)) {
-      titleLink = RichLinkPreview(
-          //height: widget.height * 0.90,
+    if(isBeginWithLink(widget.topic.topic) && _summaryImageWidget == null) {
+      _titleLink = RichLinkPreview(
+          height: widget.height * 0.50,
           link: widget.topic.topic,
           appendToLink: true,
-          backgroundColor: greyColor2,
-          borderColor: greyColor2,
+          backgroundColor: TOPIC_COLORS[widget.topic.color],
+//          borderColor: greyColor2,
           textColor: Colors.black,
           launchFromLink: true);
     }
-    if(summaryImageWidget != null) {
-      summaryInfoWidgets = [summaryImageWidget, baseInfo];
+    if(_summaryImageWidget != null) {
+      summaryInfoWidgets = [_summaryImageWidget, baseInfo];
       _tabViews.add(SizedBox(height: widget.height, child: new Row(children: summaryInfoWidgets)));
-      if(titleLink != null) {
-        _tabViews.add(titleLink);
+      if(_titleLink != null) {
+        _tabViews.add(_titleLink);
       }
     } else {
-        if(titleLink != null) {
-        _tabViews.add(titleLink);
+        if(_titleLink != null) {
+        _tabViews.add(_titleLink);
       }
       _tabViews.add(SizedBox(height: widget.height, child: baseInfo));
     }
     if(widget.topic.topic.compareTo(widget.topic.content) != 0) {
       if(widget.topic.content.length != 0) {
         if(isBeginWithLink(widget.topic.content)) {
-          _tabViews.add(Container(
-            child:RichLinkPreview(
+          _contentLink = RichLinkPreview(
                 //height: widget.height * 0.90,
                 link: widget.topic.content,
                 appendToLink: true,
                 backgroundColor: greyColor2,
                 borderColor: greyColor2,
                 textColor: Colors.black,
-                launchFromLink: true),
-            alignment: Alignment.center));
+                launchFromLink: true);
+          _tabViews.add(Container(
+                  child: _contentLink,
+                  alignment: Alignment.center));
+
         } else {
+
           _tabViews.add(
               new Scrollbar(child: 
               new SingleChildScrollView(
@@ -135,8 +144,8 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       }
     }   
 
-    chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height * 0.95);
-    _tabViews.add(chatMapWidget);
+    _chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height * 0.95);
+    _tabViews.add(_chatMapWidget);
   
     buildMessageSummaryWidget();
   }
@@ -148,7 +157,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                                    'contentType': chat.type,
                                    'username': chat.createdUser.username};
     //markerList.add(marker);
-    chatMapWidget.addLocation(marker['id'], marker['location'], marker['content'], marker['contentType'], marker['username']);
+    _chatMapWidget.addLocation(marker['id'], marker['location'], marker['content'], marker['contentType'], marker['username']);
 
     // Add involved user in the summary;
     updateUser(chat.createdUser);
@@ -171,7 +180,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
 
   void addImage(String imageUrl) {
-    if(imageUrl.length != 0) {
+    if(imageUrl != null && imageUrl.length != 0) {
       galleryImageUrlList.add(imageUrl);
     }
 
@@ -189,7 +198,66 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
 
   return result;
 }
-  
+
+  buildMessageSummaryWidget() async {
+//    for(var stream in widget.chatStream.value {
+      Stream<QuerySnapshot> stream = widget.chatStream.value;
+      stream.forEach((action){
+        for(var entry in action.documents) {
+          Map<String, dynamic> document = entry.data;
+          Chat chat = Chat.fromMap(document);
+          addChat(chat);
+        }
+      });
+      setState(() {
+         _progressBarActive = false;
+      });
+
+  }
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> widgetList = [];
+    if(_chatMapWidget != null) {
+      widgetList.add(_chatMapWidget);
+    } else {
+      widgetList.add(new Container(height: widget.height));
+    }
+    if(_titleLink != null) {
+      widgetList.add(_titleLink);
+    }    
+    if(_summaryImageWidget != null) {
+      if(widget.topic.content.length != 0) {
+        Row row;
+        if(_contentLink != null) {
+          row = new Row(children: [_summaryImageWidget, _contentLink]);          
+        } else {
+          Widget _contentText = new Container(child: Text(widget.topic.content,
+             style: Theme.of(context).textTheme.body2));
+          row = new Row(children: [_summaryImageWidget, _contentText]); 
+        }
+        widgetList.add(row);
+      } else {
+        widgetList.add(_summaryImageWidget);
+      }
+    } else {
+      if(_contentLink != null) {
+        widgetList.add(_contentLink);
+      } else {
+        if(widget.topic.content != null && widget.topic.content.length != 0) {
+          Widget _contentText = new Container(child: Text(widget.topic.content,
+             style: Theme.of(context).textTheme.body2));
+          widgetList.add(_contentText);
+        }
+      }
+    }
+    return _progressBarActive == true?const LinearProgressIndicator():
+      Column(children: widgetList);
+  }
+
+
+
+
+/*  
   @override
   Widget build(BuildContext context) {
     return _progressBarActive == true?const LinearProgressIndicator():
@@ -241,19 +309,6 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       ]); 
   }
 
-  buildMessageSummaryWidget() async {
-//    for(var stream in widget.chatStream.value {
-      Stream<QuerySnapshot> stream = widget.chatStream.value;
-      stream.forEach((action){
-        for(var entry in action.documents) {
-          Map<String, dynamic> document = entry.data;
-          Chat chat = Chat.fromMap(document);
-          addChat(chat);
-        }
-      });
-      setState(() {
-         _progressBarActive = false;
-      });
 
-  }
+*/  
 }

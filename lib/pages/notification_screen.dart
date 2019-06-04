@@ -235,16 +235,6 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
               children: children, 
               staggeredTiles: staggeredTileBuilder(children),
             );
-            /*
-            return ListView.builder(
-              padding: EdgeInsets.all(10.0),
-              itemBuilder: (context, index) {
-                RecentTopic recentTopic = RecentTopic.fromMap(snapshot.data.documents[index].data);
-                return buildItem(recentTopic, _onTap, context);
-              },
-              itemCount: snapshot.data.documents.length,
-            );
-            */
           }
         },
       ),
@@ -274,33 +264,45 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
 
 
   Widget buildBroadcastView(Function _onTap, BuildContext context) {
-    Widget buildItem(String messageId, Map<String, dynamic> document, Function _onTap, BuildContext context) {
+    Widget buildItem(Topic topic, Function _onTap, BuildContext context) {
       Widget rv; 
-      int type = 0;
-      if(document['createdUser'] == null) {
-        document['createdUser']['user'] = "Test";
-      }
-
-      Topic topic = Topic.fromMap(document);
       GeoPoint location = topic.geoCenter;
       rv = new TopicMessage(user: widget.user, topic: topic, onTap: _onTap, messageLocation: this.messageLocation);
       return rv;
     }
+    List<StaggeredTile> staggeredTileBuilder(List<Widget> widgets) {
+      List<StaggeredTile> _staggeredTiles = [];
+      for (Widget widget in widgets) {
+        _staggeredTiles.add(new StaggeredTile.fit(2));
+      }
+      return _staggeredTiles;
+    }
+
+    List<Widget> buildGrid(List<DocumentSnapshot> querySnapshot, Function _onTap, BuildContext context) {
+      List<Widget> _gridItems = [];
+      for (DocumentSnapshot snapshot in querySnapshot) {
+        Topic topic = Topic.fromMap(snapshot.data);
+        _gridItems.add(buildItem(topic, _onTap, context));
+      }
+      return _gridItems;
+    } 
     return new Container(
       child: StreamBuilder(
         stream: this.messageService.getBroadcastSnap(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(
-              child: CircularProgressIndicator(
+              child: LinearProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(themeColor),
               ),
             );
           } else {
-            return ListView.builder(
-              padding: EdgeInsets.all(10.0),
-              itemBuilder: (context, index) => buildItem(snapshot.data.documents[index].data['id'], snapshot.data.documents[index].data, _onTap, context),
-              itemCount: snapshot.data.documents.length,
+            List<Widget> children =  buildGrid(snapshot.data.documents, _onTap, context);
+            return new StaggeredGridView.count(
+              physics: new BouncingScrollPhysics(),
+              crossAxisCount: 4,
+              children: children, 
+              staggeredTiles: staggeredTileBuilder(children),
             );
           }
         },

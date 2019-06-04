@@ -37,18 +37,22 @@ class ChatScreen extends StatelessWidget {
     return new Scaffold(
           key: _scaffoldKey,
           appBar: new AppBar(
+            backgroundColor: TOPIC_COLORS[topic.color],
             title: new Text(
               this.parentTitle,
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             ),
             centerTitle: true,
             elevation: 0.7,
           ),
-          body: new ChatScreenBody(
-            user: this.user,
-            topic: this.topic,
-            parentTitle: this.parentTitle,
-            messageLocation: this.messageLocation,
+          body: Container(
+            color: TOPIC_COLORS[topic.color],
+            child: new ChatScreenBody(
+              user: this.user,
+              topic: this.topic,
+              parentTitle: this.parentTitle,
+              messageLocation: this.messageLocation,
+            ),
           ),
         );
   }
