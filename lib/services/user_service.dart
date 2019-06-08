@@ -85,6 +85,16 @@ class UserService {
     return rv;
   }
 
+  Future<Map> getRecentTopic(String userID, String topicID) async {
+    userCollection.document(userID).collection('recentTopic').document(topicID).get().then((onValue) {
+      if (onValue.exists) {
+        return onValue.data;
+      } else {
+        return null;
+      }
+    });
+  }
+
   Future<Map> getUserMap(String uuid) async {
     var userReference = userCollection.document(uuid);
     return userReference.get().then((onValue) {

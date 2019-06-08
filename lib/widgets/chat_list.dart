@@ -22,14 +22,25 @@ class ChatList extends StatelessWidget {
   final String parentId;
   final User user;
   final ScrollController listScrollController;
+  Map<String, Colors> _colorMap;
+  int lastColorIndex = -1;
   var listMessage;
-  ChatList({Key key, @required this.chatStream, @required this.parentId, @required this.user, @required this.listScrollController}) : super(key: key);
+  ChatList({Key key, @required this.chatStream, @required this.parentId, @required this.user, @required this.listScrollController}) : super(key: key) {
+    this._colorMap = new Map<String, Colors>();
+  }
 
   Widget buildItem(String messageId, Chat document, Function _onTap, BuildContext context) {
     Widget rv;
     rv = new ChatMessage(user: user, messageBody: document, parentId: this.parentId, messageId: messageId, onTap: _onTap);
     return rv;
   }
+/*
+  Colors getColor(User user) {
+    if(lastColorIndex == -1) {
+      lastColor
+    }
+  }
+*/
 
   @override
   Widget build(BuildContext context) {

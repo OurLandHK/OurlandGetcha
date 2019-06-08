@@ -46,7 +46,7 @@ class ChatScreen extends StatelessWidget {
             elevation: 0.7,
           ),
           body: Container(
-            color: TOPIC_COLORS[topic.color],
+            //color: TOPIC_COLORS[topic.color],
             child: new ChatScreenBody(
               user: this.user,
               topic: this.topic,
@@ -73,9 +73,10 @@ class ChatScreenBody extends StatefulWidget {
 class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderStateMixin  {
   MessageService messageService;
   ValueNotifier<Stream> chatStream;
+  ValueNotifier<Stream> chatStream1;
   ChatSummary chatSummary;
-  //ValueNotifier<Stream> chatStream1;
   var listMessage;
+  bool _displayComment = false;
   //ChatMap chatMap;
 
   String groupChatId;
@@ -99,25 +100,35 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   final FocusNode focusNode = new FocusNode();
   ChatScreenBodyState({Key key, this.messageLocation});
 
+  void toggleComment() {
+    setState(() {
+      _displayComment = !_displayComment;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(widget.topic.geoTopLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(widget.topic.geoBottomRight);
-    ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic);
+    ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, expand: !_displayComment, toggleComment: this.toggleComment);
+    List<Widget> _widgetList = [chatSummary];
+    if(this._displayComment) {
+      _widgetList.add(ChatList(chatStream: chatStream1, parentId: widget.topic.id, user: widget.user, listScrollController: this.listScrollController));
+      if(this.messageLocation != null) {
+        _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
+      } else {
+        _widgetList.add(LinearProgressIndicator());
+      }
+    }
+    Widget _bodyWidget =  Column(children: _widgetList);
+    if(!this._displayComment) {
+      _bodyWidget = SingleChildScrollView(child: _bodyWidget);
+    }
     return WillPopScope(
       child: Stack(
         children: <Widget>[
-          Column(
-            children: <Widget>[
-              chatSummary,
-              // List of messages
-              ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, listScrollController: this.listScrollController),
-              (this.messageLocation != null) ?
-                new SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation) : new LinearProgressIndicator(),
-            ],
-          ),
-
-          // Loading
+          _bodyWidget,
           buildLoading()
         ],
       ),
@@ -186,6 +197,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     //readLocal();
     initPlatformState();
     chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
+    chatStream1 = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
     if(widget.topic.geoTopLeft == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {
