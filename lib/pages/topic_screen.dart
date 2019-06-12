@@ -59,7 +59,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   bool _locationPermissionGranted = false;
   List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
 
-  String _firstTag = TAG_SELECTION[0];
+  String _firstTag = "";
 
   Geolocator _geolocator = new Geolocator();
   LocationOptions locationOptions = new LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
@@ -217,16 +217,16 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       );
     }
 
-    List<Widget> buildToolBar() {
+    List<Widget> buildToolBar(BuildContext context) {
       return  <Widget> [
-                Expanded(child: new Text(LABEL_IN)),
-                Expanded(child: new DropdownButton(
+                Expanded(child: Text(LABEL_IN, style: Theme.of(context).textTheme.headline, textAlign: TextAlign.center)),
+                Expanded(child: DropdownButton(
                   value: _currentLocationSelection,
                   items: _locationDropDownMenuItems,
                   onChanged: updateLocation,
                 )),
-                Expanded(child: new Text(LABEL_HAS)),
-                Expanded(child: new DropdownButton(
+                Expanded(child: Text(LABEL_HAS, style: Theme.of(context).textTheme.headline, textAlign: TextAlign.center)),
+                Expanded(child: DropdownButton(
                   value: _firstTag,
                   items: _tagDropDownMenuItems,
                   onChanged: (String value) {setState(() {_firstTag = value;});},
@@ -246,16 +246,17 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       appBar = PreferredSize(
           preferredSize: Size.fromHeight(MAP_HEIGHT), // here the desired height
             child: new AppBar( 
-              //actions: buildToolBar(),
               flexibleSpace: (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT),
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(100), // here the desired height
-                child: Row(children: buildToolBar()),
+                child: Opacity(opacity: 0.6, child: Container(decoration: BoxDecoration(color: Theme.of(context).backgroundColor), child:Row(children: buildToolBar(context)))),
               ),
             ),
         );
     } else {
-      appBar = new AppBar(actions: buildToolBar());
+      appBar = new AppBar(flexibleSpace: PreferredSize(
+                preferredSize: Size.fromHeight(100),
+                child: Row(children: buildToolBar(context))));
     }
     WidgetsBinding.instance
       .addPostFrameCallback((_) => _swapMap(context));
@@ -302,17 +303,23 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     return new StreamBuilder<List<Topic>>(
       stream: this.messageService.getTopicSnap(this.messageLocation, 2500, _firstTag),
       builder: (BuildContext context, AsyncSnapshot<List<Topic>> snapshot) {
+        print("buildListView ${snapshot}");
         if (!snapshot.hasData) {
           return new Center(child: new CircularProgressIndicator());
         } else {
           print("buildListView ${snapshot.data.length}");
-          List<Widget> children =  buildGrid(snapshot.data, _onTap, context);
-          return new StaggeredGridView.count(
-            physics: new BouncingScrollPhysics(),
-            crossAxisCount: 4,
-            children: children, 
-            staggeredTiles: staggeredTileBuilder(children),
-          );
+          if(snapshot.data.length > 0) {
+            List<Widget> children =  buildGrid(snapshot.data, _onTap, context);
+            return new StaggeredGridView.count(
+              physics: new BouncingScrollPhysics(),
+              crossAxisCount: 4,
+              children: children, 
+              staggeredTiles: staggeredTileBuilder(children),
+            );
+          } else {
+            return new Container(child: Text(LABEL_CHOICE_OTHER_TAG,
+            style: Theme.of(context).textTheme.headline));
+          }
           //staggeredTiles: generateRandomTiles(snapshot.data.length),
         };
       },

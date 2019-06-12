@@ -28,9 +28,16 @@ class MessageService {
   Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter, String firstTag) {
     Stream<List<Topic>> rv;
     if(position != null) {
+      Query sourceQuery = _topicCollection;
+      if(firstTag != null && firstTag.length != 0) {
+        List<QueryConstraint> constraints = [new QueryConstraint(field: "tags", arrayContains: firstTag)];
+        sourceQuery = buildQuery(
+          collection: _topicCollection, 
+          constraints: constraints);
+      }
       Area area = new Area(position, distanceInMeter/1000);
       rv = getDataInArea(
-        source: _topicCollection, 
+        source: sourceQuery, 
         area: area, 
         locationFieldNameInDB: 'geocenter',
         mapper: (doc) => Topic.fromMap(doc.data),
