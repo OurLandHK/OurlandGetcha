@@ -219,16 +219,18 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
 
     List<Widget> buildToolBar(BuildContext context) {
       return  <Widget> [
-                Expanded(child: Text(LABEL_IN, style: Theme.of(context).textTheme.headline, textAlign: TextAlign.center)),
-                Expanded(child: DropdownButton(
+                Expanded(flex: 1, child: Text(LABEL_IN, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
+                Expanded(flex: 2, child: DropdownButton(
                   value: _currentLocationSelection,
                   items: _locationDropDownMenuItems,
                   onChanged: updateLocation,
+                  style: Theme.of(context).textTheme.subhead
                 )),
-                Expanded(child: Text(LABEL_HAS, style: Theme.of(context).textTheme.headline, textAlign: TextAlign.center)),
-                Expanded(child: DropdownButton(
+                Expanded(flex: 1, child: Text(LABEL_HAS, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
+                Expanded(flex: 2, child: DropdownButton(
                   value: _firstTag,
                   items: _tagDropDownMenuItems,
+                  style: Theme.of(context).textTheme.subhead,
                   onChanged: (String value) {setState(() {_firstTag = value;});},
                 )),
                 IconButton(
@@ -303,11 +305,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     return new StreamBuilder<List<Topic>>(
       stream: this.messageService.getTopicSnap(this.messageLocation, 2500, _firstTag),
       builder: (BuildContext context, AsyncSnapshot<List<Topic>> snapshot) {
-        print("buildListView ${snapshot}");
         if (!snapshot.hasData) {
           return new Center(child: new CircularProgressIndicator());
         } else {
-          print("buildListView ${snapshot.data.length}");
           if(snapshot.data.length > 0) {
             List<Widget> children =  buildGrid(snapshot.data, _onTap, context);
             return new StaggeredGridView.count(

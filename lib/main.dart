@@ -31,17 +31,17 @@ final ThemeData kDefaultTheme = new ThemeData(
               fontFamily: 'Sans',
               fontWeight: FontWeight.bold,
               color: Colors.black,
-              fontSize: 18),
+              fontSize: 16),
           body2: TextStyle(
               fontFamily: 'Sans',
               fontWeight: FontWeight.normal,
               color: Colors.black,
-              fontSize: 15),
+              fontSize: 12),
           subtitle: TextStyle(
               fontFamily: 'Sans',
               fontWeight: FontWeight.normal,
               color: Colors.black,
-              fontSize: 11),
+              fontSize: 10),
         ),
       );
 

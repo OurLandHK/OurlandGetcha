@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import 'dart:math';
+import 'dart:convert';
 import 'package:ourland_native/models/constant.dart';
 
 class Topic {
@@ -38,7 +39,9 @@ class Topic {
   String get imageUrl => _imageUrl;
   String get topic => _topic;
   String get content => _content;
-  List<String> get tags => _tags;
+//  List<String> get tags => _tags;
+  List<String> get tags => _tags.cast<String>();
+
   GeoPoint get geoBottomRight => _geobottomright;
   GeoPoint get geoTopLeft=> _geotopleft;
   DateTime get lastUpdate => _lastUpdate;

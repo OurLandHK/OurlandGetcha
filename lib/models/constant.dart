@@ -46,7 +46,7 @@ const String MENU_ITEM_LOGOUT = "Logout";
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
-const List<String> TAG_SELECTION =  ["吹水", "活動", "優惠", "美食", "秘境", "維修"];
+const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠", "美食", "秘境", "維修", "遊戲", "交換", "我地.市正"];
 const String LABEL_TOPIC = "Topic";
 const String LABEL_NEW_TOPIC = "New Topic";
 const String LABEL_NEW_BROADCAST_TOPIC = "New Broadcast Topic";
@@ -82,7 +82,6 @@ final greyColor = Color(0xffaeaeae);
 final greyColor2 = Color(0xffE8E8E8);
 
 const List<Color> TOPIC_COLORS = [
-  Color(0xFFFFFFFF),
   Color(0xffF28B83),
   Color(0xFFFCBC05),
   Color(0xFFFFF476),
@@ -91,7 +90,22 @@ const List<Color> TOPIC_COLORS = [
   Color(0xFFE6C9A9),
   Color(0xFFE8EAEE),
   Color(0xFFA7FEEA),
-  Color(0xFFCAF0F8)
+  Color(0xFFCAF0F8),
+  Color(0xFFFFFFFF),
+
+];
+
+const List<Color> TOPIC_COLORS_DARKER = [
+  Color(0xff714641),
+  Color(0xFF765A02),
+  Color(0xFF807239),
+  Color(0xFF658048),
+  Color(0xFF537876),
+  Color(0xFF737454),
+  Color(0xFF747570),
+  Color(0xFF547575),
+  Color(0xFF657574),
+  Color(0xFF808080),
 ];
 
 List<DropdownMenuItem<String>> getDropDownMenuItems(List<String> labelList, bool wildcard) {

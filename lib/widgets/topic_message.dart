@@ -76,15 +76,25 @@ class TopicMessage extends StatelessWidget {
                               )
           );
       }
-      // Time
-      Container timeWidget = Container(
-        child: Text(
-          DateFormat('dd MMM kk:mm').format(
-              new DateTime.fromMicrosecondsSinceEpoch(
-                  this.topic.created.microsecondsSinceEpoch)),
-          style: Theme.of(context).textTheme.subtitle),
-        );
-        //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0
+    List<Widget> footers = []; 
+    // tag
+    
+    for(int i = 0; i< this.topic.tags.length; i++) {
+//      footers.add(Chip(label: Text(this.topic.tags[i], style: Theme.of(context).textTheme.subtitle), backgroundColor: TOPIC_COLORS_DARKER[this.topic.color]));
+      footers.add(Text("#${this.topic.tags[i]}", style: Theme.of(context).textTheme.subtitle));
+
+    }
+        
+    // Time
+    Container timeWidget = Container(
+      child: Text(
+        DateFormat('dd MMM kk:mm').format(
+            new DateTime.fromMicrosecondsSinceEpoch(
+              this.topic.lastUpdate.microsecondsSinceEpoch)),
+        style: Theme.of(context).textTheme.subtitle),
+    );
+    footers.add(Expanded(flex: 1, child: Container()));
+    footers.add(timeWidget);
       
     if(this.topic.imageUrl != null) {
       Widget imageWidget;
@@ -140,8 +150,7 @@ class TopicMessage extends StatelessWidget {
                   ),
                   Row(
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[timeWidget
-                      ])
+                      children: footers)
                 ],
               ),
             ),
