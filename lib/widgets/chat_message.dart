@@ -18,6 +18,7 @@ class ChatMessage extends StatelessWidget {
   final GeoPoint geoTopLeft;
   final GeoPoint geoBottomRight;
   final Chat messageBody;
+  final int color;
   final Function onTap;
 
   ChatMessage(
@@ -26,22 +27,23 @@ class ChatMessage extends StatelessWidget {
       @required this.parentId,
       @required this.messageId,
       @required this.messageBody,
+      @required this.color,
       @required this.onTap,
       this.geoTopLeft,
       this.geoBottomRight})
       : super(key: key);
 
   bool isCurrentUser() {
-    return(messageBody.createdUser != null && messageBody.createdUser.uuid == this.user.uuid);
+    return (messageBody.createdUser != null && messageBody.createdUser.uuid == this.user.uuid);
   }
 
   Widget build(BuildContext context) {
     Widget rv;
     Widget messageWidget;
     double messageWidth = MediaQuery.of(context).size.width * 3 /4;
-    EdgeInsets margin = isCurrentUser() ? EdgeInsets.only(right: 10.0) : EdgeInsets.only(left: 10.0);
-    EdgeInsets finalMargin = isCurrentUser() ? EdgeInsets.only(right: 10.0, bottom: 10.0) : EdgeInsets.only(left: 10.0, bottom: 10.0);
-    EdgeInsets timeMargin = isCurrentUser() ? EdgeInsets.only(right: 50.0, top: 5.0, bottom: 5.0) : EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0);
+    //EdgeInsets margin = isCurrentUser() ? EdgeInsets.only(right: 10.0) : EdgeInsets.only(left: 10.0);
+    EdgeInsets finalMargin = isCurrentUser() ? EdgeInsets.only(left: 10.0, bottom: 10.0) : EdgeInsets.only(right: 10.0, bottom: 10.0);
+//    EdgeInsets timeMargin = isCurrentUser() ? EdgeInsets.only(right: 50.0, top: 5.0, bottom: 5.0) : EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0);
     CrossAxisAlignment crossAxisAlignment = isCurrentUser() ? CrossAxisAlignment.end : CrossAxisAlignment.start;
     //print(this.messageId);
     switch (messageBody.type) {
@@ -50,13 +52,11 @@ class ChatMessage extends StatelessWidget {
           child: RichLinkPreview(
               link: messageBody.content,
               appendToLink: true,
-              backgroundColor: primaryColor,
-              borderColor: primaryColor,
-              textColor: Colors.white),
+              backgroundColor: TOPIC_COLORS[color],
+              borderColor: TOPIC_COLORS[color],
+              textColor: Colors.black),
           padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
           width: messageWidth,
-          decoration: BoxDecoration(
-              color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
           //margin: margin,
         );
         if(messageBody.imageUrl != null) {
@@ -85,26 +85,62 @@ class ChatMessage extends StatelessWidget {
         DateFormat('dd MMM kk:mm').format(
             new DateTime.fromMicrosecondsSinceEpoch(
                 messageBody.created.microsecondsSinceEpoch)),
-        style: TextStyle(
-            color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+        style: Theme.of(context).textTheme.subtitle,
       ),
-      margin: timeMargin,
+      //margin: timeMargin,
     );
-    List<Widget> widgets = [];
+    Widget userWidget;
     if(!isCurrentUser()) {
-      widgets.add(new Text(this.messageBody.createdUser.username,
-      style: TextStyle(
-            color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic)));
+      userWidget = new Text(this.messageBody.createdUser.username,
+      style: Theme.of(context).textTheme.subtitle);
     }
-    widgets.add(messageWidget);
-    widgets.add(timeWidget);
-    rv = Container(
-      child: Column(
-        children: widgets,
-        crossAxisAlignment: crossAxisAlignment,
-      ),
-      margin: finalMargin,
-    );
+    List<Widget> footers =[];
+    if(userWidget != null) {
+      footers.add(userWidget);
+    }
+    footers.add(Expanded(flex: 1, child: Container()));
+    footers.add(timeWidget);
+
+    rv = Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: 
+    rv =         Container(
+              padding: EdgeInsets.all(4.0),
+              decoration: BoxDecoration(
+                color: TOPIC_COLORS[color],
+                border: Border.all(width: 1, color: Colors.grey),
+                boxShadow: [
+                  new BoxShadow(
+                    color: Colors.grey,
+                    offset: new Offset(0.0, 2.5),
+                    blurRadius: 4.0,
+                    spreadRadius: 0.0
+                  )
+                ],
+                //borderRadius: BorderRadius.circular(6.0)
+                ),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      //Expanded(child:
+                         Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: messageWidget,
+                        ),
+                      //),
+                    ],
+                  ),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: footers)
+                ],
+                crossAxisAlignment: crossAxisAlignment,
+              ),
+            margin: finalMargin),
+
+         );
     return rv;
   }
 }

@@ -65,9 +65,6 @@ class TopicMessage extends StatelessWidget {
               launchFromLink: false,
               vertical: true),
           padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
-          // width: 200.0,
-          //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
-          // margin: EdgeInsets.only(left: 10.0),
         );
       } else {
           messageWidget = Container(child:Text(

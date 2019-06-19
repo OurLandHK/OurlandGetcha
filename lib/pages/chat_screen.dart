@@ -114,7 +114,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, expand: !_displayComment, toggleComment: this.toggleComment);
     List<Widget> _widgetList = [chatSummary];
     if(this._displayComment) {
-      _widgetList.add(ChatList(chatStream: chatStream1, parentId: widget.topic.id, user: widget.user, listScrollController: this.listScrollController));
+      _widgetList.add(ChatList(chatStream: chatStream1, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController));
       if(this.messageLocation != null) {
         _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
       } else {
