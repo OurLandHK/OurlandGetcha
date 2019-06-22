@@ -20,6 +20,12 @@ final ThemeData kIOSTheme = new ThemeData(
 final ThemeData kDefaultTheme = new ThemeData(
         primarySwatch:  Colors.blue,
         accentColor: Colors.yellow,
+        
+        primaryIconTheme: IconThemeData(color: Colors.black),
+        primaryTextTheme: TextTheme(
+          title: TextStyle(
+          color: Colors.black
+        )),
         //backgroundColor: Colors.black,
         textTheme: TextTheme(
           headline: TextStyle(

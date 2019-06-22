@@ -103,8 +103,7 @@ class ChatMessage extends StatelessWidget {
 
     rv = Padding(
             padding: const EdgeInsets.all(4.0),
-            child: 
-    rv =         Container(
+            child:  Container(
               padding: EdgeInsets.all(4.0),
               decoration: BoxDecoration(
                 color: TOPIC_COLORS[color],

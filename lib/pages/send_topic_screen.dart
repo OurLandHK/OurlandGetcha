@@ -234,6 +234,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         ),
         centerTitle: true,
         elevation: 0.7,
+        actionsIconTheme: Theme.of(context).primaryIconTheme,
       ),
       body: Container(
         color: TOPIC_COLORS[_color],
@@ -280,7 +281,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                 color: primaryColor,
               ),
             ),
-            color: Colors.white,
+            color: TOPIC_COLORS[_color],
           ),
           Material(
             child: new Container(
@@ -291,17 +292,19 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                 color: primaryColor,
               ),
             ),
-            color: Colors.white,
+            color: TOPIC_COLORS[_color],
           ),
-          imageFile != null ? new Image.file(
-            imageFile, height:MAP_HEIGHT /* (MediaQuery.of(context).size.width - 50)*/
-          ) : new Container(), 
+          imageFile != null ? Stack(children: [Image.file(
+            imageFile, width: MediaQuery.of(context).size.width / 2
+          ), IconButton(icon: Icon(Icons.close), onPressed: removeImage,)]) : new Container(), 
         ]
       )        
     ],
     crossAxisAlignment: CrossAxisAlignment.center,
     );
   }
+
+  void removeImage() {setState((){imageFile = null;});}
 
   Widget formUI(BuildContext context) {
     String validation(String label, String value) {
@@ -368,7 +371,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
               )),
             ]
           ),
-                          ColorPicker(
+                ColorPicker(
                   selectedIndex: _color,
                   onTap: (index) {
                     setState(() {
