@@ -174,29 +174,50 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   }
 
   Widget renderLocationField() {
-    return new TextField(
+    return Row(children: [SizedBox(width: 12.0), Expanded(child: TextField(
         decoration: InputDecoration(
             hintText: locationType == LABEL_REGION0
                 ? NEW_HOME_LOCATION
                 : NEW_OFFICE_LOCATION),
-        onChanged: (value) {
-          _location = value;
+        keyboardType: TextInputType.text,
+        onChanged: (value) {setState(() {_location = value;});},
+        onSubmitted: onSubmitted)), 
+        Material(child: Container(
+          decoration: BoxDecoration(
+                border: Border.all(width: 0.5, color: Colors.grey),
+                /*
+                boxShadow: [
+                  new BoxShadow(
+                    color: Colors.grey,
+                    offset: new Offset(0.0, 2.5),
+                    blurRadius: 4.0,
+                    spreadRadius: 0.0
+                  )
+                ],
+                */  //borderRadius: BorderRadius.circular(6.0)
+              ),
+            child: IconButton(icon: Icon(Icons.location_searching), onPressed: onPressed))),
+        SizedBox(width: 12.0)]);
+  }
 
-          _geolocator.placemarkFromAddress(_location).then(
-              (List<Placemark> placemark) {
-            Position pos = placemark[0].position;
-            String markerLabel = placemark[0].name;
-            setState(() {
-              this._currentLocation = new GeoPoint(pos.latitude, pos.longitude);
-            });
-            updateMap();
-            refreshMarker(markerLabel);
-          }, onError: (e) {
-            // PlatformException thrown by the Geolocation if the address cannot be translate
-            // DO NOTHING
-          });
-        },
-        keyboardType: TextInputType.text);
+  void onSubmitted(String dummy) {
+    onPressed();
+  }
+
+  void onPressed()  {
+    _geolocator.placemarkFromAddress(_location).then(
+        (List<Placemark> placemark) {
+      Position pos = placemark[0].position;
+      String markerLabel = placemark[0].name;
+      setState(() {
+        this._currentLocation = new GeoPoint(pos.latitude, pos.longitude);
+      });
+      updateMap();
+      refreshMarker(markerLabel);
+    }, onError: (e) {
+      // PlatformException thrown by the Geolocation if the address cannot be translate
+      // DO NOTHING
+    });
   }
 
   Widget renderUpdateLocationButton() {
