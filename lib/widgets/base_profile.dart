@@ -27,7 +27,7 @@ class BaseProfile extends StatelessWidget {
         Container(
           child: Text(
             this.user.username,
-            style: TextStyle(color: primaryColor),
+            style: Theme.of(context).textTheme.body2,
           ),
           alignment: Alignment.center,
           margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),

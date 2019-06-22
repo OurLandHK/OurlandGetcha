@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
+
 //final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final messageReference = FirebaseDatabase.instance.reference().child('messages');
@@ -76,6 +77,25 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
     }
   }
 
+  Future getImageFromGallery() async {
+    await getImage(ImageSource.gallery);
+  }
+
+  Future getImageFromCamera() async {
+    await getImage(ImageSource.camera);
+  }
+
+  Future getImage(ImageSource imageSource) async {
+    File newImageFile = await ImagePicker.pickImage(source: imageSource);
+
+    if (newImageFile != null) {
+      setState(() {
+        imageFile = newImageFile;
+        print("${imageFile.uri.toString()}");
+      });
+    }
+  }
+/*
   Future getImage() async {
     imageFile = await ImagePicker.pickImage(source: ImageSource.gallery);
 
@@ -86,7 +106,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
       uploadFile();
     }
   }
-
+*/
   void getSticker() {
     // Hide keyboard when sticker appear
     focusNode.unfocus();
@@ -94,7 +114,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
       isShowSticker = !isShowSticker;
     });
   }
-
+/*
   Future uploadFile() async {
     File uploadImage = imageFile;
     List<int> blob = uploadImage.readAsBytesSync();
@@ -136,12 +156,13 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_FILE_NOT_IMG)));
     });
   }
-
+*/
   void onSendMessage(String content, int type) {
     // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
       textEditingController.clear();  
-      messageService.sendChildMessage(widget.parentID, this.messageLocation, content, type);
+      messageService.sendChildMessage(widget.parentID, this.messageLocation, content, imageFile, type);
+      imageFile = null;
       userService.updateRecentTopic(messageService.user.uuid, widget.parentID, this.messageLocation);
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
@@ -159,6 +180,20 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
     return Future.value(false);
   }
 */
+  void removeImage() {setState((){imageFile = null;});}
+
+  Widget buildImagePreview() {
+    return Container(
+      child:  Stack(children: [Image.file(
+            imageFile, height: 180.0
+          ), IconButton(icon: Icon(Icons.close), onPressed: removeImage,)]),
+      decoration: new BoxDecoration(
+        border: new Border(top: new BorderSide(color: greyColor2, width: 0.5)), color: greyColor2),
+      padding: EdgeInsets.all(5.0),
+      height: 181.0,
+    );
+  }
+/*
   Widget buildSticker() {
     return Container(
       child: Column(
@@ -268,15 +303,17 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
       height: 180.0,
     );
   }
-
+*/
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[              // Sticker
-        (isShowSticker ? buildSticker() : Container()),
+//        (isShowSticker ? buildSticker() : Container()),
+        imageFile != null ? buildImagePreview() : new Container(),
         Container(
           child: Row(
             children: <Widget>[
               // Button send image
+              /*
               Material(
                 child: new Container(
                   margin: new EdgeInsets.symmetric(horizontal: 1.0),
@@ -288,6 +325,29 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
                 ),
                 color: Colors.white,
               ),
+              */
+              Material(
+                child: new Container(
+                  margin: new EdgeInsets.symmetric(horizontal: 1.0),
+                  child: new IconButton(
+                    icon: new Icon(Icons.image),
+                    onPressed: getImageFromGallery,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+              Material(
+                child: new Container(
+                  margin: new EdgeInsets.symmetric(horizontal: 1.0),
+                  child: new IconButton(
+                    icon: new Icon(Icons.camera_enhance),
+                    onPressed: getImageFromCamera,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+              // Remove Sticker temporary
+              /*
               Material(
                 child: new Container(
                   margin: new EdgeInsets.symmetric(horizontal: 1.0),
@@ -299,7 +359,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
                 ),
                 color: Colors.white,
               ),
-
+              */
               // Edit text
               Flexible(
                 child: Container(

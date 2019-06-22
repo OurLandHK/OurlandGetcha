@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
+import 'dart:math';
+import 'dart:convert';
+import 'package:ourland_native/models/constant.dart';
 
 class Topic {
   String _id;
   bool _isShowGeo;
   bool _isPublic;
+  int _color;
   DateTime _lastUpdate;
   DateTime _created;
   User _createdUser;
@@ -22,7 +26,7 @@ class Topic {
 
   Topic(this._isPublic, this._createdUser, this._geobottomright, this._geotopleft, this._geocenter,
     this._imageUrl, this._isShowGeo, this._tags,
-    this._topic, this._content) {
+    this._topic, this._content, this._color) {
         this._created = DateTime.now();
         this._lastUpdate = this._created;
         this._lastUpdateUser = this._createdUser; 
@@ -35,7 +39,9 @@ class Topic {
   String get imageUrl => _imageUrl;
   String get topic => _topic;
   String get content => _content;
-  List<String> get tags => _tags;
+//  List<String> get tags => _tags;
+  List<String> get tags => _tags.cast<String>();
+
   GeoPoint get geoBottomRight => _geobottomright;
   GeoPoint get geoTopLeft=> _geotopleft;
   DateTime get lastUpdate => _lastUpdate;
@@ -44,6 +50,7 @@ class Topic {
   User get createdUser => _createdUser;
   User get lastUpdateUser => _lastUpdateUser;
   bool get isPublic => _isPublic;
+  int get color => _color;
   String get searchingId => _searchingId;
   GeoPoint get geoCenter => (this._geocenter != null)? this._geocenter: GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
   
@@ -109,6 +116,10 @@ class Topic {
       map['searchingId'] = this._searchingId;
     }
 
+    if(this._color != null) {
+      map['color'] = this._color;
+    }
+
     return map;
   }
 
@@ -140,6 +151,12 @@ class Topic {
       this._geocenter = map['geocenter'];
     } else {
       this._geocenter = null;
+    }
+    if(map['color'] != null) {
+      this._color = map['color'];
+    } else {
+      Random rng = new Random();
+      this._color = rng.nextInt(TOPIC_COLORS.length);
     }
     this._created = map['created'].toDate();
     this._lastUpdate = map['lastUpdate'].toDate();

@@ -3,13 +3,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:rich_link_preview/rich_link_preview.dart';
+//import 'package:rich_link_preview/rich_link_preview.dart';
+import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/widgets/base_profile.dart';
-import 'package:open_graph_parser/open_graph_parser.dart';
+import 'package:ourland_native/widgets/image_widget.dart';
+//import 'package:open_graph_parser/open_graph_parser.dart';
+import 'package:ourland_native/helper/open_graph_parser.dart';
 
 class TopicMessage extends StatelessWidget {
   final Topic topic;
@@ -33,11 +36,12 @@ class TopicMessage extends StatelessWidget {
       return false;
     }
   }
-
   Widget build(BuildContext context) {
+    String topicTitle = this.topic.topic;
     void _onTap() {
       if(isLink()) {
         OpenGraphParser.getOpenGraphData(this.topic.topic).then((Map data) {
+          topicTitle = data['title'];
           this.onTap(this.topic, data['title'], this.messageLocation);
         });
       } else {
@@ -49,108 +53,107 @@ class TopicMessage extends StatelessWidget {
     if(this.topic != null) {
       Container messageWidget;
       //print(this.messageId);
-      if(isLink()) {
+      if(isLink() && this.topic.imageUrl == null) {
         messageWidget = Container(
           child: RichLinkPreview(
               link: this.topic.topic,
               appendToLink: true,
-              backgroundColor: greyColor2,
+              backgroundColor: TOPIC_COLORS[topic.color],
               borderColor: greyColor2,
               textColor: Colors.black,
-              launchFromLink: false),
+              width: MediaQuery.of(context).size.width * 0.45,
+              launchFromLink: false,
+              vertical: true),
           padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
-          // width: 200.0,
-          //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
-          // margin: EdgeInsets.only(left: 10.0),
         );
       } else {
-          messageWidget = Container(
-          child: Text(
-            this.topic.topic,
-              style: TextStyle(
-                color: Colors.black, fontSize: 14.0, fontStyle: FontStyle.normal),
-            ),
-            padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-            //width: 200.0,
-            //decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(8.0)),
-            margin: EdgeInsets.only(left: 10.0),
-          );         
+          messageWidget = Container(child:Text(
+                                topicTitle,
+                                style: Theme.of(context).textTheme.body1,
+                              )
+          );
       }
-      // Time
-      Container timeWidget = Container(
-        child: Text(
-          DateFormat('dd MMM kk:mm').format(
-              new DateTime.fromMicrosecondsSinceEpoch(
-                  this.topic.created.microsecondsSinceEpoch)),
-          style: TextStyle(
-              color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
-        ),
-        //margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
-      );
-      if(isLink()) {
-        Widget content = new GestureDetector(onTap: _onTap, child: messageWidget);
-        rv = Container(
-          child: Column(
-            children: <Widget>[
-              content,
-              timeWidget,
-            ],
-            crossAxisAlignment: CrossAxisAlignment.start,
-          ),
-          margin: EdgeInsets.only(bottom: 10.0),
-        );
-      } else {
-        Widget imageWidget;
-        if(this.topic.imageUrl == null) {
-          imageWidget = new BaseProfile(user: this.topic.createdUser);
-        } else {
-          imageWidget = Material(
-                      child: CachedNetworkImage(
-                        placeholder: (context, url) => new Container(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.0,
-                              valueColor: AlwaysStoppedAnimation<Color>(themeColor),
-                            ),
-                            width: 75.0,
-                            height: 75.0,
-                            padding: EdgeInsets.all(15.0),
-                          ),
-                        imageUrl: this.topic.imageUrl,
-                        width: 75.0,
-                        height: 75.0,
-                        fit: BoxFit.cover,
+    List<Widget> footers = []; 
+    // tag
+    
+    for(int i = 0; i< this.topic.tags.length; i++) {
+//      footers.add(Chip(label: Text(this.topic.tags[i], style: Theme.of(context).textTheme.subtitle), backgroundColor: TOPIC_COLORS_DARKER[this.topic.color]));
+      footers.add(Text("#${this.topic.tags[i]}", style: Theme.of(context).textTheme.subtitle));
+
+    }
+        
+    // Time
+    Container timeWidget = Container(
+      child: Text(
+        DateFormat('dd MMM kk:mm').format(
+            new DateTime.fromMicrosecondsSinceEpoch(
+              this.topic.lastUpdate.microsecondsSinceEpoch)),
+        style: Theme.of(context).textTheme.subtitle),
+    );
+    footers.add(Expanded(flex: 1, child: Container()));
+    footers.add(timeWidget);
+      
+    if(this.topic.imageUrl != null) {
+      Widget imageWidget;
+      imageWidget = new ImageWidget(height: null, width: MediaQuery.of(context).size.width * 0.45, imageUrl: this.topic.imageUrl); 
+      messageWidget = Container(child: new Column(children: <Widget>[imageWidget, messageWidget]));
+    }
+    rv = GestureDetector(
+          onTap: _onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Container(
+              padding: EdgeInsets.all(4.0),
+              decoration: BoxDecoration(
+                color: TOPIC_COLORS[topic.color],
+                border: Border.all(width: 1, color: Colors.grey),
+                boxShadow: [
+                  new BoxShadow(
+                    color: Colors.grey,
+                    offset: new Offset(0.0, 2.5),
+                    blurRadius: 4.0,
+                    spreadRadius: 0.0
+                  )
+                ],
+                //borderRadius: BorderRadius.circular(6.0)
+                ),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: messageWidget,
+                        ),
                       ),
-  //                    borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                      clipBehavior: Clip.hardEdge,
-                    );
-        }
-        rv = Container(
-          child: FlatButton(
-            child: Row(
-              children: <Widget>[
-                imageWidget,
-                Flexible(
-                  child: Container(
-                    child: Column(
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
-                        messageWidget,
-                        timeWidget
+                        Expanded(
+                          child: Text(
+                              this.topic.content == null
+                                  ? ''
+                                  : this.topic.content,
+                              style: Theme.of(context).textTheme.body2),
+                        )
                       ],
                     ),
-                    margin: EdgeInsets.only(left: 20.0),
                   ),
-                ),
-              ],
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: footers)
+                ],
+              ),
             ),
-            onPressed: _onTap,
-            color: greyColor2,
-            padding: EdgeInsets.fromLTRB(5.0, 10.0, 10.0, 5.0),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
           ),
-          margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
         );
-      }
     }
     return rv;
-  }
+  }  
 }

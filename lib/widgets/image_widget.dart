@@ -3,18 +3,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 class ImageWidget extends StatelessWidget {
   final double width;
   final double height;
   final String imageUrl;
+  final String link;
 
   ImageWidget(
       {Key key,
       @required this.width,
       @required this.height,
-      @required this.imageUrl,})
+      @required this.imageUrl,
+      this.link})
       : super(key: key);
 
   bool isLink() {
@@ -65,6 +68,14 @@ class ImageWidget extends StatelessWidget {
           );
   }  
 
+  void _launchURL(url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
   Widget build(BuildContext context) {
     Widget imageWidget;
     if(isLink()) {
@@ -72,9 +83,14 @@ class ImageWidget extends StatelessWidget {
     } else {
       imageWidget = buildLocationImage(context);
     }
-    return Material(
+    Widget rv =  Material(
             child: imageWidget,
             borderRadius: BorderRadius.all(Radius.circular(8.0)),
             clipBehavior: Clip.hardEdge,
-          );}
+          );
+    if(link != null) {
+      rv = InkWell(child: rv, onTap: () => _launchURL(link));
+    }
+    return rv;
+  }
 }

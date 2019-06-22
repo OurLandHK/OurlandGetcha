@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 //import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart';
 
 //import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,11 +17,11 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
-import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
-import 'package:ourland_native/helper/geo_helper.dart';
+import 'package:ourland_native/pages/settings.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 //final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -29,13 +29,10 @@ final auth = FirebaseAuth.instance;
 class TopicScreen extends StatefulWidget {
   final GeoPoint fixLocation;
   final User user;
+  final Function getCurrentLocation;
   TopicScreenState _state;
 
-  TopicScreen({Key key, @required this.user, this.fixLocation}) : super(key: key);
-  void setLocation(GeoPoint location) {
-    _state.setLocation(location);
-  }
-
+  TopicScreen({Key key, @required this.user, @required this.getCurrentLocation, this.fixLocation}) : super(key: key);
   @override
   State createState() {
     _state = new TopicScreenState(fixLocation: this.fixLocation);
@@ -47,17 +44,22 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   GeoPoint fixLocation;
   MessageService messageService;
   ChatMap chatMap;
+  ChatMap _pendingChatMap;
 
-  //var listMessage;
+  var listMessage;
   SharedPreferences prefs;
 
   bool isLoading;
+  bool _expanded;
 
   // use to get current location
-  Position _currentLocation;
   GeoPoint messageLocation;
 
-  StreamSubscription<Position> _positionStream;
+  String _currentLocationSelection;
+  bool _locationPermissionGranted = false;
+  List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
+
+  String _firstTag = "";
 
   Geolocator _geolocator = new Geolocator();
   LocationOptions locationOptions = new LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
@@ -74,76 +76,32 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
     chatMap = null; 
+    _expanded = true;
 
     isLoading = false;
-
-    initPlatformState();
-    if(this.fixLocation == null) {
-      _positionStream = _geolocator.getPositionStream(locationOptions).listen(
-        (Position position) {
-          if(position != null) {
-            print('initState Poisition ${position}');
-            _currentLocation = position;
-            GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-            this.messageLocation = mapCenter;
-            if(this.chatMap == null) {        
-              this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
-            } else {
-              this.chatMap.updateCenter(mapCenter);
-            }
-          }
-        });
-    } else {
-      print('FixLocation ${this.fixLocation.latitude} , ${this.fixLocation.longitude}');
-      this.chatMap = new ChatMap(topLeft: this.fixLocation, bottomRight: this.fixLocation, height: MAP_HEIGHT);
-      if(this.messageLocation == null) {
-        this.messageLocation = this.fixLocation;
-      }
-    }
+    GeoPoint mapCenter = widget.getCurrentLocation();
+    this.messageLocation = mapCenter;
+    this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
+        // Init UI
+    List<String> dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
+    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
+    _currentLocationSelection = _locationDropDownMenuItems[0].value;
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  initPlatformState() async {
-    if(this.fixLocation == null) {
-      Position location;
-      // Platform messages may fail, so we use a try/catch PlatformException.
 
-      try {
-        geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
-        location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
-        error = null;
-      } on PlatformException catch (e) {
-        if (e.code == 'PERMISSION_DENIED') {
-          error = 'Permission denied';
-        } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
-          error = 'Permission denied - please ask the user to enable it from the app settings';
-        }
-
-        location = null;
-      }
-
-      // If the widget was removed from the tree while the asynchronous platform
-      // message was in flight, we want to discard the reply rather than calling
-      // setState to update our non-existent appearance.
-      //if (!mounted) return;
-
-      setState(() {
-          print('initPlatformStateLocation: ${location}');
-          if(location != null) {
-            _currentLocation = location;
-            GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-            this.messageLocation = mapCenter;
-            chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT);
-          }
-      });
-    }
-  }
+  List<DropdownMenuItem<String>> _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION , true);
 
   void setLocation(GeoPoint location) {
     print("${location}");
+    GeoPoint _temp = location;
+    if(location == null) {
+      _temp = widget.getCurrentLocation();
+    }
     setState(() {
-      this.fixLocation = location;
-      this.messageLocation = location;
+      this.fixLocation = _temp;
+      this.messageLocation = _temp;      
+      this.chatMap = null; // new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT);
+      this._pendingChatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT);
     });
   }
 
@@ -159,7 +117,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     Widget rv; 
     int type = 0;
     GeoPoint location = topic.geoCenter;
-    if(this.chatMap != null) {
+    if(this._pendingChatMap != null) {
+      this._pendingChatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
+    } else {
       this.chatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
     }
     GeoPoint _messageLocation;
@@ -176,6 +136,69 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
 
   @override
   Widget build(BuildContext context) {
+      void showHome() {
+        print("Show Home ${widget.user.username}");
+        if(widget.user.homeAddress != null) {
+          setLocation(widget.user.homeAddress);
+        } else {
+          Navigator.of(context).push(
+            new MaterialPageRoute<void>(
+              builder: (BuildContext context) {
+                return new UpdateLocationScreen(locationType: LABEL_REGION0, user: widget.user);
+              },
+            ),
+          );
+        }
+      }
+      void showOffice() {
+        if(widget.user.officeAddress != null) {
+          setLocation(widget.user.officeAddress);
+        } else {
+          Navigator.of(context).push(
+            new MaterialPageRoute<void>(
+              builder: (BuildContext context) {
+                return new UpdateLocationScreen(locationType: LABEL_REGION1, user: widget.user);
+              },
+            ),
+          );
+        }
+      }
+      void showNearby() {
+        setLocation(null);
+      }
+      void updateLocation(String locationSelection) {
+        bool isFabShow;
+        switch(locationSelection) {
+          case LABEL_REGION0:
+            showHome();
+            //_nearBySelection.setLocation(widget.user.homeAddress);
+            if(widget.user.homeAddress == null) {
+              isFabShow = false;
+            } else {
+              isFabShow = true;         
+            }
+            break;
+          case LABEL_REGION1:
+            showOffice();
+            //_nearBySelection.setLocation(widget.user.officeAddress);
+            if(widget.user.officeAddress == null) {
+              isFabShow = false;
+            } else {
+              isFabShow = true;           
+            }
+            break;          
+          default:
+            isFabShow = true;
+            showNearby();
+            //_nearBySelection.setLocation(null);
+            
+        }
+        setState(() {
+          this._currentLocationSelection = locationSelection; 
+          //this.chatMap = null;
+        });
+      }   
+
     void _onTap(Topic topic, String parentTitle, GeoPoint messageLocation) {
       //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
       GeoPoint _messageLocation = messageLocation;
@@ -194,12 +217,64 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       );
     }
 
-    return Stack(
-      children: <Widget>[
-        buildScrollView(_onTap, context),     
-        buildLoading(),
-      ],
-    );
+    List<Widget> buildToolBar(BuildContext context) {
+      return  <Widget> [
+                Expanded(flex: 1, child: Text(LABEL_IN, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
+                Expanded(flex: 2, child: DropdownButton(
+                  value: _currentLocationSelection,
+                  items: _locationDropDownMenuItems,
+                  onChanged: updateLocation,
+                  style: Theme.of(context).textTheme.subhead
+                )),
+                Expanded(flex: 1, child: Text(LABEL_HAS, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
+                Expanded(flex: 2, child: DropdownButton(
+                  value: _firstTag,
+                  items: _tagDropDownMenuItems,
+                  style: Theme.of(context).textTheme.subhead,
+                  onChanged: (String value) {setState(() {_firstTag = value;});},
+                )),
+                IconButton(
+                  icon: Icon(Icons.expand_more),
+                    onPressed: () {
+                      setState(() {
+                        _expanded = !_expanded;
+                      });
+                    },
+                ),
+              ];
+    }
+    PreferredSizeWidget appBar;
+    if(_expanded) {
+      appBar = PreferredSize(
+          preferredSize: Size.fromHeight(MAP_HEIGHT), // here the desired height
+            child: new AppBar( 
+              flexibleSpace: (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT),
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(100), // here the desired height
+                child: Opacity(opacity: 0.6, child: Container(decoration: BoxDecoration(color: Theme.of(context).backgroundColor), child:Row(children: buildToolBar(context)))),
+              ),
+            ),
+        );
+    } else {
+      appBar = new AppBar(flexibleSpace: PreferredSize(
+                preferredSize: Size.fromHeight(100),
+                child: Row(children: buildToolBar(context))));
+    }
+    WidgetsBinding.instance
+      .addPostFrameCallback((_) => _swapMap(context));
+    return new Scaffold(
+        appBar: appBar,
+        body: Container(
+          color: Colors.white,
+          child: new Stack(
+            children: <Widget>[
+            // buildScrollView(_onTap, context),
+              buildListView(_onTap, context),
+              buildLoading(),
+            ],
+          ),
+        ),
+    );     
   }
   Widget buildLoading() {
     return Positioned(
@@ -214,69 +289,57 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     );
   }
 
-  Widget buildScrollView(Function _onTap, BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverAppBar(
-          expandedHeight: MAP_HEIGHT,
-          pinned: true,
-          floating: true,
-          snap: true,
-          // Add Filter later
-          
-          actions: <Widget>[
-            // snack bar
-          ],
-          
-          flexibleSpace: FlexibleSpaceBar(
-            title: (this.messageLocation != null) ? Text('GPS: ${this.messageLocation.latitude}, ${this.messageLocation.longitude}') : null,
-            background: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT),
-                // This gradient ensures that the toolbar icons are distinct
-                // against the background image.
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment(0.0, -1.0),
-                      end: Alignment(0.0, -0.4),
-                      colors: <Color>[Color(0x60000000), Color(0x00000000)],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        buildSilverListMessage(_onTap, context),
-      ],
-    );
+  void _swapMap(BuildContext context) {
+    if(this._pendingChatMap != null) {
+      var temp = this._pendingChatMap;
+      setState(() {
+        this._pendingChatMap = null;
+        this.chatMap = temp;
+      });
+    }
   }
 
-    Widget buildSilverListMessage(Function _onTap, BuildContext context) {
-    return StreamBuilder<List<Topic>>(
-      stream: this.messageService.getTopicSnap(this.messageLocation, 2500),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          //listMessage = snapshot.data.documents;
-          return SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-                return buildItem(snapshot.data[index].id, snapshot.data[index], _onTap, context);
-              },
-              childCount: snapshot.data.length,
-            ),
-          );
+
+
+  Widget buildListView(Function _onTap, BuildContext context) {
+    return new StreamBuilder<List<Topic>>(
+      stream: this.messageService.getTopicSnap(this.messageLocation, 2500, _firstTag),
+      builder: (BuildContext context, AsyncSnapshot<List<Topic>> snapshot) {
+        if (!snapshot.hasData) {
+          return new Center(child: new CircularProgressIndicator());
         } else {
-          return SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)));
-              },
-              childCount: 1,
-            ),
-          );
-        }
+          if(snapshot.data.length > 0) {
+            List<Widget> children =  buildGrid(snapshot.data, _onTap, context);
+            return new StaggeredGridView.count(
+              physics: new BouncingScrollPhysics(),
+              crossAxisCount: 4,
+              children: children, 
+              staggeredTiles: staggeredTileBuilder(children),
+            );
+          } else {
+            return new Container(child: Text(LABEL_CHOICE_OTHER_TAG,
+            style: Theme.of(context).textTheme.headline));
+          }
+          //staggeredTiles: generateRandomTiles(snapshot.data.length),
+        };
       },
     );
   }
+
+  List<StaggeredTile> staggeredTileBuilder(List<Widget> widgets) {
+    List<StaggeredTile> _staggeredTiles = [];
+    for (Widget widget in widgets) {
+      _staggeredTiles.add(new StaggeredTile.fit(2));
+    }
+    return _staggeredTiles;
+  }
+
+  List<Widget> buildGrid(List<Topic> documents, Function _onTap, BuildContext context) {
+    List<Widget> _gridItems = [];
+    for (Topic topic in documents) {
+      _gridItems.add(buildItem(topic.id, topic, _onTap, context));
+    }
+    return _gridItems;
+  }  
 }
+

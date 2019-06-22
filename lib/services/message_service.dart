@@ -25,12 +25,19 @@ class MessageService {
 
   MessageService(this._user);
 
-  Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter) {
+  Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter, String firstTag) {
     Stream<List<Topic>> rv;
     if(position != null) {
+      Query sourceQuery = _topicCollection;
+      if(firstTag != null && firstTag.length != 0) {
+        List<QueryConstraint> constraints = [new QueryConstraint(field: "tags", arrayContains: firstTag)];
+        sourceQuery = buildQuery(
+          collection: _topicCollection, 
+          constraints: constraints);
+      }
       Area area = new Area(position, distanceInMeter/1000);
       rv = getDataInArea(
-        source: _topicCollection, 
+        source: sourceQuery, 
         area: area, 
         locationFieldNameInDB: 'geocenter',
         mapper: (doc) => Topic.fromMap(doc.data),
@@ -83,8 +90,6 @@ class MessageService {
     String imageUrl;
     if(imageFile != null) {
       imageUrl = await uploadImage(imageFile);
-      if(imageUrl != null) {
-      }
     }
     
     var indexData = topic.toMap();
@@ -116,9 +121,13 @@ class MessageService {
     }
   }
 
-  void sendChildMessage(String parentID, GeoPoint position, String content, int type) {
+  Future sendChildMessage(String parentID, GeoPoint position, String content, File imageFile, int type) async {
       var sendMessageTime = DateTime.now();
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
+      String imageUrl;
+      if(imageFile != null) {
+        imageUrl = await uploadImage(imageFile);
+      }
       DocumentReference chatReference;
       DocumentReference indexReference;
       indexReference = _topicCollection.document(parentID);
@@ -135,6 +144,7 @@ class MessageService {
           indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
           indexData['lastUpdateUser'] = basicUserMap;
           indexData['lastUpdate'] = sendMessageTime;
+
           var chatData = {
                 'created': sendMessageTime,
                 'id': sendMessageTimeString,
@@ -143,6 +153,9 @@ class MessageService {
                 'type': type,
                 'createdUser' : basicUserMap,
           };
+          if(imageUrl != null) {
+            chatData['imageUrl'] =  imageUrl;
+          }
           chatReference = _chatCollection.document(parentID).collection("messages").document(sendMessageTimeString);
           try{
             Firestore.instance.runTransaction((transaction) async {
