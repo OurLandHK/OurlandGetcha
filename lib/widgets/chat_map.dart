@@ -3,13 +3,31 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/widgets/map/index.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import 'package:geodesy/geodesy.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as GoogleMap;
 
+
+class OurlandMarker {
+  final GeoPoint location;
+  String label;
+  final String messageId;
+  OurlandMarker(this.messageId, this.location, int contentType, String content, String username) {
+    this.label = "";
+    switch (contentType) {
+      case 0:
+        this.label = content;
+        break;
+      default:
+        this.label = username;
+    }
+  }
+}
 class ChatMap extends StatefulWidget {
   GeoPoint mapCenter;
   Geodesy geodesy;
   double height;
   double width;
   double zoom;
+  final List<OurlandMarker> markerList;
   _ChatMapState state;
 
   ChatMap(
@@ -17,13 +35,14 @@ class ChatMap extends StatefulWidget {
       @required GeoPoint topLeft,
       @required GeoPoint bottomRight,
       this.width,
-      @required this.height})
+      @required this.height,
+      this.markerList})
       : super(key: key) {
     this.mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
     this.geodesy = Geodesy();
     zoomAdjustment(topLeft, bottomRight);
   }
-
+/*
   void addLocation(String messageId,
       GeoPoint location, String content, int contentType, String username) {
     String label = "";
@@ -54,13 +73,13 @@ class ChatMap extends StatefulWidget {
   }
 
   void updateCenter(GeoPoint _mapCenter) {
-    print('ChatMap called ${_mapCenter}');
+//    print('ChatMap called ${_mapCenter}');
     mapCenter = _mapCenter;
     if (state != null && state.googleMapWidget != null) {
       state.googleMapWidget.updateMapCenter(_mapCenter, 15);
     }
   }
-
+*/
   void zoomAdjustment(GeoPoint topLeft, GeoPoint bottomRight) {
     LatLng l1 = LatLng(topLeft.latitude, topLeft.longitude);
     LatLng l2 = LatLng(bottomRight.latitude, bottomRight.longitude);
@@ -80,7 +99,7 @@ class ChatMap extends StatefulWidget {
     }
     //print("${this.zoom} + " " + ${distance}");
   }
-
+/*
   void updateMapArea(GeoPoint topLeft, GeoPoint bottomRight) {
     this.mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
     zoomAdjustment(topLeft, bottomRight);
@@ -88,7 +107,7 @@ class ChatMap extends StatefulWidget {
       state.googleMapWidget.updateMapCenter(this.mapCenter, this.zoom);
     }
   }
-
+*/
   @override
   _ChatMapState createState() {
     state = new _ChatMapState();
@@ -106,13 +125,34 @@ class _ChatMapState extends State<ChatMap> {
 
   void initState() {
     super.initState();
-    this.googleMapWidget = new GoogleMapWidget(widget.mapCenter.latitude,
-        widget.mapCenter.longitude, widget.width, widget.height, widget.zoom);
+    this.googleMapWidget = createMapWithMarker();
+  }
+
+  GoogleMapWidget createMapWithMarker() {
+    Map<GoogleMap.MarkerId, GoogleMap.Marker> googleMarkers = <GoogleMap.MarkerId, GoogleMap.Marker>{};
+    for(int i = 0; i < widget.markerList.length; i++) {
+        GoogleMap.MarkerId markerId = GoogleMap.MarkerId(widget.markerList[i].messageId);
+        GoogleMap.Marker marker = GoogleMap.Marker(
+        markerId: markerId,
+        position: GoogleMap.LatLng(widget.markerList[i].location.latitude, widget.markerList[i].location.longitude),
+        infoWindow: GoogleMap.InfoWindow(title: widget.markerList[i].label, snippet: '*'),
+        icon: GoogleMap.BitmapDescriptor.fromAsset('assets/images/smallnote.png')
+/*      onTap: () {
+        _onMarkerTapped(markerId);
+      },*/
+      );    
+      googleMarkers[markerId] = marker;
+    }
+//    print("Marker Length 3 ${widget.markerList.length}");
+//    print("Google Marker Length 1 ${googleMarkers.length}");
+//    print("Google Map Center 1 ${widget.mapCenter.latitude} ${widget.mapCenter.longitude}");
+    return new GoogleMapWidget(widget.mapCenter.latitude,
+        widget.mapCenter.longitude, widget.width, widget.height, widget.zoom, googleMarkers);    
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget rv = this.googleMapWidget;
+    Widget rv = createMapWithMarker();
     if (rv == null) {
       rv = new CircularProgressIndicator();
     }

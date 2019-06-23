@@ -7,15 +7,16 @@ class GoogleMapWidget extends StatefulWidget {
   final double longitude;
   final double width;
   final double height;
+  final Map<MarkerId, Marker> googleMarkers;
   double zoom;
   _GoogleMapWidgetState state;
 
   GoogleMapWidget(
-      this.latitude, this.longitude, this.width, this.height, this.zoom);
-
+      this.latitude, this.longitude, this.width, this.height, this.zoom, this.googleMarkers);
+/*
   void updateMapCenter(GeoPoint center, double zoom) {
     this.zoom = zoom;
-    print('GoogleMapWidget called ${center} ${zoom}');
+//    print('GoogleMapWidget called ${center} ${zoom}');
     state.mapController.animateCamera(CameraUpdate.newCameraPosition(
         CameraPosition(
             target: center == null
@@ -41,21 +42,22 @@ class GoogleMapWidget extends StatefulWidget {
   void clearMarkers() {
     state.clearMarkers();
   }
-
+*/
   @override
   _GoogleMapWidgetState createState() {
-    state = new _GoogleMapWidgetState();
+    state = new _GoogleMapWidgetState(googleMarkers);
     return state;
   }
 }
 
 class _GoogleMapWidgetState extends State<GoogleMapWidget> {
-  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
-  List<Marker> pendingMarkers = new List<Marker>();
+  Map<MarkerId, Marker> markers;
   bool _isCleanUp = false;
-  _GoogleMapWidgetState() {
+  GoogleMap _gMap;
+  _GoogleMapWidgetState(this.markers) {
+//    print("Marker Length 2 ${markers.length}");
   }
-
+/*
   void addMarker(MarkerId markerId, Marker marker) {
     try {
       setState(() {
@@ -66,7 +68,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
       pendingMarkers.add(marker);
     }
   }
-
+*/
 
   GoogleMapController mapController;
 
@@ -76,8 +78,21 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
     if(widget.width != 0) {
       width = widget.width; 
     }
+    
     WidgetsBinding.instance
     .addPostFrameCallback((_) => updateAnyMarkerChange(context));
+    
+//    print("Google Marker Length 3 ${markers.length}");
+//    print("Google Marker Length 4 ${widget.googleMarkers.length}");
+//    print("Google Map Center 1 ${widget.latitude} ${widget.longitude}");
+    _gMap = GoogleMap(
+                onMapCreated: _onMapCreated,
+                myLocationEnabled: true,
+                initialCameraPosition: new CameraPosition(
+                  target: LatLng(widget.latitude, widget.longitude),
+                  zoom: widget.zoom,
+                ),
+                markers: Set<Marker>.of(markers.values));
     return new Container(
       child: Column(
         children: <Widget>[
@@ -85,15 +100,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
             child: SizedBox(
               width: width,
               height: widget.height,
-              child: GoogleMap(
-                onMapCreated: _onMapCreated,
-                myLocationEnabled: true,
-                initialCameraPosition: new CameraPosition(
-                  target: LatLng(widget.latitude, widget.longitude),
-                  zoom: widget.zoom,
-                ),
-                markers: Set<Marker>.of(markers.values),
-              ),
+              child: _gMap
             ),
           ),
         ],
@@ -102,23 +109,30 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   }
   
   void updateAnyMarkerChange(BuildContext context) {
-    print('updateAnyMarkerChange ${pendingMarkers.length} ${markers.length}');
     bool isSetState = false;
-    Map<MarkerId, Marker> newmarkers = markers;
-    if(_isCleanUp) {
-      print('updateAnyMarkerChange cleanup');
-      isSetState = true;
-      _isCleanUp = false;
-      newmarkers = <MarkerId, Marker>{};
+    //_gMap.initialCameraPosition.target.longitude
+    if(mapController != null) {
+      mapController.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(
+              target: LatLng(widget.latitude, widget.longitude),
+              zoom: widget.zoom)));
     }
-    if(pendingMarkers.length > 0) {
+    Map<MarkerId, Marker> newmarkers = {};
+    if(widget.googleMarkers.length != markers.length) {
       isSetState = true;
-      for(Marker marker in pendingMarkers) {
-        newmarkers[marker.markerId] = marker;
+    } else {
+      for(MarkerId markerId in widget.googleMarkers.keys) {
+        if(markers[markerId] == null) {
+          isSetState = true;
+          break;
+        }
       }
-      pendingMarkers = new List<Marker>();
     }
+  //  print("Is SetState ${isSetState}");
     if(isSetState) {
+      for(MarkerId markerId in widget.googleMarkers.keys) {
+        newmarkers[markerId] = widget.googleMarkers[markerId];
+      }
       setState(() {
         markers = newmarkers;
       });

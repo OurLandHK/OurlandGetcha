@@ -108,7 +108,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     }   
 */
     UserService _userService = new UserService();
-    _chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height * 0.95);
+    _chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height * 0.95, markerList: []);
     _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopicMap) {
       if(recentTopicMap != null) {
         _isFavour = true;
@@ -124,7 +124,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                                    'contentType': chat.type,
                                    'username': chat.createdUser.username};
     //markerList.add(marker);
-    _chatMapWidget.addLocation(marker['id'], marker['location'], marker['content'], marker['contentType'], marker['username']);
+//    _chatMapWidget.addLocation(marker['id'], marker['location'], marker['content'], marker['contentType'], marker['username']);
 
     // Add involved user in the summary;
     updateUser(chat.createdUser);

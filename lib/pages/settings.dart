@@ -96,6 +96,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   String locationType;
   User user;
   String _location;
+  String _label;
   ChatMap map;
   Geolocator _geolocator = new Geolocator();
   GeoPoint _currentLocation;
@@ -121,16 +122,16 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
           this._currentLocation =
               new GeoPoint(position.latitude, position.longitude);
         });
-        updateMap();
+        //updateMap();
       });
     } else {
       setState(() {
         this._currentLocation = address;
       });
-      updateMap();
+      //updateMap();
     }
   }
-
+/*
   void updateMap() {
     if (this.map == null) {
       this.map = new ChatMap(
@@ -141,10 +142,16 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
       this.map.updateCenter(this._currentLocation);
     }
   }
-
+*/
   void refreshMarker(String label) {
+    setState(() {
+      _label = label;
+    });
+
+    /*
     this.map.clearMarkers();
     this.map.addMarker(this._currentLocation, label, "settings");
+    */
   }
 
   void onSubmit() {
@@ -167,10 +174,11 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   }
 
   Widget renderMap() {
-    if(this.map == null) {
-      return new Container();
-    }
-    return this.map;
+    return ChatMap(
+          topLeft: this._currentLocation,
+          bottomRight: this._currentLocation,
+          height: MAP_HEIGHT,
+          markerList: [OurlandMarker(_label, this._currentLocation, 0, _label, "settings")],);
   }
 
   Widget renderLocationField() {
@@ -212,7 +220,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
       setState(() {
         this._currentLocation = new GeoPoint(pos.latitude, pos.longitude);
       });
-      updateMap();
+      //updateMap();
       refreshMarker(markerLabel);
     }, onError: (e) {
       // PlatformException thrown by the Geolocation if the address cannot be translate
