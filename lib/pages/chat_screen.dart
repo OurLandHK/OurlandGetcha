@@ -73,8 +73,6 @@ class ChatScreenBody extends StatefulWidget {
 class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderStateMixin  {
   MessageService messageService;
   ValueNotifier<Stream> chatStream;
-  ValueNotifier<Stream> chatStream1;
-  ChatSummary chatSummary;
   var listMessage;
   bool _displayComment = false;
   //ChatMap chatMap;
@@ -111,10 +109,10 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
 
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(widget.topic.geoTopLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(widget.topic.geoBottomRight);
-    ChatSummary chatSummary = ChatSummary(chatStream: this.chatStream, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, expand: !_displayComment, toggleComment: this.toggleComment);
+    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, expand: !_displayComment, toggleComment: this.toggleComment);
     List<Widget> _widgetList = [chatSummary];
     if(this._displayComment) {
-      _widgetList.add(ChatList(chatStream: chatStream1, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController));
+      _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController));
       if(this.messageLocation != null) {
         _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
       } else {
@@ -189,15 +187,12 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     super.initState();
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
-    chatSummary = null;
- //   chatMap = null;
-
+ 
     isLoading = false;
 
     //readLocal();
     initPlatformState();
     chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
-    chatStream1 = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
     if(widget.topic.geoTopLeft == null) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {

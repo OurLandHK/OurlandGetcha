@@ -10,6 +10,7 @@ import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/image_widget.dart';
 import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/services/message_service.dart';
 //import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
@@ -18,19 +19,18 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
 
 class ChatSummary extends StatefulWidget {
-  final ValueListenable<Stream> chatStream; 
   final ValueListenable<GeoPoint> topLeft;
   final ValueListenable<GeoPoint> bottomRight;
   final Function toggleComment;
-  final bool expand;
   final User user;
   final String imageUrl;
   final Topic topic;
   final double height;
   final double width;
+  final bool expand;
   _ChatSummaryState state;
 
-  ChatSummary({Key key,  @required this.chatStream, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.topic, @required this.expand, @required this.toggleComment}) : super(key: key);
+  ChatSummary({Key key, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.topic, @required this.expand, @required this.toggleComment}) : super(key: key);
   @override
   _ChatSummaryState createState() { 
     state = new _ChatSummaryState();
@@ -43,17 +43,20 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   List<String> messageList;
   List<User> userList;
   List<String> galleryImageUrlList;
-  List<Map<String, dynamic>> markerList;
+  List<OurlandMarker> _markerList;
+  List<OurlandMarker> _pendingMarkerList;
   Widget _baseInfo;
   Widget _titleLink;
-//  Widget _contentLink;
-  ChatMap _chatMapWidget;
   ImageWidget _summaryImageWidget;
   bool _progressBarActive;
   bool _isFavour = false;
+  MessageService messageService;
+  ValueNotifier<Stream> chatStream;
 
   _ChatSummaryState() {
     _progressBarActive = true;
+    this._markerList = [];
+    this._pendingMarkerList =[];  
   }  
 
   bool isBeginWithLink(String iv) {
@@ -70,8 +73,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     messageList = new List<String>();
     userList = new List<User>();
     galleryImageUrlList = new List<String>();
-    markerList = new List<Map<String, dynamic>>();
-    double mapWidth = widget.width;
+    print("initState()");
+    messageService = new MessageService(widget.user);
+    chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
     if(widget.imageUrl != null && widget.imageUrl.length != 0) {
       if(isBeginWithLink(widget.topic.topic)) {
         _summaryImageWidget = new ImageWidget(width: (widget.width * 0.9), imageUrl: widget.imageUrl, link: widget.topic.topic);
@@ -87,28 +91,11 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
           link: widget.topic.topic,
           appendToLink: true,
           backgroundColor: TOPIC_COLORS[widget.topic.color],
-//          borderColor: greyColor2,
           textColor: Colors.black,
           launchFromLink: true);
     }
-/*
-    if(widget.topic.topic.compareTo(widget.topic.content) != 0) {
-      if(widget.topic.content.length != 0) {
-        if(isBeginWithLink(widget.topic.content)) {
-          _contentLink = RichLinkPreview(
-                //height: widget.height * 0.90,
-                link: widget.topic.content,
-                appendToLink: true,
-                backgroundColor: greyColor2,
-                borderColor: greyColor2,
-                textColor: Colors.black,
-                launchFromLink: true);
-        } 
-      }
-    }   
-*/
     UserService _userService = new UserService();
-    _chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height * 0.95, markerList: []);
+    //_chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height * 0.95, markerList: []);
     _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopicMap) {
       if(recentTopicMap != null) {
         _isFavour = true;
@@ -118,14 +105,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
 
   void addChat(Chat chat) {
-    Map<String, dynamic> marker = {'id': chat.id,
-                                   'location':chat.geo,
-                                   'content': chat.content,
-                                   'contentType': chat.type,
-                                   'username': chat.createdUser.username};
-    //markerList.add(marker);
-//    _chatMapWidget.addLocation(marker['id'], marker['location'], marker['content'], marker['contentType'], marker['username']);
-
+    this._pendingMarkerList.add(OurlandMarker(chat.id, chat.geo, chat.type, chat.content, chat.createdUser.username));
     // Add involved user in the summary;
     updateUser(chat.createdUser);
     addImage(chat.imageUrl);
@@ -169,7 +149,8 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   buildMessageSummaryWidget() async {
 
 //    for(var stream in widget.chatStream.value {
-      Stream<QuerySnapshot> stream = widget.chatStream.value;
+//      Stream<QuerySnapshot> stream = widget.chatStream.value;
+      Stream<QuerySnapshot> stream = chatStream.value;
       print("stream ${stream.length}");
       stream.forEach((action){
         for(var entry in action.documents) {
@@ -185,6 +166,8 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance
+      .addPostFrameCallback((_) => _swapMap(context));    
     // _cratedDate
     Text _createdDate = Text(
         DateFormat('dd MMM kk:mm').format(
@@ -204,10 +187,11 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     List<Widget> finalWidgetList = [];
     // display Map
     if(widget.expand) {
-      if(_chatMapWidget != null) {
-        widgetList.add(_chatMapWidget);
+          print("build Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
+      if(this._markerList.length == this._pendingMarkerList.length) {
+        widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._markerList));
       } else {
-        widgetList.add(new Container(height: widget.height));
+        widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._pendingMarkerList));
       }
       if(_titleLink != null) {
         widgetList.add(_titleLink);
@@ -233,6 +217,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     if(this._isFavour) {
       favorColor = Colors.red;
     }
+    print("_expand $widget.expand");
     Row _toolBar = new Row(children: <Widget>[
               // Button mark interest to receive notification
               Material(
@@ -251,8 +236,10 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                   margin: new EdgeInsets.symmetric(horizontal: 8.0),
                   child: new IconButton(
                     icon: new Icon(Icons.comment),
-                    onPressed: () => widget.toggleComment(),
-                    color: primaryColor,
+                    onPressed: (() {   
+                      widget.toggleComment();
+                    }),
+                    color: widget.expand ? greyColor : primaryColor,
                   ),
                 ),
                 color: TOPIC_COLORS[widget.topic.color],
@@ -313,4 +300,17 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       //summaryPostit;
       new Container(child: Column(children: finalWidgetList), color: TOPIC_COLORS[widget.topic.color],);
   }
+   void _swapMap(BuildContext context) {
+    print("_swapMap Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
+    if(this._markerList.length != this._pendingMarkerList.length) {
+      List<OurlandMarker> tempList = new List<OurlandMarker>();
+      for(int i = 0; i <  this._pendingMarkerList.length; i++) {
+        tempList.add(this._pendingMarkerList[i]);
+      }
+      setState(() {
+        this._markerList = tempList;
+      });      
+    }
+  } 
+  
 }
