@@ -17,6 +17,7 @@ import 'package:ourland_native/widgets/chat_list.dart';
 import 'package:ourland_native/widgets/chat_message.dart';
 import 'package:ourland_native/widgets/chat_summary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ourland_native/services/user_service.dart';
 
 import '../models/chat_model.dart';
 import '../widgets/send_message.dart';
@@ -73,9 +74,10 @@ class ChatScreenBody extends StatefulWidget {
 class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderStateMixin  {
   MessageService messageService;
   ValueNotifier<Stream> chatStream;
+  Map<String, User> _userList;
+  UserService _userService;
+  Chat_Mode _chatMode;
   var listMessage;
-  bool _displayComment = false;
-  //ChatMap chatMap;
 
   String groupChatId;
   SharedPreferences prefs;
@@ -98,9 +100,9 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   final FocusNode focusNode = new FocusNode();
   ChatScreenBodyState({Key key, this.messageLocation});
 
-  void toggleComment() {
+  void toggleComment(Chat_Mode chatMode) {
     setState(() {
-      _displayComment = !_displayComment;
+      _chatMode = chatMode;
     });
   }
 
@@ -109,10 +111,10 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
 
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(widget.topic.geoTopLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(widget.topic.geoBottomRight);
-    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, expand: !_displayComment, toggleComment: this.toggleComment);
+    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, chatMode: _chatMode, toggleComment: this.toggleComment, updateUser: this.updateUser);
     List<Widget> _widgetList = [chatSummary];
-    if(this._displayComment) {
-      _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController));
+    if(this._chatMode == Chat_Mode.CHAT_MODE) {
+      _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController, updateUser: updateUser, getUserName: getUserName, getColor: getColor));
       if(this.messageLocation != null) {
         _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
       } else {
@@ -120,7 +122,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
       }
     }
     Widget _bodyWidget =  Column(children: _widgetList);
-    if(!this._displayComment) {
+    if(this._chatMode != Chat_Mode.CHAT_MODE) {
       _bodyWidget = SingleChildScrollView(child: _bodyWidget);
     }
     return WillPopScope(
@@ -184,9 +186,12 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
 
   @override
   void initState() {
+    _userService = new UserService();
     super.initState();
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
+    _userList = {};
+    _chatMode = Chat_Mode.MAP_MODE;
  
     isLoading = false;
 
@@ -209,6 +214,29 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
       }
     }
   }
+
+  void updateUser(User user) {
+    if(_userList[user.uuid] == null) {
+      _userList[user.uuid] = user;
+    }
+  }
+
+  String getUserName(String userID) {
+    String rv;
+    if(widget.topic.isShowName) {
+      rv = _userList[userID].username;
+    } else {
+      int idx = _userList.keys.toList().indexOf(userID);
+      rv= _userService.getSecretName(widget.topic.id, idx);
+    }
+    return rv;
+  }
+
+  int getColor(String userID) {
+    int idx = _userList.keys.toList().indexOf(userID);
+    return idx %= TOPIC_COLORS.length;
+  }
+
 
   bool isCurrentUser(int index) {
     return(listMessage[index]['createdUser'] != null && listMessage[index]['createdUser']['uuid'] == widget.user.uuid);

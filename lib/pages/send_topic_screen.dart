@@ -408,7 +408,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           ),
           Row(
             children: <Widget> [
-                Switch.adaptive(
+                Checkbox(
                   value: _isShowName,
                   onChanged: (bool value) {
                       _isShowName = value;

@@ -18,6 +18,7 @@ class ChatMessage extends StatelessWidget {
   final GeoPoint geoTopLeft;
   final GeoPoint geoBottomRight;
   final Chat messageBody;
+  final Function getUserName;
   final int color;
   final Function onTap;
 
@@ -29,6 +30,7 @@ class ChatMessage extends StatelessWidget {
       @required this.messageBody,
       @required this.color,
       @required this.onTap,
+      @required this.getUserName,
       this.geoTopLeft,
       this.geoBottomRight})
       : super(key: key);
@@ -91,7 +93,7 @@ class ChatMessage extends StatelessWidget {
     );
     Widget userWidget;
     if(!isCurrentUser()) {
-      userWidget = new Text(this.messageBody.createdUser.username,
+      userWidget = new Text(getUserName(this.messageBody.createdUser.uuid),
       style: Theme.of(context).textTheme.subtitle);
     }
     List<Widget> footers =[];

@@ -18,19 +18,29 @@ import 'package:ourland_native/services/user_service.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
 
+  enum Chat_Mode {
+    MAP_MODE,
+    USER_MODE,
+    MEDIA_MODE,
+    CHAT_MODE  
+  }
+
 class ChatSummary extends StatefulWidget {
   final ValueListenable<GeoPoint> topLeft;
   final ValueListenable<GeoPoint> bottomRight;
+  final Function updateUser;
+  final Function getUserName;
   final Function toggleComment;
   final User user;
   final String imageUrl;
   final Topic topic;
   final double height;
   final double width;
-  final bool expand;
+  final Chat_Mode chatMode;
+//  final bool expand;
   _ChatSummaryState state;
 
-  ChatSummary({Key key, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.topic, @required this.expand, @required this.toggleComment}) : super(key: key);
+  ChatSummary({Key key, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.topic, @required this.chatMode, @required this.toggleComment, @required this.updateUser, @required this.getUserName}) : super(key: key);
   @override
   _ChatSummaryState createState() { 
     state = new _ChatSummaryState();
@@ -41,10 +51,9 @@ class ChatSummary extends StatefulWidget {
 class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStateMixin {
   
   List<String> messageList;
-  List<User> userList;
   List<String> galleryImageUrlList;
   List<OurlandMarker> _markerList;
-  List<OurlandMarker> _pendingMarkerList;
+  Map<String, OurlandMarker> _pendingMarkerList;
   Widget _baseInfo;
   Widget _titleLink;
   ImageWidget _summaryImageWidget;
@@ -56,7 +65,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   _ChatSummaryState() {
     _progressBarActive = true;
     this._markerList = [];
-    this._pendingMarkerList =[];  
+    this._pendingMarkerList = {};  
   }  
 
   bool isBeginWithLink(String iv) {
@@ -71,7 +80,6 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   void initState() {
     super.initState();
     messageList = new List<String>();
-    userList = new List<User>();
     galleryImageUrlList = new List<String>();
     print("initState()");
     messageService = new MessageService(widget.user);
@@ -95,7 +103,6 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
           launchFromLink: true);
     }
     UserService _userService = new UserService();
-    //_chatMapWidget = new ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: mapWidth, height:  widget.height * 0.95, markerList: []);
     _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopicMap) {
       if(recentTopicMap != null) {
         _isFavour = true;
@@ -105,25 +112,14 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
 
   void addChat(Chat chat) {
-    this._pendingMarkerList.add(OurlandMarker(chat.id, chat.geo, chat.type, chat.content, chat.createdUser.username));
-    // Add involved user in the summary;
-    updateUser(chat.createdUser);
+    OurlandMarker ourlandMarker = this._pendingMarkerList[chat.createdUser.uuid];
+    if(ourlandMarker == null) {
+      this._pendingMarkerList[chat.createdUser.uuid] = OurlandMarker(chat.id, chat.geo, chat.type, chat.content, chat.createdUser.username);
+    }// Add involved user in the summary;
+    widget.updateUser(chat.createdUser);
     addImage(chat.imageUrl);
     addMessage(chat.content);
     setState(() {});
-  }
-
-  void updateUser(User user) {
-    bool addUser = true;
-    userList.map((userObj) {
-      print("update User ${user.uuid}  == ${userObj.uuid}");
-      if(user.uuid == userObj.uuid) {
-        addUser = false;
-      }
-    });
-    if(addUser) {
-      this.userList.add(user);
-    }
   }
 
   void addImage(String imageUrl) {
@@ -178,7 +174,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       new BaseProfile(user: widget.topic.createdUser), 
       new Column(children: <Widget>[
         _createdDate,
-        new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowGeo.toString(), style: Theme.of(context).textTheme.subtitle),
+        new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowName.toString(), style: Theme.of(context).textTheme.subtitle),
         ])]); // need to show hash tag
     
 
@@ -186,12 +182,12 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     List<Widget> widgetList = [];
     List<Widget> finalWidgetList = [];
     // display Map
-    if(widget.expand) {
+    if(widget.chatMode == Chat_Mode.MAP_MODE) {
           print("build Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
       if(this._markerList.length == this._pendingMarkerList.length) {
         widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._markerList));
       } else {
-        widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._pendingMarkerList));
+        widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._pendingMarkerList.values.toList()));
       }
       if(_titleLink != null) {
         widgetList.add(_titleLink);
@@ -199,7 +195,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     }
     widgetList.add(_baseInfo);
     // dsiaply Image if the Topic has it's image
-    if(widget.expand) {
+    if(widget.chatMode == Chat_Mode.MAP_MODE) {
       if(_summaryImageWidget != null) {
         {
           widgetList.add(_summaryImageWidget);
@@ -217,9 +213,47 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     if(this._isFavour) {
       favorColor = Colors.red;
     }
-    print("_expand $widget.expand");
     Row _toolBar = new Row(children: <Widget>[
-              // Button mark interest to receive notification
+              Material(
+                child: new Container(
+                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
+                  child: new IconButton(
+                    icon: new Icon(Icons.info),
+                    onPressed: (() {   
+                      widget.toggleComment(Chat_Mode.MAP_MODE);
+                    }),
+                    color: widget.chatMode == Chat_Mode.MAP_MODE ? primaryColor:greyColor,
+                  ),
+                ),
+                color: TOPIC_COLORS[widget.topic.color],
+              ),
+              Material(
+                child: new Container(
+                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
+                  child: new IconButton(
+                    icon: new Icon(Icons.photo_album),
+                    onPressed: (() {   
+                      widget.toggleComment(Chat_Mode.MEDIA_MODE);
+                    }),
+                    color: widget.chatMode == Chat_Mode.MEDIA_MODE ? primaryColor:greyColor,
+                  ),
+                ),
+                color: TOPIC_COLORS[widget.topic.color],
+              ),                        // Button send message
+              Material(
+                child: new Container(
+                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
+                  child: new IconButton(
+                    icon: new Icon(Icons.comment),
+                    onPressed: (() {   
+                      widget.toggleComment(Chat_Mode.CHAT_MODE);
+                    }),
+                    color: widget.chatMode == Chat_Mode.CHAT_MODE ? primaryColor:greyColor,
+                  ),
+                ),
+                color: TOPIC_COLORS[widget.topic.color],
+              ),
+              Expanded(child: Container()),         // Button mark interest to receive notification
               Material(
                 child: new Container(
                   margin: new EdgeInsets.symmetric(horizontal: 8.0),
@@ -230,20 +264,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                   ),
                 ),
                 color: TOPIC_COLORS[widget.topic.color],
-              ),            // Button send message
-              Material(
-                child: new Container(
-                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
-                  child: new IconButton(
-                    icon: new Icon(Icons.comment),
-                    onPressed: (() {   
-                      widget.toggleComment();
-                    }),
-                    color: widget.expand ? greyColor : primaryColor,
-                  ),
-                ),
-                color: TOPIC_COLORS[widget.topic.color],
-              ),]);
+              ), ]);
     widgetList.add(_toolBar);
     Widget summaryPostit = Padding(
             padding: const EdgeInsets.all(4.0),
@@ -268,9 +289,8 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     int colorIndex = widget.topic.color;
     // Display all image in the chat.
     print("galleryImageUrlList ${galleryImageUrlList.length}");
-    if(widget.expand) {
+    if(widget.chatMode == Chat_Mode.MEDIA_MODE) {
       galleryImageUrlList.map((imageUrl) {
-        print("ColorIndex ${colorIndex}");
         colorIndex++;
         colorIndex%=TOPIC_COLORS.length;
         Widget _imageWidget =  new ImageWidget(width: (widget.width * 0.9), imageUrl: imageUrl);
@@ -304,8 +324,8 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     print("_swapMap Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
     if(this._markerList.length != this._pendingMarkerList.length) {
       List<OurlandMarker> tempList = new List<OurlandMarker>();
-      for(int i = 0; i <  this._pendingMarkerList.length; i++) {
-        tempList.add(this._pendingMarkerList[i]);
+      for(String key in this._pendingMarkerList.keys) {
+        tempList.add(this._pendingMarkerList[key]);
       }
       setState(() {
         this._markerList = tempList;
