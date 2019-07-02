@@ -111,9 +111,9 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
 
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(widget.topic.geoTopLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(widget.topic.geoBottomRight);
-    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, chatMode: _chatMode, toggleComment: this.toggleComment, updateUser: this.updateUser);
+    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, chatMode: _chatMode, toggleComment: this.toggleComment, updateUser: this.updateUser, getUserName: this.getUserName, getAllUserList: this.getAllUserId, getColor: this.getColor);
     List<Widget> _widgetList = [chatSummary];
-    if(this._chatMode == Chat_Mode.CHAT_MODE) {
+    if(this._chatMode == Chat_Mode.COMMENT_MODE) {
       _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController, updateUser: updateUser, getUserName: getUserName, getColor: getColor));
       if(this.messageLocation != null) {
         _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
@@ -122,7 +122,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
       }
     }
     Widget _bodyWidget =  Column(children: _widgetList);
-    if(this._chatMode != Chat_Mode.CHAT_MODE) {
+    if(this._chatMode != Chat_Mode.COMMENT_MODE) {
       _bodyWidget = SingleChildScrollView(child: _bodyWidget);
     }
     return WillPopScope(
@@ -219,6 +219,10 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     if(_userList[user.uuid] == null) {
       _userList[user.uuid] = user;
     }
+  }
+
+  List<String> getAllUserId() {
+    return _userList.keys.toList();
   }
 
   String getUserName(String userID) {

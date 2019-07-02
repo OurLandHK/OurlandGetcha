@@ -34,10 +34,10 @@ class ChatList extends StatelessWidget {
     //this._colorMap = new Map<String, Colors>();
   }
 
-  Widget buildItem(String messageId, Chat document, Function _onTap, BuildContext context) {
+  Widget buildItem(Chat document, Function _onTap, BuildContext context) {
     Widget rv;
     updateUser(document.createdUser);
-    rv = new ChatMessage(user: user, messageBody: document, color: getColor(document.createdUser.uuid), parentId: this.parentId, messageId: messageId, onTap: _onTap, getUserName: getUserName);
+    rv = new ChatMessage(user: user, messageBody: document, color: getColor(document.createdUser.uuid), parentId: this.parentId, messageId: document.id, onTap: _onTap, getUserName: getUserName);
     return rv;
   }
 /*
@@ -66,7 +66,8 @@ class ChatList extends StatelessWidget {
                     itemBuilder: (context, index) {
                         Map<String, dynamic> chatDocument = snapshot.data.documents[index].data;
                         Chat chat = Chat.fromMap(chatDocument);
-                        return buildItem(snapshot.data.documents[index].data['id'], chat, null, context);
+                        print("${index} ${chat.id}");
+                        return buildItem(chat, null, context);
                     },
                     itemCount: snapshot.data.documents.length,
                     reverse: true,
