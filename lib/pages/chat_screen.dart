@@ -108,10 +108,9 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
 
   @override
   Widget build(BuildContext context) {
-
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(widget.topic.geoTopLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(widget.topic.geoBottomRight);
-    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, chatMode: _chatMode, toggleComment: this.toggleComment, updateUser: this.updateUser, getUserName: this.getUserName, getAllUserList: this.getAllUserId, getColor: this.getColor);
+    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, messageLocation: widget.messageLocation, chatMode: _chatMode, toggleComment: this.toggleComment, updateUser: this.updateUser, getUserName: this.getUserName, getAllUserList: this.getAllUserId, getColor: this.getColor);
     List<Widget> _widgetList = [chatSummary];
     if(this._chatMode == Chat_Mode.COMMENT_MODE) {
       _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController, updateUser: updateUser, getUserName: getUserName, getColor: getColor));
@@ -153,7 +152,6 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     if(widget.topic.geoTopLeft == null) {
       Position location;
       // Platform messages may fail, so we use a try/catch PlatformException.
-
       try {
         geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
         location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);

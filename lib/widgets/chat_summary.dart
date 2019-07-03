@@ -28,6 +28,7 @@ import 'package:intl/intl.dart';
 class ChatSummary extends StatefulWidget {
   final ValueListenable<GeoPoint> topLeft;
   final ValueListenable<GeoPoint> bottomRight;
+  final GeoPoint messageLocation;
   final Function updateUser;
   final Function getUserName;
   final Function getAllUserList;
@@ -42,7 +43,7 @@ class ChatSummary extends StatefulWidget {
 //  final bool expand;
   _ChatSummaryState state;
 
-  ChatSummary({Key key, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.topic, @required this.chatMode, @required this.toggleComment, @required this.updateUser, @required this.getUserName, @required this.getAllUserList, @required this.getColor}) : super(key: key);
+  ChatSummary({Key key, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.topic, @required this.messageLocation, @required this.chatMode, @required this.toggleComment, @required this.updateUser, @required this.getUserName, @required this.getAllUserList, @required this.getColor}) : super(key: key);
   @override
   _ChatSummaryState createState() { 
     state = new _ChatSummaryState();
@@ -55,6 +56,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   List<String> messageList;
   Map<String, String> _galleryImageUrlList;
   List<OurlandMarker> _markerList;
+  UserService _userService;
   Map<String, OurlandMarker> _pendingMarkerList;
   Widget _baseInfo;
   Widget _titleLink;
@@ -67,6 +69,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   _ChatSummaryState() {
     _progressBarActive = true;
     this._markerList = [];
+    _userService = new UserService();
     this._pendingMarkerList = {}; 
     this._galleryImageUrlList = {};
   }  
@@ -104,12 +107,6 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
           textColor: Colors.black,
           launchFromLink: true);
     }
-    UserService _userService = new UserService();
-    _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopicMap) {
-      if(recentTopicMap != null) {
-        _isFavour = true;
-      }
-    });
     buildMessageSummaryWidget();
   }
 
@@ -124,7 +121,6 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
 
   void _addImage(Chat chat) {
-    print("type ${chat.type} ${chat.content} ${chat.imageUrl}");
     if(_galleryImageUrlList[chat.id] == null) {
       String imageUrl;
       if(chat.type == 1) {
@@ -151,11 +147,27 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
 
   return result;
 }
+  Future updateFavor(bool newState) async  {
+    return _userService.updateRecentTopic(widget.user.uuid, widget.topic.id, widget.messageLocation, newState).then((temp){
+      setState(() {
+        _isFavour = newState; 
+      });
+      return;
+    });
+  }
 
   buildMessageSummaryWidget() async {
-
-//    for(var stream in widget.chatStream.value {
-//      Stream<QuerySnapshot> stream = widget.chatStream.value;
+    _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopic) {
+      if(recentTopic != null) {
+        print("recentTopic ${recentTopic.interest}");
+        if(_isFavour != recentTopic.interest) {
+          setState(() {
+            _isFavour = recentTopic.interest;
+          });
+        }
+      } else {
+        print("recentTopic is null");
+      }
       Stream<QuerySnapshot> stream = chatStream.value;
       print("stream ${stream.length}");
       stream.forEach((action){
@@ -166,9 +178,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         }
       });
       setState(() {
-         _progressBarActive = false;
+          _progressBarActive = false;
       });
-
+    });
   }
   @override
   Widget build(BuildContext context) {
@@ -282,7 +294,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                   margin: new EdgeInsets.symmetric(horizontal: 8.0),
                   child: new IconButton(
                     icon: new Icon(Icons.favorite),
-//                    onPressed: () => onSendMessage(textEditingController.text, 0),
+                     onPressed: () => updateFavor(!_isFavour),
                     color: favorColor,
                   ),
                 ),

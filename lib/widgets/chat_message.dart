@@ -39,6 +39,15 @@ class ChatMessage extends StatelessWidget {
     return (messageBody.createdUser != null && messageBody.createdUser.uuid == this.user.uuid);
   }
 
+  bool isLink() {
+    if(this.messageBody != null) {
+      String content = messageBody.content;
+      return content.contains("http");
+    } else {
+      return false;
+    }
+  }
+
   Widget build(BuildContext context) {
     Widget rv;
     Widget messageWidget;
@@ -50,13 +59,17 @@ class ChatMessage extends StatelessWidget {
     //print(this.messageId);
     switch (messageBody.type) {
       case 0:
-        messageWidget = Container(
-          child: RichLinkPreview(
+        Widget content = new Text(messageBody.content, style: Theme.of(context).textTheme.body1);
+        if(isLink()) {
+          content = RichLinkPreview(
               link: messageBody.content,
               appendToLink: true,
               backgroundColor: TOPIC_COLORS[color],
               borderColor: TOPIC_COLORS[color],
-              textColor: Colors.black),
+              textColor: Colors.black);
+        }
+        messageWidget = Container(
+          child: content,
           padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
           width: messageWidth,
           //margin: margin,

@@ -57,14 +57,20 @@ class UserService {
     });
   }
 
-  Future<User> updateRecentTopic(String userID, String topicID, GeoPoint messageLocation) 
+  Future<User> addRecentTopic(String userID, String topicID, GeoPoint messageLocation) async {
+    return _addRecentTopic(userID, topicID, messageLocation, true).then((onValue) {
+      return onValue;
+    });
+  }
+
+  Future<User> _addRecentTopic(String userID, String topicID, GeoPoint messageLocation, bool interest) 
     async {
     final TransactionHandler createTransaction = (Transaction tx) async {
       final DocumentSnapshot ds = await tx.get(userCollection.document(userID).collection('recentTopic').document(topicID));
 
       DateTime now = new DateTime.now();
       final RecentTopic recentTopic = 
-          new RecentTopic(topicID, now, messageLocation);
+          new RecentTopic(topicID, now, messageLocation, interest);
       final Map<String, dynamic> data = recentTopic.toMap();
       await tx.set(ds.reference, data);
       return data;
@@ -80,18 +86,33 @@ class UserService {
 
   Stream<QuerySnapshot> getRecentTopicSnap(String userID) {
     Stream<QuerySnapshot> rv;
-    rv = userCollection.document(userID).collection('recentTopic')
+    rv = userCollection.document(userID).collection('recentTopic').where('interest', isEqualTo : true)
           .orderBy('lastUpdate', descending: true)
           .snapshots();
     return rv;
   }
 
-  Future<Map> getRecentTopic(String userID, String topicID) async {
-    userCollection.document(userID).collection('recentTopic').document(topicID).get().then((onValue) {
+  Future<RecentTopic> getRecentTopic(String userID, String topicID) async {
+    return userCollection.document(userID).collection('recentTopic').document(topicID).get().then((onValue) {
+ //     print("getRecentTopic $userID, $topicID, ${onValue}");
       if (onValue.exists) {
-        return onValue.data;
+        return RecentTopic.fromMap(onValue.data);
       } else {
         return null;
+      }
+    });
+  }
+
+  Future<User> updateRecentTopic(String userID, String topicID, GeoPoint messageLocation, bool interest) async {
+    return getRecentTopic(userID, topicID).then((recentTopic) {
+      if(recentTopic == null) {
+        _addRecentTopic(userID, topicID, messageLocation, interest).then((onValue) {
+          return onValue;
+        });
+      } else {
+        _addRecentTopic(userID, topicID, recentTopic.messageLocation, interest).then((onValue) {
+          return onValue;
+        });
       }
     });
   }

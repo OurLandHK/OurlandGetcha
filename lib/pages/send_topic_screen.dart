@@ -341,7 +341,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
               null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
         messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
-        userService.updateRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
+        userService.addRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
         onBackPress();
       }
     };
