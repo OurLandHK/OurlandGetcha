@@ -44,7 +44,6 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   String id;
   MessageService messageService;
   UserService userService;
-  ChatMap chatMap;
   File imageFile;
 
   SharedPreferences prefs;
@@ -85,7 +84,6 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
     userService = new UserService();
-    chatMap = null; 
     _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION, false);
     _firstTag = _tagDropDownMenuItems[0].value;
     
@@ -117,16 +115,10 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             _currentLocation = position;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            if(this.chatMap == null) {        
-              this.chatMap = new ChatMap(topLeft: mapCenter, bottomRight: mapCenter, height: CREATE_TOPIC_MAP_HEIGHT);
-            } else {
-              this.chatMap.updateCenter(mapCenter);
-            }
           }
         });
     } else {
       print('messageLocation ${this.messageLocation.latitude} , ${this.messageLocation.longitude}');
-      this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: CREATE_TOPIC_MAP_HEIGHT);
     }
   }
 
@@ -161,7 +153,6 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             _currentLocation = location;
             GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
             this.messageLocation = mapCenter;
-            chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,height: CREATE_TOPIC_MAP_HEIGHT);
           }
       });
     }
@@ -195,24 +186,28 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           this.messageLocation = widget.user.officeAddress;
           break;
       }
+      /*
       GeoPoint mapCenter = this.messageLocation;
       if(this.chatMap == null) {        
         this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
       } else {
         this.chatMap.updateCenter(mapCenter);
       }
+      */
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: []);
+
     Widget body = new WillPopScope(
       child: Column(
         children: <Widget>[              
           new Container( 
             decoration: new BoxDecoration(
               color: Theme.of(context).cardColor),
-            child: (this.chatMap != null) ? this.chatMap : new Container(),
+            child: map,
           ),
           new Form(
              key: _formKey,
@@ -346,7 +341,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
               null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
         messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
-        userService.updateRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
+        userService.addRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
         onBackPress();
       }
     };
@@ -413,7 +408,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           ),
           Row(
             children: <Widget> [
-                Switch.adaptive(
+                Checkbox(
                   value: _isShowName,
                   onChanged: (bool value) {
                       _isShowName = value;

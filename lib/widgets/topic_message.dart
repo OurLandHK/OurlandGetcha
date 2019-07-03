@@ -37,6 +37,9 @@ class TopicMessage extends StatelessWidget {
     }
   }
   Widget build(BuildContext context) {
+    if(this.topic == null) {
+      return Container();
+    }
     String topicTitle = this.topic.topic;
     void _onTap() {
       if(isLink()) {
@@ -98,6 +101,33 @@ class TopicMessage extends StatelessWidget {
       imageWidget = new ImageWidget(height: null, width: MediaQuery.of(context).size.width * 0.45, imageUrl: this.topic.imageUrl); 
       messageWidget = Container(child: new Column(children: <Widget>[imageWidget, messageWidget]));
     }
+    List<Widget> topicColumn = [Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: messageWidget,
+                        ),
+                      ),
+                    ],
+                  )];
+    if(this.topic.content != null && this.topic.content.length > 0) {
+      topicColumn.add(
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                    this.topic.content,
+                    style: Theme.of(context).textTheme.body2),
+              )],),));
+    }
+    topicColumn.add(Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: footers));
     rv = GestureDetector(
           onTap: _onTap,
           child: Padding(
@@ -118,37 +148,7 @@ class TopicMessage extends StatelessWidget {
                 //borderRadius: BorderRadius.circular(6.0)
                 ),
               child: Column(
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: messageWidget,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                              this.topic.content == null
-                                  ? ''
-                                  : this.topic.content,
-                              style: Theme.of(context).textTheme.body2),
-                        )
-                      ],
-                    ),
-                  ),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: footers)
-                ],
+                children: topicColumn,
               ),
             ),
           ),

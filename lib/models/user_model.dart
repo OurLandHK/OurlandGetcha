@@ -122,8 +122,16 @@ class User {
     this._avatarUrl = map['avatarUrl'];
     this._homeAddress = map['homeAddress'];
     this._officeAddress = map['officeAddress'];
-    this._createdAt = map['createdAt'].toDate();
-    this._updatedAt = map['updatedAt'].toDate();
+    if(map['createdAt'] != null) {
+      this._createdAt = map['createdAt'].toDate();
+    } else {
+      this._createdAt = DateTime.now();
+    }
+    if(map['updatedAt'] != null) {
+      this._updatedAt = map['updatedAt'].toDate();
+    } else {
+      this._updatedAt = DateTime.now();
+    }
     try {
       if(map['sendBroadcastRight'] == null) {
         this._sendBroadcastRight = false;
@@ -149,12 +157,14 @@ class RecentTopic {
   String _id;
   DateTime _lastUpdate;
   GeoPoint _messageLocation;
+  bool _interest;
 
-  RecentTopic(this._id, this._lastUpdate, this._messageLocation);
+  RecentTopic(this._id, this._lastUpdate, this._messageLocation, this._interest);
 
   String get id => _id;
   DateTime get lastUpdate => _lastUpdate;
   GeoPoint get messageLocation => _messageLocation;
+  bool get interest => _interest;
 
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
@@ -170,13 +180,26 @@ class RecentTopic {
       map['lastUpdate'] = this._lastUpdate;
     }
 
+    if (this._interest != null) {
+      map['interest'] = this._interest;
+    }
+
     return map;
   }
 
   RecentTopic.fromMap(Map<String, dynamic> map) {
     this._id = map['id'];
     this._messageLocation = map['messageLocation'];
-    this._lastUpdate = map['lastUpdate'].toDate();
+    if(map['lastUpdate'] != null) {
+      this._lastUpdate = map['lastUpdate'].toDate();
+    } else {
+      this._lastUpdate = DateTime.now();
+    }
+    if(map['interest'] == null) {
+      this._interest = true;
+    } else {
+      this._interest = map['interest'];
+    }
   }
 }
 

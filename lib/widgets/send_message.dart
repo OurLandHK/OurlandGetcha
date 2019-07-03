@@ -163,7 +163,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
       textEditingController.clear();  
       messageService.sendChildMessage(widget.parentID, this.messageLocation, content, imageFile, type);
       imageFile = null;
-      userService.updateRecentTopic(messageService.user.uuid, widget.parentID, this.messageLocation);
+      userService.addRecentTopic(messageService.user.uuid, widget.parentID, this.messageLocation);
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_NTH_TO_SEND)));

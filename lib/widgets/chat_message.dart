@@ -18,6 +18,7 @@ class ChatMessage extends StatelessWidget {
   final GeoPoint geoTopLeft;
   final GeoPoint geoBottomRight;
   final Chat messageBody;
+  final Function getUserName;
   final int color;
   final Function onTap;
 
@@ -29,12 +30,22 @@ class ChatMessage extends StatelessWidget {
       @required this.messageBody,
       @required this.color,
       @required this.onTap,
+      @required this.getUserName,
       this.geoTopLeft,
       this.geoBottomRight})
       : super(key: key);
 
   bool isCurrentUser() {
     return (messageBody.createdUser != null && messageBody.createdUser.uuid == this.user.uuid);
+  }
+
+  bool isLink() {
+    if(this.messageBody != null) {
+      String content = messageBody.content;
+      return content.contains("http");
+    } else {
+      return false;
+    }
   }
 
   Widget build(BuildContext context) {
@@ -48,13 +59,17 @@ class ChatMessage extends StatelessWidget {
     //print(this.messageId);
     switch (messageBody.type) {
       case 0:
-        messageWidget = Container(
-          child: RichLinkPreview(
+        Widget content = new Text(messageBody.content, style: Theme.of(context).textTheme.body1);
+        if(isLink()) {
+          content = RichLinkPreview(
               link: messageBody.content,
               appendToLink: true,
               backgroundColor: TOPIC_COLORS[color],
               borderColor: TOPIC_COLORS[color],
-              textColor: Colors.black),
+              textColor: Colors.black);
+        }
+        messageWidget = Container(
+          child: content,
           padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
           width: messageWidth,
           //margin: margin,
@@ -91,7 +106,7 @@ class ChatMessage extends StatelessWidget {
     );
     Widget userWidget;
     if(!isCurrentUser()) {
-      userWidget = new Text(this.messageBody.createdUser.username,
+      userWidget = new Text(getUserName(this.messageBody.createdUser.uuid),
       style: Theme.of(context).textTheme.subtitle);
     }
     List<Widget> footers =[];

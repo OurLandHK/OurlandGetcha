@@ -7,7 +7,7 @@ import 'package:ourland_native/models/constant.dart';
 
 class Topic {
   String _id;
-  bool _isShowGeo;
+  bool _isShowName;
   bool _isPublic;
   int _color;
   DateTime _lastUpdate;
@@ -25,7 +25,7 @@ class Topic {
   double distance;
 
   Topic(this._isPublic, this._createdUser, this._geobottomright, this._geotopleft, this._geocenter,
-    this._imageUrl, this._isShowGeo, this._tags,
+    this._imageUrl, this._isShowName, this._tags,
     this._topic, this._content, this._color) {
         this._created = DateTime.now();
         this._lastUpdate = this._created;
@@ -46,7 +46,7 @@ class Topic {
   GeoPoint get geoTopLeft=> _geotopleft;
   DateTime get lastUpdate => _lastUpdate;
   DateTime get created => _created;
-  bool get isShowGeo => _isShowGeo;
+  bool get isShowName => _isShowName;
   User get createdUser => _createdUser;
   User get lastUpdateUser => _lastUpdateUser;
   bool get isPublic => _isPublic;
@@ -77,8 +77,8 @@ class Topic {
       map['tags'] = this._tags;
     }
 
-    if (this._isShowGeo != null) {
-      map['isShowGeo'] = this._isShowGeo;
+    if (this._isShowName != null) {
+      map['isShowGeo'] = this._isShowName;
     }
 
     if (this._geobottomright != null) {
@@ -128,7 +128,7 @@ class Topic {
     this._imageUrl = map['imageUrl'];
     this._topic = map['topic'];
     this._tags = map['tags'];
-    this._isShowGeo = map['isShowGeo'];
+    this._isShowName = map['isShowGeo'];
     this._geobottomright = map['geobottomright'];
     this._geotopleft = map['geotopleft'];
     this._createdUser = User.fromBasicMap(map['createdUser']);

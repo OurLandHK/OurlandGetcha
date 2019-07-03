@@ -43,8 +43,12 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   TopicScreenState({Key key, @required this.fixLocation});
   GeoPoint fixLocation;
   MessageService messageService;
+  /*
   ChatMap chatMap;
   ChatMap _pendingChatMap;
+  */
+  List<OurlandMarker> _markerList;
+  List<OurlandMarker> _pendingMarkerList;
 
   var listMessage;
   SharedPreferences prefs;
@@ -70,18 +74,20 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   final ScrollController listScrollController = new ScrollController();
   final FocusNode focusNode = new FocusNode();
 
+  
+
   @override
   void initState() {
     super.initState();
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
-    chatMap = null; 
+    this._markerList = [];
+    this._pendingMarkerList =[];  
     _expanded = true;
 
     isLoading = false;
     GeoPoint mapCenter = widget.getCurrentLocation();
     this.messageLocation = mapCenter;
-    this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
         // Init UI
     List<String> dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
     _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
@@ -92,17 +98,18 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   List<DropdownMenuItem<String>> _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION , true);
 
   void setLocation(GeoPoint location) {
-    print("${location}");
+    //print("${location}");
     GeoPoint _temp = location;
     if(location == null) {
       _temp = widget.getCurrentLocation();
     }
     setState(() {
       this.fixLocation = _temp;
-      this.messageLocation = _temp;      
-      this.chatMap = null; // new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT);
-      this._pendingChatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT);
+      this.messageLocation = _temp;
+      this._markerList = [];
+      this._pendingMarkerList =[];  
     });
+    print("setLocation ${this.messageLocation.latitude}");
   }
 
   void onFocusChange() {
@@ -117,11 +124,14 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     Widget rv; 
     int type = 0;
     GeoPoint location = topic.geoCenter;
+/*
     if(this._pendingChatMap != null) {
       this._pendingChatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
     } else {
       this.chatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
     }
+*/    
+    this._pendingMarkerList.add(OurlandMarker(messageId, location, type, topic.topic, topic.createdUser.username));
     GeoPoint _messageLocation;
     if(this.fixLocation != null) {
       _messageLocation = this.fixLocation;
@@ -244,11 +254,20 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
               ];
     }
     PreferredSizeWidget appBar;
+    Widget map = Container(height: MAP_HEIGHT);
+//    print("Marker Length 1 ${this._markerList.length} ${this._pendingMarkerList.length}");
+    if(this._markerList.length == this._pendingMarkerList.length) {
+      map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._markerList);
+    } else {
+      map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._pendingMarkerList);
+    }
     if(_expanded) {
+      _pendingMarkerList.clear();
       appBar = PreferredSize(
           preferredSize: Size.fromHeight(MAP_HEIGHT), // here the desired height
             child: new AppBar( 
-              flexibleSpace: (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT),
+              //flexibleSpace: (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT),
+              flexibleSpace: map,
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(100), // here the desired height
                 child: Opacity(opacity: 0.6, child: Container(decoration: BoxDecoration(color: Theme.of(context).backgroundColor), child:Row(children: buildToolBar(context)))),
@@ -256,6 +275,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
             ),
         );
     } else {
+      _pendingMarkerList.clear();
       appBar = new AppBar(flexibleSpace: PreferredSize(
                 preferredSize: Size.fromHeight(100),
                 child: Row(children: buildToolBar(context))));
@@ -290,18 +310,22 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   }
 
   void _swapMap(BuildContext context) {
-    if(this._pendingChatMap != null) {
-      var temp = this._pendingChatMap;
+//    print("Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
+    if(this._markerList.length != this._pendingMarkerList.length) {
+      List<OurlandMarker> tempList = new List<OurlandMarker>();
+      for(int i = 0; i <  this._pendingMarkerList.length; i++) {
+        tempList.add(this._pendingMarkerList[i]);
+      }
       setState(() {
-        this._pendingChatMap = null;
-        this.chatMap = temp;
-      });
+        this._markerList = tempList;
+      });      
     }
   }
 
 
 
   Widget buildListView(Function _onTap, BuildContext context) {
+    this._pendingMarkerList.clear();
     return new StreamBuilder<List<Topic>>(
       stream: this.messageService.getTopicSnap(this.messageLocation, 2500, _firstTag),
       builder: (BuildContext context, AsyncSnapshot<List<Topic>> snapshot) {

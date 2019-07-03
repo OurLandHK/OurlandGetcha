@@ -447,7 +447,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     }
   }
   void updateAnyMarkerChange(BuildContext context) {
-    print('swap ${_pendingWidget}');
+    //print('swap ${_pendingWidget}');
     if(_pendingWidget != null) {
       Widget temp = _pendingWidget;
       setState(() {
