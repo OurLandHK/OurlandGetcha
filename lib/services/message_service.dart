@@ -178,12 +178,12 @@ class MessageService {
 
     bool newImage = false;
     if(originImage.width > 1280) {
-      image = Img.copyResize(originImage, 1280);
+      image = Img.copyResize(originImage, width: 1280);
       newImage = true;
     } else {
       if(originImage.height > 1280) {
         int width = (originImage.width * 1280 / originImage.height).round();
-        image = Img.copyResize(originImage, width, 1280);  
+        image = Img.copyResize(originImage, width: width, height: 1280);  
         newImage = true;     
       }
     }
