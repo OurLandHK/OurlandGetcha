@@ -57,9 +57,9 @@ class OurlandHome extends StatefulWidget {
   final User user;
 
   OurlandHome(this.user) {
-    if (user == null) {
+/*    if (user == null) {
       throw new ArgumentError("[OurlandHome] firebase user cannot be null.");
-    }
+    }*/
   }
 
   @override
@@ -305,8 +305,10 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
   void updateLocation() {
     Widget rv;
-    bool isFabShow;
-    isFabShow = true;
+    bool isFabShow = false;
+    if(widget.user != null) {
+      isFabShow = true;
+    }
     rv = showNearby();
     setState((){
       this._isFabShow = isFabShow;
@@ -334,7 +336,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       switch(_tabController.index) {
         case 1:
           print("${widget.user.sendBroadcastRight}");
-          if(widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
+          if(widget.user != null && widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
             setState(() {
               this._isFabShow = true;
             });

@@ -89,7 +89,10 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     GeoPoint mapCenter = widget.getCurrentLocation();
     this.messageLocation = mapCenter;
         // Init UI
-    List<String> dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
+    List<String> dropDownList = [LABEL_NEARBY];
+    if(widget.user != null) {
+      dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
+    }
     _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
   }

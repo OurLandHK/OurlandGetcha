@@ -189,6 +189,16 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         color: Colors.blue);
   }
 
+  renderAccessAsNobody(content) {
+    return RaisedButton(
+        onPressed: () => Navigator.of(context).pushReplacement(
+            new MaterialPageRoute(builder: (context) => OurlandHome(null))),
+        child: Text(NOBODY_BUTTON_TEXT),
+        textColor: Colors.white,
+        elevation: 7.0,
+        color: Colors.blue);
+  }
+
   renderSizeBox() {
     return SizedBox(height: 10.0);
   }
@@ -207,7 +217,8 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 renderPhoneNumberField(),
                 renderSizeBox(),
                 renderSizeBox(),
-                renderSubmitButton(context)
+                renderSubmitButton(context),
+                renderAccessAsNobody(context),
               ],
             )),
       ),

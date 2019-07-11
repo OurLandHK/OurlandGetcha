@@ -62,7 +62,11 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
     userService = new UserService();
 
     isLoading = false;
-    _tabController = new TabController(vsync: this, initialIndex: 0, length: 2);
+    int tabLength = 1;
+    if(widget.user != null) {
+      tabLength++;
+    }
+    _tabController = new TabController(vsync: this, initialIndex: 0, length: tabLength);
     initPlatformState();
     _positionStream = _geolocator.getPositionStream(locationOptions).listen(
       (Position position) {
@@ -113,35 +117,36 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> tabWidget = [];
+    List<Widget> tabBarView = [];
+    if(widget.user != null) {
+      tabWidget.add(Tab(
+                  child: new Row(children: <Widget>[
+                    new Icon(Icons.person),
+                    new Text(LABEL_RECENT),
+                  ])
+              ));
+      tabBarView.add(buildNotification(context));
+    }
+    tabWidget.add(Tab(
+                child: new Row(children: <Widget>[
+                  new Icon(Icons.public),
+                  new Text(LABEL_BROADCAST),
+                ])
+              ));
+    tabBarView.add(buildBroadcast(context));
     return 
       new Scaffold(
         appBar: new AppBar(
           title: new TabBar(
             controller: _tabController,
             indicatorColor: Colors.white,
-            tabs: <Widget>[
-              //  new Tab(icon: new Icon(Icons.camera_alt)),
-              new Tab(
-                  child: new Row(children: <Widget>[
-                    new Icon(Icons.person),
-                    new Text(LABEL_RECENT),
-                  ])
-              ),
-              new Tab(
-                child: new Row(children: <Widget>[
-                  new Icon(Icons.public),
-                  new Text(LABEL_BROADCAST),
-                ])
-              ),
-            ],
+            tabs: tabWidget
           ),
         ),
         body:new TabBarView(
           controller: _tabController,
-          children: <Widget>[
-            buildNotification(context),
-            buildBroadcast(context)
-          ],
+          children: tabBarView,
         ),     
     );
   }

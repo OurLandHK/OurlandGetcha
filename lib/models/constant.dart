@@ -6,7 +6,8 @@ import 'package:flutter/foundation.dart';
 const String APP_NAME = "我地.壁報";
 const String SMS_CODE_DIALOG_TITLE = "Enter SMS Code";
 const String SMS_CODE_DIALOG_BUTTON_TEXT = "Verify";
-const String REG_BUTTON_TEXT = "Submit";
+const String REG_BUTTON_TEXT = "註冊";
+const String NOBODY_BUTTON_TEXT = "做CDROM";
 const String REG_USERNAME_HINT_TEXT = "Enter Username";
 const String OUTLAND_SEARCH_HOST = "https://ourlandtest.firebaseapp.com";
 

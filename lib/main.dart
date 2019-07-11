@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/ourland_home.dart';
 import 'package:ourland_native/pages/registration_screen.dart';
 
 
@@ -73,6 +74,7 @@ class OurlandApp extends StatelessWidget {
           ? kIOSTheme
           : kDefaultTheme,
       home: new PhoneAuthenticationScreen()
+      //home: new OurlandHome(null)
     );
   }
 }
