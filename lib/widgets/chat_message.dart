@@ -36,7 +36,7 @@ class ChatMessage extends StatelessWidget {
       : super(key: key);
 
   bool isCurrentUser() {
-    return (messageBody.createdUser != null && messageBody.createdUser.uuid == this.user.uuid);
+    return (this.user != null && (messageBody.createdUser != null && messageBody.createdUser.uuid == this.user.uuid));
   }
 
   bool isLink() {

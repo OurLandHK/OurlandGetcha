@@ -180,28 +180,14 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         setLocation(null);
       }
       void updateLocation(String locationSelection) {
-        bool isFabShow;
         switch(locationSelection) {
           case LABEL_REGION0:
             showHome();
-            //_nearBySelection.setLocation(widget.user.homeAddress);
-            if(widget.user.homeAddress == null) {
-              isFabShow = false;
-            } else {
-              isFabShow = true;         
-            }
             break;
           case LABEL_REGION1:
             showOffice();
-            //_nearBySelection.setLocation(widget.user.officeAddress);
-            if(widget.user.officeAddress == null) {
-              isFabShow = false;
-            } else {
-              isFabShow = true;           
-            }
             break;          
           default:
-            isFabShow = true;
             showNearby();
             //_nearBySelection.setLocation(null);
             

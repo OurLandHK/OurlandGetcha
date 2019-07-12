@@ -15,7 +15,6 @@ import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
 
   enum Chat_Mode {
@@ -157,6 +156,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
 
   buildMessageSummaryWidget() async {
+    if(widget.user != null) {
     _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopic) {
       if(recentTopic != null) {
         print("recentTopic ${recentTopic.interest}");
@@ -168,6 +168,13 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       } else {
         print("recentTopic is null");
       }
+      _buildMessageSummaryWidget();
+    });
+   } else {
+     _buildMessageSummaryWidget();
+   }
+  }
+  void _buildMessageSummaryWidget() {
       Stream<QuerySnapshot> stream = chatStream.value;
       print("stream ${stream.length}");
       stream.forEach((action){
@@ -180,7 +187,6 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       setState(() {
           _progressBarActive = false;
       });
-    });
   }
   @override
   Widget build(BuildContext context) {
@@ -289,7 +295,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                 color: TOPIC_COLORS[widget.topic.color],
               ),
               Expanded(child: Container()),         // Button mark interest to receive notification
-              Material(
+              (widget.user != null) ? Material(
                 child: new Container(
                   margin: new EdgeInsets.symmetric(horizontal: 8.0),
                   child: new IconButton(
@@ -299,7 +305,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                   ),
                 ),
                 color: TOPIC_COLORS[widget.topic.color],
-              ), ]);
+              ):Container(), ]);
     widgetList.add(_toolBar);
     Widget summaryPostit = Padding(
             padding: const EdgeInsets.all(4.0),

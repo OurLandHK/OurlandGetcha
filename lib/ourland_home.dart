@@ -71,7 +71,7 @@ const String _app_name = APP_NAME;
 class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin {
   TabController _tabController;
   String uid = '';
-  bool _isFabShow = true;
+  bool _isFabShow = false;
 //  List<CameraDescription> cameras;
   bool _locationPermissionGranted = true;
   Widget _nearBySelection;
@@ -127,10 +127,10 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
         if(position != null) {
           print('initState Poisition ${position}');
-          setState(() {
+          //setState(() {
             _currentLocation = new GeoPoint(position.latitude, position.longitude);
             _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
-          });
+          //});
         }
       });
     }
@@ -194,7 +194,9 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     _firebaseMessaging.getToken().then((token){
       Map<String, String> field = new Map<String, String>();
       field['fcmToken'] = token;
-      userService.updateUser(widget.user.uuid, field);
+      if(widget.user != null) {
+        userService.updateUser(widget.user.uuid, field);
+      }
       print(token);
     });
 
@@ -335,7 +337,6 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     _tabController.addListener(() {
       switch(_tabController.index) {
         case 1:
-          print("${widget.user.sendBroadcastRight}");
           if(widget.user != null && widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
             setState(() {
               this._isFabShow = true;

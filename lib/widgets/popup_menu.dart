@@ -28,8 +28,8 @@ class PopupMenu extends StatelessWidget {
             builder: (context) => PhoneAuthenticationScreen()));
         break;
       case REG_BUTTON_TEXT:
-        Navigator.of(context).pushReplacement(new MaterialPageRoute(
-            builder: (context) => PhoneAuthenticationScreen()));
+        Navigator.of(context).push(new MaterialPageRoute(
+            builder: (context) => PhoneAuthenticationScreen(isFirstPage: false)));
         break;
     }
   }

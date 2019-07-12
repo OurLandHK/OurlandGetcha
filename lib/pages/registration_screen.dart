@@ -11,6 +11,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 class PhoneAuthenticationScreen extends StatefulWidget {
+  bool firstPage;
+  PhoneAuthenticationScreen({Key key, bool isFirstPage}) : super(key: key) {
+    firstPage = true;
+    if(isFirstPage != null) {
+      firstPage = isFirstPage;
+    }
+  }
   @override
   _PhoneAuthenticationScreenState createState() =>
       new _PhoneAuthenticationScreenState();
@@ -218,7 +225,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                 renderSizeBox(),
                 renderSizeBox(),
                 renderSubmitButton(context),
-                renderAccessAsNobody(context),
+                (widget.firstPage) ? renderAccessAsNobody(context) : Container(),
               ],
             )),
       ),
