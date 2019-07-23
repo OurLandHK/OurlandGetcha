@@ -51,7 +51,6 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   List<OurlandMarker> _pendingMarkerList;
 
   var listMessage;
-  SharedPreferences prefs;
 
   bool isLoading;
   bool _expanded;
@@ -69,6 +68,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   LocationOptions locationOptions = new LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
   GeolocationStatus geolocationStatus = GeolocationStatus.denied;
   String error;
+  SharedPreferences _prefs;
 
   final TextEditingController textEditingController = new TextEditingController();
   final ScrollController listScrollController = new ScrollController();
@@ -79,22 +79,31 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   @override
   void initState() {
     super.initState();
-    focusNode.addListener(onFocusChange);
-    messageService = new MessageService(widget.user);
     this._markerList = [];
     this._pendingMarkerList =[];  
-    _expanded = true;
-
     isLoading = false;
-    GeoPoint mapCenter = widget.getCurrentLocation();
-    this.messageLocation = mapCenter;
-        // Init UI
-    List<String> dropDownList = [LABEL_NEARBY];
-    if(widget.user != null) {
-      dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
-    }
-    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
-    _currentLocationSelection = _locationDropDownMenuItems[0].value;
+    SharedPreferences.getInstance().then((value){
+      _prefs = value;
+      bool _tempExpand = true;
+      try {
+        _tempExpand = _prefs.getBool('TOPIC_EXPANDED');
+      } catch (Exception) {
+        _prefs.setBool('TOPIC_EXPANDED', _tempExpand);
+      } 
+      this._expanded = _tempExpand;
+//      _expanded = false;
+      focusNode.addListener(onFocusChange);
+      messageService = new MessageService(widget.user);
+      GeoPoint mapCenter = widget.getCurrentLocation();
+      this.messageLocation = mapCenter;
+          // Init UI
+      List<String> dropDownList = [LABEL_NEARBY];
+      if(widget.user != null) {
+        dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
+      }
+      _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
+      _currentLocationSelection = _locationDropDownMenuItems[0].value;
+    });
   }
 
 
@@ -238,6 +247,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
                       setState(() {
                         _expanded = !_expanded;
                       });
+                      _prefs.setBool('TOPIC_EXPANDED', _expanded);
                     },
                 ),
               ];

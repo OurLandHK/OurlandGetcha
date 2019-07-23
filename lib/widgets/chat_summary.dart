@@ -61,7 +61,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   Widget _titleLink;
   ImageWidget _summaryImageWidget;
   bool _progressBarActive;
-  bool _isFavour = false;
+  bool _isBookmark = false;
   MessageService messageService;
   ValueNotifier<Stream> chatStream;
 
@@ -146,10 +146,10 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
 
   return result;
 }
-  Future updateFavor(bool newState) async  {
+  Future updateBookmark(bool newState) async  {
     return _userService.updateRecentTopic(widget.user.uuid, widget.topic.id, widget.messageLocation, newState).then((temp){
       setState(() {
-        _isFavour = newState; 
+        _isBookmark = newState; 
       });
       return;
     });
@@ -160,9 +160,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopic) {
       if(recentTopic != null) {
         print("recentTopic ${recentTopic.interest}");
-        if(_isFavour != recentTopic.interest) {
+        if(_isBookmark != recentTopic.interest) {
           setState(() {
-            _isFavour = recentTopic.interest;
+            _isBookmark = recentTopic.interest;
           });
         }
       } else {
@@ -237,9 +237,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         widgetList.add(_contentText);
     }
     // Display tool bar
-    Color favorColor = primaryColor;
-    if(this._isFavour) {
-      favorColor = Colors.red;
+    Color bookmarkColor = primaryColor;
+    if(this._isBookmark) {
+      bookmarkColor = Colors.red;
     }
     Row _toolBar = new Row(children: <Widget>[
               Material(
@@ -299,9 +299,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                 child: new Container(
                   margin: new EdgeInsets.symmetric(horizontal: 8.0),
                   child: new IconButton(
-                    icon: new Icon(Icons.favorite),
-                     onPressed: () => updateFavor(!_isFavour),
-                    color: favorColor,
+                    icon: new Icon(Icons.bookmark),
+                     onPressed: () => updateBookmark(!_isBookmark),
+                    color: bookmarkColor,
                   ),
                 ),
                 color: TOPIC_COLORS[widget.topic.color],

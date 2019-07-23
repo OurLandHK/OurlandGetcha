@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 const String APP_NAME = "我地.壁報";
-const String SMS_CODE_DIALOG_TITLE = "Enter SMS Code";
+const String SMS_CODE_DIALOG_TITLE = "入 SMS Code";
 const String SMS_CODE_DIALOG_BUTTON_TEXT = "Verify";
 const String REG_BUTTON_TEXT = "註冊";
 const String NOBODY_BUTTON_TEXT = "做CDROM";
@@ -32,8 +32,9 @@ const String LABEL_NEARBY = "NearBy";
 const String LABEL_REGION0 = "Home";
 const String LABEL_REGION1 = "Office";
 
-const String LABEL_BROADCAST = "Broadcast";
+const String LABEL_BROADCAST = "廣播";
 const String LABEL_RECENT = "Recent";
+const String LABEL_BOOKMARK = "跟";
 
 const String MENU_ITEM_SETTINGS = "Settings";
 const String MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION = "Change Home Location";
@@ -48,9 +49,9 @@ const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
 const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠", "美食", "秘境", "維修", "遊戲", "交換", "我地.市正"];
-const String LABEL_TOPIC = "Topic";
-const String LABEL_NEW_TOPIC = "New Topic";
-const String LABEL_NEW_BROADCAST_TOPIC = "New Broadcast Topic";
+const String LABEL_TOPIC = "Memo";
+const String LABEL_NEW_TOPIC = "新Memo";
+const String LABEL_NEW_BROADCAST_TOPIC = "新廣播";
 const String LABEL_UPDATE_TOPIC = " has been updated";
 const String LABEL_SHOW = "Show";
 const String LABEL_CLOSE = "Close";

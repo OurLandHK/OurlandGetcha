@@ -122,8 +122,8 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
     if(widget.user != null) {
       tabWidget.add(Tab(
                   child: new Row(children: <Widget>[
-                    new Icon(Icons.person),
-                    new Text(LABEL_RECENT),
+                    new Icon(Icons.bookmark),
+                    new Text(LABEL_BOOKMARK),
                   ])
               ));
       tabBarView.add(buildNotification(context));
