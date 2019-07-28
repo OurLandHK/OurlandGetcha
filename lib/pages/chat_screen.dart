@@ -11,10 +11,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
-import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/chat_list.dart';
-import 'package:ourland_native/widgets/chat_message.dart';
 import 'package:ourland_native/widgets/chat_summary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/services/user_service.dart';
@@ -114,10 +112,12 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     List<Widget> _widgetList = [chatSummary];
     if(this._chatMode == Chat_Mode.COMMENT_MODE) {
       _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController, updateUser: updateUser, getUserName: getUserName, getColor: getColor));
-      if(this.messageLocation != null) {
-        _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
-      } else {
-        _widgetList.add(LinearProgressIndicator());
+      if(widget.user != null) {
+        if(this.messageLocation != null) {
+          _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
+        } else {
+          _widgetList.add(LinearProgressIndicator());
+        }
       }
     }
     Widget _bodyWidget =  Column(children: _widgetList);

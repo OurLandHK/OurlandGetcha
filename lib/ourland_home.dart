@@ -20,6 +20,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 //final Map<String, Item> _items = <String, Item>{};
 
@@ -55,11 +56,12 @@ class Item {
 
 class OurlandHome extends StatefulWidget {
   final User user;
+  final SharedPreferences preferences;
 
-  OurlandHome(this.user) {
-    if (user == null) {
+  OurlandHome(this.user, @required this.preferences) {
+/*    if (user == null) {
       throw new ArgumentError("[OurlandHome] firebase user cannot be null.");
-    }
+    }*/
   }
 
   @override
@@ -71,7 +73,7 @@ const String _app_name = APP_NAME;
 class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin {
   TabController _tabController;
   String uid = '';
-  bool _isFabShow = true;
+  bool _isFabShow = false;
 //  List<CameraDescription> cameras;
   bool _locationPermissionGranted = true;
   Widget _nearBySelection;
@@ -127,10 +129,10 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
         if(position != null) {
           print('initState Poisition ${position}');
-          setState(() {
+          //setState(() {
             _currentLocation = new GeoPoint(position.latitude, position.longitude);
-            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
-          });
+            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
+          //});
         }
       });
     }
@@ -171,7 +173,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           print('initPlatformStateLocation: ${location}');
           if(location != null) {
             _currentLocation = new GeoPoint(location.latitude, location.longitude);
-            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
+            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
             //updateLocation();
           }
       });
@@ -194,7 +196,9 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     _firebaseMessaging.getToken().then((token){
       Map<String, String> field = new Map<String, String>();
       field['fcmToken'] = token;
-      userService.updateUser(widget.user.uuid, field);
+      if(widget.user != null) {
+        userService.updateUser(widget.user.uuid, field);
+      }
       print(token);
     });
 
@@ -305,8 +309,10 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
   void updateLocation() {
     Widget rv;
-    bool isFabShow;
-    isFabShow = true;
+    bool isFabShow = false;
+    if(widget.user != null) {
+      isFabShow = true;
+    }
     rv = showNearby();
     setState((){
       this._isFabShow = isFabShow;
@@ -320,8 +326,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     print('show Nearby ${_currentLocation}');
     Widget rv;
     if(_currentLocation != null) {
-      // _pendingWidget = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
-      rv = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);  
+      rv = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);  
     } else {
       rv = new CircularProgressIndicator();
     }
@@ -333,8 +338,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     _tabController.addListener(() {
       switch(_tabController.index) {
         case 1:
-          print("${widget.user.sendBroadcastRight}");
-          if(widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
+          if(widget.user != null && widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
             setState(() {
               this._isFabShow = true;
             });
@@ -396,7 +400,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
             new Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5.0),
             ),
-            new PopupMenu(widget.user)
+            new PopupMenu(widget.user, widget.preferences)
           ],
         ),
         body: new TabBarView(

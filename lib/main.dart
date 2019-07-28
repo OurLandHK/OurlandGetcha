@@ -8,7 +8,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/constant.dart';
+//import 'package:ourland_native/ourland_home.dart';
 import 'package:ourland_native/pages/registration_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 final ThemeData kIOSTheme = new ThemeData(
@@ -55,7 +57,9 @@ void main() {
   initFirestoreSettings();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
-    runApp(new OurlandApp());
+        SharedPreferences.getInstance().then((value){
+          runApp(new OurlandApp(value));
+        });
   });
 }
 
@@ -65,6 +69,8 @@ void initFirestoreSettings() async {
 }
 
 class OurlandApp extends StatelessWidget {
+  SharedPreferences preferences;
+  OurlandApp(@required this.preferences);
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
@@ -72,7 +78,8 @@ class OurlandApp extends StatelessWidget {
       theme: defaultTargetPlatform == TargetPlatform.iOS
           ? kIOSTheme
           : kDefaultTheme,
-      home: new PhoneAuthenticationScreen()
+      home: new PhoneAuthenticationScreen(preferences: preferences)
+      //home: new OurlandHome(null)
     );
   }
 }

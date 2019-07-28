@@ -9,6 +9,7 @@ class Topic {
   String _id;
   bool _isShowName;
   bool _isPublic;
+  bool _isGlobalHide;
   int _color;
   DateTime _lastUpdate;
   DateTime _created;
@@ -32,6 +33,7 @@ class Topic {
         this._lastUpdateUser = this._createdUser; 
         this._searchingId = null;
         this.distance = 0;
+        this._isGlobalHide = false;
         this._id = this._created.millisecondsSinceEpoch.toString();
     }
 
@@ -50,6 +52,7 @@ class Topic {
   User get createdUser => _createdUser;
   User get lastUpdateUser => _lastUpdateUser;
   bool get isPublic => _isPublic;
+  bool get isGlobalHide => _isGlobalHide;
   int get color => _color;
   String get searchingId => _searchingId;
   GeoPoint get geoCenter => (this._geocenter != null)? this._geocenter: GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
@@ -120,6 +123,10 @@ class Topic {
       map['color'] = this._color;
     }
 
+    if(this._isGlobalHide != null) {
+      map['isGlobalHide'] = this._isGlobalHide;
+    }
+
     return map;
   }
 
@@ -158,8 +165,21 @@ class Topic {
       Random rng = new Random();
       this._color = rng.nextInt(TOPIC_COLORS.length);
     }
-    this._created = map['created'].toDate();
-    this._lastUpdate = map['lastUpdate'].toDate();
+    if(map['isGlobalHide'] != null) {
+      this._isGlobalHide = map['isGlobalHide'];
+    } else {
+      this._isGlobalHide = false;
+    }
+    try {
+      this._created = map['created'].toDate();
+    } catch(Exception) {
+      this._created = map['created'];
+    }
+    try {
+      this._lastUpdate = map['lastUpdate'].toDate();
+    } catch(Exception) {
+      this._lastUpdate = map['lastUpdate'];
+    }
     this._isPublic = map['public'];
   }
 }

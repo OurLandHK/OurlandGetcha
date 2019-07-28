@@ -15,7 +15,6 @@ import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
 
   enum Chat_Mode {
@@ -36,7 +35,7 @@ class ChatSummary extends StatefulWidget {
   final Function toggleComment;
   final User user;
   final String imageUrl;
-  final Topic topic;
+  Topic topic;
   final double height;
   final double width;
   final Chat_Mode chatMode;
@@ -62,7 +61,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   Widget _titleLink;
   ImageWidget _summaryImageWidget;
   bool _progressBarActive;
-  bool _isFavour = false;
+  bool _isBookmark = false;
   MessageService messageService;
   ValueNotifier<Stream> chatStream;
 
@@ -147,27 +146,53 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
 
   return result;
 }
-  Future updateFavor(bool newState) async  {
-    return _userService.updateRecentTopic(widget.user.uuid, widget.topic.id, widget.messageLocation, newState).then((temp){
+  Future<User> updateBookmark(bool newState) async  {
+    return _userService.updateRecentTopic(widget.user.uuid, widget.topic.id, widget.messageLocation, newState).then((User temp){
       setState(() {
-        _isFavour = newState; 
+        _isBookmark = newState; 
       });
-      return;
+      return(temp);
     });
   }
 
+  Future updateVisible(bool newState) async {
+    int type = 4; // Hide
+    String content = MESSAGE_HIDE; 
+    if(newState) {
+      type = 5; //visible
+      content = MESSAGE_SHOW; 
+    }
+    await messageService.sendChildMessage(widget.topic.id, widget.messageLocation, content, null, type);
+    return _userService.addRecentTopic(messageService.user.uuid, widget.topic.id, widget.messageLocation).then((User temp1) {
+        Map topicMap = widget.topic.toMap();
+        topicMap['isGlobalHide'] = !newState;
+        setState(() {
+          widget.topic = Topic.fromMap(topicMap);
+        }); 
+        return temp1;
+      });
+  }
+
   buildMessageSummaryWidget() async {
+    if(widget.user != null) {
     _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopic) {
       if(recentTopic != null) {
         print("recentTopic ${recentTopic.interest}");
-        if(_isFavour != recentTopic.interest) {
+        if(_isBookmark != recentTopic.interest) {
           setState(() {
-            _isFavour = recentTopic.interest;
+            _isBookmark = recentTopic.interest;
           });
         }
       } else {
         print("recentTopic is null");
       }
+      _buildMessageSummaryWidget();
+    });
+   } else {
+     _buildMessageSummaryWidget();
+   }
+  }
+  void _buildMessageSummaryWidget() {
       Stream<QuerySnapshot> stream = chatStream.value;
       print("stream ${stream.length}");
       stream.forEach((action){
@@ -180,13 +205,27 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       setState(() {
           _progressBarActive = false;
       });
-    });
   }
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance
       .addPostFrameCallback((_) => _swapMap(context));    
     // _cratedDate
+    Icon icon = Icon(Icons.visibility);
+    Icon hideIconButton = Icon(Icons.visibility_off);
+    if(widget.topic.isGlobalHide) {
+      icon = Icon(Icons.visibility_off);
+      hideIconButton = Icon(Icons.visibility);
+    }
+    Material hideIcon = Material(child: new Container(
+        margin: new EdgeInsets.symmetric(horizontal: 8.0),
+        child: new IconButton(
+          icon: icon,
+          color: primaryColor,
+        ),
+      ),
+      color: TOPIC_COLORS[widget.topic.color]);
+
     Text _createdDate = Text(
         DateFormat('dd MMM kk:mm').format(
             new DateTime.fromMicrosecondsSinceEpoch(
@@ -194,6 +233,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         style: Theme.of(context).textTheme.subtitle);
     _baseInfo = new Row(children: <Widget>[
       new BaseProfile(user: widget.topic.createdUser), 
+      hideIcon,
       new Column(children: <Widget>[
         _createdDate,
         new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowName.toString(), style: Theme.of(context).textTheme.subtitle),
@@ -231,9 +271,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         widgetList.add(_contentText);
     }
     // Display tool bar
-    Color favorColor = primaryColor;
-    if(this._isFavour) {
-      favorColor = Colors.red;
+    Color bookmarkColor = primaryColor;
+    if(this._isBookmark) {
+      bookmarkColor = Colors.red;
     }
     Row _toolBar = new Row(children: <Widget>[
               Material(
@@ -289,17 +329,28 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                 color: TOPIC_COLORS[widget.topic.color],
               ),
               Expanded(child: Container()),         // Button mark interest to receive notification
-              Material(
+              (widget.user != null) ? Material(
                 child: new Container(
                   margin: new EdgeInsets.symmetric(horizontal: 8.0),
                   child: new IconButton(
-                    icon: new Icon(Icons.favorite),
-                     onPressed: () => updateFavor(!_isFavour),
-                    color: favorColor,
+                    icon: new Icon(Icons.bookmark),
+                     onPressed: () => updateBookmark(!_isBookmark),
+                    color: bookmarkColor,
                   ),
                 ),
                 color: TOPIC_COLORS[widget.topic.color],
-              ), ]);
+              ):Container(),
+              (widget.user != null && widget.user.globalHideRight == true) ? Material(
+                child: new Container(
+                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
+                  child: new IconButton(
+                    icon: hideIconButton,
+                     onPressed: () => updateVisible(widget.topic.isGlobalHide),
+                    color: bookmarkColor,
+                  ),
+                ),
+                color: TOPIC_COLORS[widget.topic.color],
+              ):Container() ]);  
     widgetList.add(_toolBar);
     Widget summaryPostit = Padding(
             padding: const EdgeInsets.all(4.0),

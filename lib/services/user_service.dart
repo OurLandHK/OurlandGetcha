@@ -65,6 +65,12 @@ class UserService {
 
   Future<User> _addRecentTopic(String userID, String topicID, GeoPoint messageLocation, bool interest) 
     async {
+      DateTime now = new DateTime.now();
+      final RecentTopic recentTopic = 
+          new RecentTopic(topicID, now, messageLocation, interest);
+      final Map<String, dynamic> data = recentTopic.toMap();
+      userCollection.document(userID).collection('recentTopic').document(topicID).setData(data);
+      /*
     final TransactionHandler createTransaction = (Transaction tx) async {
       final DocumentSnapshot ds = await tx.get(userCollection.document(userID).collection('recentTopic').document(topicID));
 
@@ -82,6 +88,7 @@ class UserService {
       print('error: $error');
       return null;
     });
+    */
   }
 
   Stream<QuerySnapshot> getRecentTopicSnap(String userID) {
