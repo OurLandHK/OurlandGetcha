@@ -11,7 +11,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
@@ -22,6 +21,7 @@ import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
 import 'package:ourland_native/pages/settings.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 //final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -30,17 +30,29 @@ class TopicScreen extends StatefulWidget {
   final GeoPoint fixLocation;
   final User user;
   final Function getCurrentLocation;
+  final SharedPreferences preferences;
   TopicScreenState _state;
 
-  TopicScreen({Key key, @required this.user, @required this.getCurrentLocation, this.fixLocation}) : super(key: key);
+  TopicScreen({Key key, @required this.user, @required this.getCurrentLocation, @required this.preferences, this.fixLocation}) : super(key: key);
   @override
   State createState() {
-    _state = new TopicScreenState(fixLocation: this.fixLocation);
+    bool _tempExpand = true;
+    try {
+      _tempExpand = preferences.getBool('TOPIC_EXPANDED');
+      print('TOPIC_EXPAND $_tempExpand');
+    } catch (Exception) {
+      _tempExpand = null;
+    } 
+    if(_tempExpand == null) {
+      _tempExpand = true;
+      preferences.setBool('TOPIC_EXPANDED', _tempExpand);
+    }
+    _state = new TopicScreenState(fixLocation: this.fixLocation, expanded: _tempExpand);
     return _state;
   } 
 }
 class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin  {
-  TopicScreenState({Key key, @required this.fixLocation});
+  TopicScreenState({Key key, @required this.expanded, @required this.fixLocation});
   GeoPoint fixLocation;
   MessageService messageService;
   /*
@@ -53,7 +65,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   var listMessage;
 
   bool isLoading;
-  bool _expanded;
+  bool expanded;
 
   // use to get current location
   GeoPoint messageLocation;
@@ -68,7 +80,6 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   LocationOptions locationOptions = new LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
   GeolocationStatus geolocationStatus = GeolocationStatus.denied;
   String error;
-  SharedPreferences _prefs;
 
   final TextEditingController textEditingController = new TextEditingController();
   final ScrollController listScrollController = new ScrollController();
@@ -82,28 +93,25 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     this._markerList = [];
     this._pendingMarkerList =[];  
     isLoading = false;
-    SharedPreferences.getInstance().then((value){
-      _prefs = value;
-      bool _tempExpand = true;
-      try {
-        _tempExpand = _prefs.getBool('TOPIC_EXPANDED');
-      } catch (Exception) {
-        _prefs.setBool('TOPIC_EXPANDED', _tempExpand);
-      } 
-      this._expanded = _tempExpand;
-//      _expanded = false;
-      focusNode.addListener(onFocusChange);
-      messageService = new MessageService(widget.user);
-      GeoPoint mapCenter = widget.getCurrentLocation();
-      this.messageLocation = mapCenter;
-          // Init UI
-      List<String> dropDownList = [LABEL_NEARBY];
-      if(widget.user != null) {
-        dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
-      }
-      _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
-      _currentLocationSelection = _locationDropDownMenuItems[0].value;
-    });
+    GeoPoint mapCenter = widget.getCurrentLocation();
+    this.messageLocation = mapCenter;
+    focusNode.addListener(onFocusChange);
+    messageService = new MessageService(widget.user);
+
+        // Init UI
+    List<String> dropDownList = [LABEL_NEARBY];
+    if(widget.user != null) {
+      dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
+    }
+    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
+    _currentLocationSelection = _locationDropDownMenuItems[0].value;    
+    bool _tempExpand = true;
+    try {
+      _tempExpand = widget.preferences.getBool('TOPIC_EXPANDED');
+    } catch (Exception) {
+      widget.preferences.setBool('TOPIC_EXPANDED', _tempExpand);
+    } 
+    this.expanded = _tempExpand;
   }
 
 
@@ -166,7 +174,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
           Navigator.of(context).push(
             new MaterialPageRoute<void>(
               builder: (BuildContext context) {
-                return new UpdateLocationScreen(locationType: LABEL_REGION0, user: widget.user);
+                return new UpdateLocationScreen(locationType: LABEL_REGION0, user: widget.user, preferences: widget.preferences);
               },
             ),
           );
@@ -179,7 +187,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
           Navigator.of(context).push(
             new MaterialPageRoute<void>(
               builder: (BuildContext context) {
-                return new UpdateLocationScreen(locationType: LABEL_REGION1, user: widget.user);
+                return new UpdateLocationScreen(locationType: LABEL_REGION1, user: widget.user, preferences: widget.preferences);
               },
             ),
           );
@@ -219,7 +227,8 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+            Key chatKey = new Key(topic.id);
+            return new ChatScreen(key: chatKey, user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );
@@ -245,9 +254,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
                   icon: Icon(Icons.expand_more),
                     onPressed: () {
                       setState(() {
-                        _expanded = !_expanded;
+                        expanded = !expanded;
                       });
-                      _prefs.setBool('TOPIC_EXPANDED', _expanded);
+                      widget.preferences.setBool('TOPIC_EXPANDED', expanded);
                     },
                 ),
               ];
@@ -260,7 +269,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     } else {
       map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._pendingMarkerList);
     }
-    if(_expanded) {
+    if(expanded) {
       _pendingMarkerList.clear();
       appBar = PreferredSize(
           preferredSize: Size.fromHeight(MAP_HEIGHT), // here the desired height
@@ -325,8 +334,12 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
 
   Widget buildListView(Function _onTap, BuildContext context) {
     this._pendingMarkerList.clear();
+    bool canViewHide = false;
+    if(widget.user != null && widget.user.globalHideRight) {
+      canViewHide = true;
+    }
     return new StreamBuilder<List<Topic>>(
-      stream: this.messageService.getTopicSnap(this.messageLocation, 2500, _firstTag),
+      stream: this.messageService.getTopicSnap(this.messageLocation, 2500, _firstTag, canViewHide),
       builder: (BuildContext context, AsyncSnapshot<List<Topic>> snapshot) {
         if (!snapshot.hasData) {
           return new Center(child: new CircularProgressIndicator());

@@ -28,6 +28,9 @@ const String CHAT_NTH_TO_SEND = "Nothing to send";
 const String CHAT_FILE_NOT_IMG = "This file is not an image";
 const String LABEL_CHOICE_OTHER_TAG = "冇貨, 選過第二樣";
 
+const String MESSAGE_HIDE = "隱藏不恰當訊息";
+const String MESSAGE_SHOW = "解除隱藏";
+
 const String LABEL_NEARBY = "NearBy";
 const String LABEL_REGION0 = "Home";
 const String LABEL_REGION1 = "Office";

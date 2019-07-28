@@ -5,18 +5,21 @@ import 'package:ourland_native/pages/about.dart';
 import 'package:ourland_native/pages/settings.dart';
 import 'package:ourland_native/pages/registration_screen.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PopupMenu extends StatelessWidget {
+  
   UserService userService = new UserService();
   final User user;
+  final SharedPreferences preferences;
 
-  PopupMenu(this.user);
+  PopupMenu(this.user, @required this.preferences);
 
   void _select(BuildContext context, String item) {
     switch(item) {
       case MENU_ITEM_SETTINGS: 
         Navigator.of(context).push(new MaterialPageRoute(
-            builder: (context) => SettingsScreen(this.user)));
+            builder: (context) => SettingsScreen(this.user, this.preferences)));
         break;
       case MENU_ITEM_ABOUT:
         Navigator.of(context)
@@ -25,11 +28,11 @@ class PopupMenu extends StatelessWidget {
       case MENU_ITEM_LOGOUT:
         userService.logout();
         Navigator.of(context).pushReplacement(new MaterialPageRoute(
-            builder: (context) => PhoneAuthenticationScreen()));
+            builder: (context) => PhoneAuthenticationScreen(preferences: preferences, isFirstPage: true)));
         break;
       case REG_BUTTON_TEXT:
         Navigator.of(context).push(new MaterialPageRoute(
-            builder: (context) => PhoneAuthenticationScreen(isFirstPage: false)));
+            builder: (context) => PhoneAuthenticationScreen(preferences: preferences, isFirstPage: false)));
         break;
     }
   }

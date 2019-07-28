@@ -25,12 +25,18 @@ class MessageService {
 
   MessageService(this._user);
 
-  Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter, String firstTag) {
+  Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter, String firstTag, bool canViewHide) {
     Stream<List<Topic>> rv;
     if(position != null) {
       Query sourceQuery = _topicCollection;
+      List<QueryConstraint> constraints = [];
       if(firstTag != null && firstTag.length != 0) {
-        List<QueryConstraint> constraints = [new QueryConstraint(field: "tags", arrayContains: firstTag)];
+        constraints.add(QueryConstraint(field: "tags", arrayContains: firstTag));
+      }
+      if(!canViewHide) {
+        constraints.add(QueryConstraint(field: "isGlobalHide", isEqualTo: false));
+      }
+      if(constraints.length > 0) {
         sourceQuery = buildQuery(
           collection: _topicCollection, 
           constraints: constraints);
@@ -112,10 +118,16 @@ class MessageService {
     indexReference = _topicCollection.document(topic.id);
     chatReference = _chatCollection.document(topic.id).collection("messages").document(topic.id);
     try {
-    Firestore.instance.runTransaction((transaction) async {
-      await transaction.set(indexReference, indexData);
-      await transaction.set(chatReference, chatData);
-    });          
+      return indexReference.setData(indexData).then(() {
+        return chatReference.setData(chatData);
+      });
+      /*
+      print("New ID ${topic.id}.");
+      Firestore.instance.runTransaction((Transaction transaction) async {
+        await transaction.set(indexReference, indexData);
+        await transaction.set(chatReference, chatData);
+      });
+      */         
     } catch (exception) {
       print(exception);
     }
@@ -131,7 +143,7 @@ class MessageService {
       DocumentReference chatReference;
       DocumentReference indexReference;
       indexReference = _topicCollection.document(parentID);
-      indexReference.get().then((indexDataSnap) {
+      return indexReference.get().then((var indexDataSnap) {
         if(indexDataSnap.exists) {
           Topic topic = Topic.fromMap(indexDataSnap.data);
           var basicUserMap = _user.toBasicMap();
@@ -144,6 +156,15 @@ class MessageService {
           indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
           indexData['lastUpdateUser'] = basicUserMap;
           indexData['lastUpdate'] = sendMessageTime;
+          // for Hide and show
+          switch(type) {
+            case 4: 
+              indexData['isGlobalHide'] = true;
+              break;
+            case 5:
+              indexData['isGlobalHide'] = false;
+              break;              
+          }
 
           var chatData = {
                 'created': sendMessageTime,
@@ -158,14 +179,22 @@ class MessageService {
           }
           chatReference = _chatCollection.document(parentID).collection("messages").document(sendMessageTimeString);
           try{
+            return indexReference.setData(indexData).then((var test) {
+              return chatReference.setData(chatData);
+            });
+            /*
+            print("ID exist ${sendMessageTimeString}.");
             Firestore.instance.runTransaction((transaction) async {
               await transaction.set(indexReference, indexData);
               await transaction.set(chatReference, chatData);
             });         
+            */
           } catch (exception) {
             print(exception);
           } 
-        };
+        } else {
+          print("ID not exist ${parentID}.");
+        }
       });
   }
 

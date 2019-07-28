@@ -6,6 +6,7 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/ourland_home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ----------------------------------------
 // SETTING SCREEN LANDING SCREEN
@@ -13,7 +14,8 @@ import 'package:ourland_native/ourland_home.dart';
 
 class SettingsScreen extends StatelessWidget {
   final User user;
-  SettingsScreen(this.user);
+  final SharedPreferences preferences;
+  SettingsScreen(this.user, this.preferences);
 
   List<String> _settingsItems = [
     MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION,
@@ -27,7 +29,7 @@ class SettingsScreen extends StatelessWidget {
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             return new UpdateLocationScreen(
-                locationType: LABEL_REGION0, user: this.user);
+                locationType: LABEL_REGION0, user: this.user, preferences: this.preferences);
           },
         ),
       );
@@ -36,7 +38,7 @@ class SettingsScreen extends StatelessWidget {
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             return new UpdateLocationScreen(
-                locationType: LABEL_REGION1, user: this.user);
+                locationType: LABEL_REGION1, user: this.user, preferences: this.preferences);
           },
         ),
       );
@@ -78,9 +80,10 @@ class SettingsScreen extends StatelessWidget {
 class UpdateLocationScreen extends StatefulWidget {
   final String locationType;
   final User user;
+  final SharedPreferences preferences;
 
   UpdateLocationScreen(
-      {Key key, @required this.user, @required this.locationType});
+      {Key key, @required this.user, @required this.locationType, @required this.preferences});
 
   @override
   _UpdateLocationScreenState createState() => new _UpdateLocationScreenState(
@@ -89,7 +92,9 @@ class UpdateLocationScreen extends StatefulWidget {
 
 class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   _UpdateLocationScreenState(
-      {Key key, @required this.user, @required this.locationType});
+      {Key key, @required this.user, @required this.locationType}) {
+        this._label = this.locationType;
+      }
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   UserService userService = new UserService();
@@ -168,7 +173,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
 
       userService.getUser(this.user.uuid).then((User user) {
         Navigator.of(context).pushReplacement(
-            new MaterialPageRoute(builder: (context) => OurlandHome(user)));
+            new MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
       });
     });
   }

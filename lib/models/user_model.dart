@@ -10,10 +10,12 @@ class User {
   DateTime _createdAt;
   DateTime _updatedAt;
   bool _sendBroadcastRight;
+  bool _globalHideRight;
 
   User(this._uuid, this._username, this._avatarUrl, this._homeAddress,
       this._officeAddress, this._createdAt, this._updatedAt) {
         this._sendBroadcastRight = false;
+        this._globalHideRight = false;
         this._fcmToken = '';
       }
 
@@ -30,6 +32,11 @@ class User {
       this._sendBroadcastRight = false;
     }
     try {
+      this._globalHideRight= obj['globalHideRight'];
+    } catch (exception) {
+      this._globalHideRight = false;
+    }    
+    try {
       this._fcmToken = obj['fcm'];
     } catch (exception) {
       this._fcmToken = "";
@@ -45,6 +52,8 @@ class User {
   DateTime get updatedAt => _updatedAt;
   String get fcmToken => _fcmToken;
   bool get sendBroadcastRight => _sendBroadcastRight;
+  bool get globalHideRight => _globalHideRight;
+
 
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
@@ -78,6 +87,10 @@ class User {
 
     if(_sendBroadcastRight != null) {
       map['sendBroadcastRight'] = _sendBroadcastRight;
+    }
+
+    if(_globalHideRight != null) {
+      map['globalHideRight'] = _globalHideRight;
     }
 
     if(_fcmToken != '') {
@@ -141,6 +154,17 @@ class User {
     } catch (exception) {
       this._sendBroadcastRight = false;
     }
+
+    try {
+      if(map['globalHideRight'] == null) {
+        this._globalHideRight = false;
+      } else {
+        this._globalHideRight = map['globalHideRight'];
+      }
+    } catch (exception) {
+      this._globalHideRight = false;
+    }
+    
     try {
       if(map['fcmToken'] == null) {
         this._fcmToken = '';

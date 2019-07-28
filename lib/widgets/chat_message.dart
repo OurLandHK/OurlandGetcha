@@ -58,7 +58,18 @@ class ChatMessage extends StatelessWidget {
     CrossAxisAlignment crossAxisAlignment = isCurrentUser() ? CrossAxisAlignment.end : CrossAxisAlignment.start;
     //print(this.messageId);
     switch (messageBody.type) {
-      case 0:
+      case 1:
+        messageWidget = new ImageWidget(imageUrl: messageBody.content, height: null, width: messageWidth);
+        break;
+      case 2:
+        messageWidget = new Image.asset(
+            'assets/images/${messageBody.content}.gif',
+            width: 100.0,
+            height: 100.0,
+            fit: BoxFit.cover,
+          );
+        break;
+      default:
         Widget content = new Text(messageBody.content, style: Theme.of(context).textTheme.body1);
         if(isLink()) {
           content = RichLinkPreview(
@@ -83,16 +94,6 @@ class ChatMessage extends StatelessWidget {
           );
         }
         break;
-      case 1:
-        messageWidget = new ImageWidget(imageUrl: messageBody.content, height: null, width: messageWidth);
-        break;
-      case 2:
-        messageWidget = new Image.asset(
-            'assets/images/${messageBody.content}.gif',
-            width: 100.0,
-            height: 100.0,
-            fit: BoxFit.cover,
-          );
     }
     // Time
     Container timeWidget = Container(

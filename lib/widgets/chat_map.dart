@@ -9,7 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart' as GoogleMap;
 class OurlandMarker {
   final GeoPoint location;
   String label;
-  final String messageId;
+  String messageId;
   OurlandMarker(this.messageId, this.location, int contentType, String content, String username) {
     this.label = "";
     switch (contentType) {
@@ -131,8 +131,8 @@ class _ChatMapState extends State<ChatMap> {
   GoogleMapWidget createMapWithMarker() {
     Map<GoogleMap.MarkerId, GoogleMap.Marker> googleMarkers = <GoogleMap.MarkerId, GoogleMap.Marker>{};
     for(int i = 0; i < widget.markerList.length; i++) {
-        GoogleMap.MarkerId markerId = GoogleMap.MarkerId(widget.markerList[i].messageId);
-        GoogleMap.Marker marker = GoogleMap.Marker(
+      GoogleMap.MarkerId markerId = GoogleMap.MarkerId(widget.markerList[i].messageId);
+      GoogleMap.Marker marker = GoogleMap.Marker(
         markerId: markerId,
         position: GoogleMap.LatLng(widget.markerList[i].location.latitude, widget.markerList[i].location.longitude),
         infoWindow: GoogleMap.InfoWindow(title: widget.markerList[i].label, snippet: '*'),

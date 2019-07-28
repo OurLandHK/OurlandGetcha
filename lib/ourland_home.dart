@@ -20,6 +20,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 //final Map<String, Item> _items = <String, Item>{};
 
@@ -55,8 +56,9 @@ class Item {
 
 class OurlandHome extends StatefulWidget {
   final User user;
+  final SharedPreferences preferences;
 
-  OurlandHome(this.user) {
+  OurlandHome(this.user, @required this.preferences) {
 /*    if (user == null) {
       throw new ArgumentError("[OurlandHome] firebase user cannot be null.");
     }*/
@@ -129,7 +131,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           print('initState Poisition ${position}');
           //setState(() {
             _currentLocation = new GeoPoint(position.latitude, position.longitude);
-            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
+            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
           //});
         }
       });
@@ -171,7 +173,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           print('initPlatformStateLocation: ${location}');
           if(location != null) {
             _currentLocation = new GeoPoint(location.latitude, location.longitude);
-            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
+            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
             //updateLocation();
           }
       });
@@ -324,8 +326,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     print('show Nearby ${_currentLocation}');
     Widget rv;
     if(_currentLocation != null) {
-      // _pendingWidget = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);
-      rv = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation);  
+      rv = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);  
     } else {
       rv = new CircularProgressIndicator();
     }
@@ -399,7 +400,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
             new Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5.0),
             ),
-            new PopupMenu(widget.user)
+            new PopupMenu(widget.user, widget.preferences)
           ],
         ),
         body: new TabBarView(

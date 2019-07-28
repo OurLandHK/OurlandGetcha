@@ -11,8 +11,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 class PhoneAuthenticationScreen extends StatefulWidget {
+  SharedPreferences preferences;
   bool firstPage;
-  PhoneAuthenticationScreen({Key key, bool isFirstPage}) : super(key: key) {
+  PhoneAuthenticationScreen({Key key, @required this.preferences, isFirstPage}) : super(key: key) {
     firstPage = true;
     if(isFirstPage != null) {
       firstPage = isFirstPage;
@@ -43,7 +44,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
       UserService userService = new UserService();
       userService.getUser(fbuser.uid).then((user) {
         Navigator.of(context).pushReplacement(
-            new MaterialPageRoute(builder: (context) => OurlandHome(user)));
+            new MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
       });
     }
   }
@@ -117,11 +118,11 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                           Navigator.of(context).pop();
                           Navigator.of(context).pushReplacement(
                               new MaterialPageRoute(
-                                  builder: (context) => OurlandHome(user)));
+                                  builder: (context) => OurlandHome(user, widget.preferences)));
                         } else {
                           Navigator.of(context).push(new MaterialPageRoute(
                               builder: (context) =>
-                                  RegistrationScreen(fbuser)));
+                                  RegistrationScreen(fbuser, widget.preferences)));
                         }
                       });
                     } else {
@@ -149,10 +150,10 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
           if (user != null) {
             Navigator.of(context).pop();
             Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => OurlandHome(user)));
+                MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
           } else {
             Navigator.of(context).push(new MaterialPageRoute(
-                builder: (context) => RegistrationScreen(fbuser)));
+                builder: (context) => RegistrationScreen(fbuser, widget.preferences)));
           }
         });
       } else {
@@ -199,7 +200,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   renderAccessAsNobody(content) {
     return RaisedButton(
         onPressed: () => Navigator.of(context).pushReplacement(
-            new MaterialPageRoute(builder: (context) => OurlandHome(null))),
+            new MaterialPageRoute(builder: (context) => OurlandHome(null ,widget.preferences))),
         child: Text(NOBODY_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
@@ -235,8 +236,9 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
 
 class RegistrationScreen extends StatefulWidget {
   final FirebaseUser user;
+  final SharedPreferences preferences;
 
-  RegistrationScreen(this.user) {
+  RegistrationScreen(this.user, this.preferences) {
     if (user == null) {
       throw new ArgumentError(
           "[RegistrationScreen] firebase user cannot be null.");
@@ -326,7 +328,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
       } else {
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => OurlandHome(user)));
+            MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
       }
     });
   }

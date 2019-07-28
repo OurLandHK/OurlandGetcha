@@ -161,9 +161,13 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
     // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
       textEditingController.clear();  
-      messageService.sendChildMessage(widget.parentID, this.messageLocation, content, imageFile, type);
-      imageFile = null;
-      userService.addRecentTopic(messageService.user.uuid, widget.parentID, this.messageLocation);
+      messageService.sendChildMessage(widget.parentID, this.messageLocation, content, imageFile, type).then((void v) {
+        userService.addRecentTopic(messageService.user.uuid, widget.parentID, this.messageLocation).then((var user) {
+          setState(( ){
+            imageFile = null;
+          });
+        });
+      });
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_NTH_TO_SEND)));
