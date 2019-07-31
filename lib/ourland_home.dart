@@ -168,15 +168,14 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       // message was in flight, we want to discard the reply rather than calling
       // setState to update our non-existent appearance.
       //if (!mounted) return;
-
-      setState(() {
-          print('initPlatformStateLocation: ${location}');
-          if(location != null) {
+      print('initPlatformStateLocation: ${location}');
+      if(location != null) {
+        setState(() {
             _currentLocation = new GeoPoint(location.latitude, location.longitude);
             _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
             //updateLocation();
-          }
-      });
+        });
+      }
     }
   }
 
@@ -337,7 +336,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     _tabController.addListener(() {
       switch(_tabController.index) {
-        case 1:
+        case 0:
           if(widget.user != null && widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
             setState(() {
               this._isFabShow = true;
@@ -385,10 +384,18 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
             tabs: <Widget>[
               //  new Tab(icon: new Icon(Icons.camera_alt)),
               new Tab(
-                child: new Icon(Icons.location_city)
+                child: Row(
+                  children: [
+                    Icon(Icons.public),
+                    new Text(LABEL_CARE),
+                  ])
               ),
               new Tab(
-                icon: new Icon(Icons.alarm),
+                child: Row(
+                  children: [
+                    Icon(Icons.location_city),
+                    new Text(LABEL_DISTRICT),
+                  ])
               ),
               new Tab(
                 icon: new Image.asset('assets/images/app-logo.png')
@@ -406,12 +413,9 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
         body: new TabBarView(
           controller: _tabController,
           children: <Widget>[
-            //new CameraScreen(widget.cameras),
-            _nearBySelection,
             showNotification(),
+            _nearBySelection,
             new CircularProgressIndicator(),
-            //_webView
-            //_webviewPlugin,
           ],
         ),
         floatingActionButton:  new Opacity(

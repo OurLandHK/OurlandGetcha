@@ -5,48 +5,48 @@ import 'package:flutter/foundation.dart';
 
 const String APP_NAME = "我地.壁報";
 const String SMS_CODE_DIALOG_TITLE = "入 SMS Code";
-const String SMS_CODE_DIALOG_BUTTON_TEXT = "Verify";
+const String SMS_CODE_DIALOG_BUTTON_TEXT = "核實";
 const String REG_BUTTON_TEXT = "註冊";
 const String NOBODY_BUTTON_TEXT = "做CDROM";
-const String REG_USERNAME_HINT_TEXT = "Enter Username";
+const String REG_USERNAME_HINT_TEXT = "輸入用戶名稱";
 const String OUTLAND_SEARCH_HOST = "https://ourlandtest.firebaseapp.com";
 
-const String REG_PHONE_NUMBER_HINT_TEXT = "Enter Phone number: XXXX XXXX";
-const String REG_FAILED_TO_CREATE_USER_TEXT = "Failed to create a user";
-const String REG_FAILED_TO_LOGIN_TEXT = "Failed to login";
+const String REG_PHONE_NUMBER_HINT_TEXT = "輸入香港電話號碼: ########";
+const String REG_FAILED_TO_CREATE_USER_TEXT = "註冊唔到";
+const String REG_FAILED_TO_LOGIN_TEXT = "Login唔到";
 const String DEFAULT_AVATAR_IMAGE_PATH = "assets/images/default-avatar.jpg";
 const String APP_LOGO_IMAGE_PATH = "assets/images/app-logo.png";
-const String VAL_USERNAME_NULL_TEXT = 'Please enter username';
-const String VAL_PHONE_NUMBER_NULL_TEXT = 'Please enter phone number';
-const String VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT = 'The format of the phone number provided is incorrect. Please enter the phone number in a format that can be parsed into E.164 format. E.164 phone numbers are written in the format [+][country code][subscriber number including area code]. [ Invalid format. ]';
+const String VAL_USERNAME_NULL_TEXT = '請輸入用戶名稱';
+const String VAL_PHONE_NUMBER_NULL_TEXT = '請輸入香港電話號碼:';
+const String VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT = '電話號碼要入 ########';
 
 const String FIRESTORE_USER_AVATAR_IMG_PATH = "images/userAvatarImages/";
 const String PREF_USER_UUID = "PREF_USER_PROFILE";
 const String JPEG_EXTENSION = ".jpeg";
 
-const String CHAT_NTH_TO_SEND = "Nothing to send";
-const String CHAT_FILE_NOT_IMG = "This file is not an image";
+const String CHAT_NTH_TO_SEND = "冇野Send";
+const String CHAT_FILE_NOT_IMG = "呢張唔係相";
 const String LABEL_CHOICE_OTHER_TAG = "冇貨, 選過第二樣";
 
 const String MESSAGE_HIDE = "隱藏不恰當訊息";
 const String MESSAGE_SHOW = "解除隱藏";
 
-const String LABEL_NEARBY = "NearBy";
-const String LABEL_REGION0 = "Home";
-const String LABEL_REGION1 = "Office";
+const String LABEL_NEARBY = "附近";
+const String LABEL_REGION0 = "地點1";
+const String LABEL_REGION1 = "地點2";
 
-const String LABEL_BROADCAST = "廣播";
-const String LABEL_RECENT = "Recent";
+const String LABEL_BROADCAST = "香港·主牆";
+const String LABEL_RECENT = "睇過";
 const String LABEL_BOOKMARK = "跟";
 
-const String MENU_ITEM_SETTINGS = "Settings";
-const String MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION = "Change Home Location";
-const String MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION = "Change Office Location";
-const String MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE = "Change Profile Image";
-const String MENU_ITEM_NOT_FOUND_ERR = "Meun item not found";
+const String MENU_ITEM_SETTINGS = "設定";
+const String MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION = "地點1";
+const String MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION = "地點2";
+const String MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE = "設定照片（實名Memo 先出）";
+const String MENU_ITEM_NOT_FOUND_ERR = "冇貨";
 
-const String MENU_ITEM_ABOUT = "About";
-const String MENU_ITEM_LOGOUT = "Logout";
+const String MENU_ITEM_ABOUT = "關於";
+const String MENU_ITEM_LOGOUT = "變CD-ROM";
 
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
@@ -55,26 +55,28 @@ const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠", "美
 const String LABEL_TOPIC = "Memo";
 const String LABEL_NEW_TOPIC = "新Memo";
 const String LABEL_NEW_BROADCAST_TOPIC = "新廣播";
-const String LABEL_UPDATE_TOPIC = " has been updated";
-const String LABEL_SHOW = "Show";
-const String LABEL_CLOSE = "Close";
-const String HINT_TOPIC = "Topic Hint";
-const String LABEL_DETAIL = "Detail";
-const String HINT_DEATIL = "Detail Hint";
-const String HELPER_DETAIL = "Hash Tag Support";
-const String LABEL_MUST_SHOW_NAME = "實名回答";
+const String LABEL_UPDATE_TOPIC = " 有變";
+const String LABEL_SHOW = "開來見我";
+const String LABEL_CLOSE = "拜拜";
+const String HINT_TOPIC = "入D搶眼 Memo 標題";
+const String LABEL_DETAIL = "詳情";
+const String HINT_DEATIL = "入D 詳情 如 時，地，人？";
+const String HELPER_DETAIL = "可用 Hash Tag";
+const String LABEL_MUST_SHOW_NAME = "要其他人實名回答";
 const String LABEL_MUST_SHOW_NAME_SIMPLE = "實名";
-const String LABEL_MISSING_TOPIC = "Missing Topic";
-const String LABEL_MORE_DETAIL = "More Detail is Better";
-const String LABEL_SEND = "Send";
+const String LABEL_MISSING_TOPIC = "冇入標題";
+const String LABEL_MORE_DETAIL = "入D詳情先出Memo好D";
+const String LABEL_SEND = "出Memo";
 const String LABEL_NOBODY = "沒有人";
-const String PERM_LOCATION_NOT_GRANTED = "Location permission is required";
-const String PERM_LOCATION_GRANT_BTN_TEXT = "Retry";
+const String LABEL_DISTRICT ="社區";
+const String LABEL_CARE ="關心";
+const String PERM_LOCATION_NOT_GRANTED = "唔該俾我用 GPS";
+const String PERM_LOCATION_GRANT_BTN_TEXT = "重試";
 
-const String NEW_HOME_LOCATION = "New Home Location";
-const String NEW_OFFICE_LOCATION = "New Office Location";
-const String UPDATE_LOCATION_BTN_TEXT = "Update Location";
-const String UPDATE_LOCATION_SUCCESS = "Updated Location Successfully";
+const String NEW_HOME_LOCATION = "入新地點1";
+const String NEW_OFFICE_LOCATION = "入新地點2";
+const String UPDATE_LOCATION_BTN_TEXT = "確認地點";
+const String UPDATE_LOCATION_SUCCESS = "地點更新成功";
 
 const String TOPIC_ROOT_ID = "";
 

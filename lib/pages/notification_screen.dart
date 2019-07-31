@@ -119,6 +119,13 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
   Widget build(BuildContext context) {
     List<Widget> tabWidget = [];
     List<Widget> tabBarView = [];
+    tabWidget.add(Tab(
+                child: new Row(children: <Widget>[
+                  new Icon(Icons.wallpaper),
+                  new Text(LABEL_BROADCAST),
+                ])
+              ));
+    tabBarView.add(buildBroadcast(context));    
     if(widget.user != null) {
       tabWidget.add(Tab(
                   child: new Row(children: <Widget>[
@@ -128,13 +135,6 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
               ));
       tabBarView.add(buildNotification(context));
     }
-    tabWidget.add(Tab(
-                child: new Row(children: <Widget>[
-                  new Icon(Icons.public),
-                  new Text(LABEL_BROADCAST),
-                ])
-              ));
-    tabBarView.add(buildBroadcast(context));
     return 
       new Scaffold(
         appBar: new AppBar(
