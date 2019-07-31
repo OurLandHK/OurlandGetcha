@@ -109,10 +109,17 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     buildMessageSummaryWidget();
   }
 
-  void addChat(Chat chat) {
+  void addChat(Chat chat, int i) {
     OurlandMarker ourlandMarker = this._pendingMarkerList[chat.createdUser.uuid];
+    int type = 1;
+    if(0 == i) {
+      type = 0;
+    }
     if(ourlandMarker == null) {
-      this._pendingMarkerList[chat.createdUser.uuid] = OurlandMarker(chat.id, chat.geo, chat.type, chat.content, chat.createdUser.username);
+      this._pendingMarkerList[chat.createdUser.uuid] = OurlandMarker(chat.id, chat.geo, type, chat.content, chat.createdUser.username);
+      setState(() {
+        this._pendingMarkerList = this._pendingMarkerList;
+      });
     }// Add involved user in the summary;
     widget.updateUser(chat.createdUser);
     _addImage(chat);
@@ -122,8 +129,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   void _addImage(Chat chat) {
     if(_galleryImageUrlList[chat.id] == null) {
       String imageUrl;
-      if(chat.type == 1) {
+      if(chat.type == 1 && (chat.imageUrl == null || chat.imageUrl.length == 0)) {
         imageUrl = chat.content;
+        //print("chat.content ${chat.content}");
       } else {
         imageUrl = chat.imageUrl;
       }
@@ -195,11 +203,13 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   void _buildMessageSummaryWidget() {
       Stream<QuerySnapshot> stream = chatStream.value;
       print("stream ${stream.length}");
+      int i = 0;
       stream.forEach((action){
         for(var entry in action.documents) {
           Map<String, dynamic> document = entry.data;
           Chat chat = Chat.fromMap(document);
-          addChat(chat);
+          addChat(chat, i);
+          i++;
         }
       });
       setState(() {
@@ -346,7 +356,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                   child: new IconButton(
                     icon: hideIconButton,
                      onPressed: () => updateVisible(widget.topic.isGlobalHide),
-                    color: bookmarkColor,
+                    color: Colors.red,
                   ),
                 ),
                 color: TOPIC_COLORS[widget.topic.color],

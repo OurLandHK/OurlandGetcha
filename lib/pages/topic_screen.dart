@@ -151,7 +151,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       this.chatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
     }
 */    
-    this._pendingMarkerList.add(OurlandMarker(messageId, location, type, topic.topic, topic.createdUser.username));
+    this._pendingMarkerList.add(OurlandMarker(messageId, location, 0, topic.topic, topic.createdUser.username));
     GeoPoint _messageLocation;
     if(this.fixLocation != null) {
       _messageLocation = this.fixLocation;

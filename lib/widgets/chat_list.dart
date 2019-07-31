@@ -66,8 +66,8 @@ class ChatList extends StatelessWidget {
                     itemBuilder: (context, index) {
                         Map<String, dynamic> chatDocument = snapshot.data.documents[index].data;
                         Chat chat = Chat.fromMap(chatDocument);
-                        print("${index} ${chat.id}");
-                        print("type ${chat.type} ${chat.content} ${chat.imageUrl}");
+                        //print("${index} ${chat.id}");
+                        //print("type ${chat.type} ${chat.content} ${chat.imageUrl}");
                         return buildItem(chat, null, context);
                     },
                     itemCount: snapshot.data.documents.length,
