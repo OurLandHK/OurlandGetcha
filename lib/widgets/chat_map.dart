@@ -10,15 +10,9 @@ class OurlandMarker {
   final GeoPoint location;
   String label;
   String messageId;
-  OurlandMarker(this.messageId, this.location, int contentType, String content, String username) {
-    this.label = "";
-    switch (contentType) {
-      case 0:
-        this.label = content;
-        break;
-      default:
-        this.label = username;
-    }
+  String username;
+  int type;
+  OurlandMarker(this.messageId, this.location, this.type, this.label, this.username) {
   }
 }
 class ChatMap extends StatefulWidget {
@@ -42,44 +36,7 @@ class ChatMap extends StatefulWidget {
     this.geodesy = Geodesy();
     zoomAdjustment(topLeft, bottomRight);
   }
-/*
-  void addLocation(String messageId,
-      GeoPoint location, String content, int contentType, String username) {
-    String label = "";
-    switch (contentType) {
-      case 0:
-        label = content;
-        break;
-      default:
-        label = username;
-    }
-    // only handle text message now
-    if (state != null && state.googleMapWidget != null) {
-      state.googleMapWidget.addMarker(location, label, messageId);
-    }
-  }
 
-  void addMarker(GeoPoint location, String label, String messageId) {
-    if (state != null && state.googleMapWidget != null) {
-      state.googleMapWidget.clearMarkers();
-      state.googleMapWidget.addMarker(location, label, messageId);
-    }
-  }
-
-  void clearMarkers() {
-    if (state != null && state.googleMapWidget != null) {
-      state.googleMapWidget.clearMarkers();
-    }
-  }
-
-  void updateCenter(GeoPoint _mapCenter) {
-//    print('ChatMap called ${_mapCenter}');
-    mapCenter = _mapCenter;
-    if (state != null && state.googleMapWidget != null) {
-      state.googleMapWidget.updateMapCenter(_mapCenter, 15);
-    }
-  }
-*/
   void zoomAdjustment(GeoPoint topLeft, GeoPoint bottomRight) {
     LatLng l1 = LatLng(topLeft.latitude, topLeft.longitude);
     LatLng l2 = LatLng(bottomRight.latitude, bottomRight.longitude);
@@ -99,15 +56,7 @@ class ChatMap extends StatefulWidget {
     }
     //print("${this.zoom} + " " + ${distance}");
   }
-/*
-  void updateMapArea(GeoPoint topLeft, GeoPoint bottomRight) {
-    this.mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
-    zoomAdjustment(topLeft, bottomRight);
-    if (state != null && state.googleMapWidget != null) {
-      state.googleMapWidget.updateMapCenter(this.mapCenter, this.zoom);
-    }
-  }
-*/
+
   @override
   _ChatMapState createState() {
     state = new _ChatMapState();
@@ -132,15 +81,30 @@ class _ChatMapState extends State<ChatMap> {
     Map<GoogleMap.MarkerId, GoogleMap.Marker> googleMarkers = <GoogleMap.MarkerId, GoogleMap.Marker>{};
     for(int i = 0; i < widget.markerList.length; i++) {
       GoogleMap.MarkerId markerId = GoogleMap.MarkerId(widget.markerList[i].messageId);
-      GoogleMap.Marker marker = GoogleMap.Marker(
-        markerId: markerId,
-        position: GoogleMap.LatLng(widget.markerList[i].location.latitude, widget.markerList[i].location.longitude),
-        infoWindow: GoogleMap.InfoWindow(title: widget.markerList[i].label, snippet: '*'),
-        icon: GoogleMap.BitmapDescriptor.fromAsset('assets/images/smallnote.png')
-/*      onTap: () {
-        _onMarkerTapped(markerId);
-      },*/
-      );    
+      GoogleMap.Marker marker = null;
+      switch(widget.markerList[i].type) {
+        case 0:
+          marker = GoogleMap.Marker(
+            markerId: markerId,
+            position: GoogleMap.LatLng(widget.markerList[i].location.latitude, widget.markerList[i].location.longitude),
+            infoWindow: GoogleMap.InfoWindow(title: widget.markerList[i].label, snippet: '*'),
+            icon: GoogleMap.BitmapDescriptor.fromAsset('assets/images/smallnote.png')
+    /*      onTap: () {
+            _onMarkerTapped(markerId);
+          },*/
+          );
+          break;
+        default: 
+          marker = GoogleMap.Marker(
+            markerId: markerId,
+            position: GoogleMap.LatLng(widget.markerList[i].location.latitude, widget.markerList[i].location.longitude),
+            infoWindow: GoogleMap.InfoWindow(title: widget.markerList[i].label, snippet: '*'),
+    /*      onTap: () {
+            _onMarkerTapped(markerId);
+          },*/
+          );
+          break;        
+      }
       googleMarkers[markerId] = marker;
     }
 //    print("Marker Length 3 ${widget.markerList.length}");
