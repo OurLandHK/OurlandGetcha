@@ -100,6 +100,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   @override
   void initState() {
     this.uid = '';
+    _currentLocation = new GeoPoint(22.266455999999998, 114.23257000000001);
     _nearBySelection = new CircularProgressIndicator();
     messageService = new MessageService(widget.user);
     /*
@@ -120,7 +121,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           _locationPermissionGranted = true;
       } else {
           _locationPermissionGranted = false;
-        requestLocationPermission();
+        //requestLocationPermission();
       }
     });
     // get GPS
@@ -129,10 +130,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
         if(position != null) {
           print('initState Poisition ${position}');
-          //setState(() {
-            _currentLocation = new GeoPoint(position.latitude, position.longitude);
-            _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
-          //});
+          _currentLocation = new GeoPoint(position.latitude, position.longitude);
+          _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
         }
       });
     }
@@ -160,7 +159,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
         } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
           error = 'Permission denied - please ask the user to enable it from the app settings';
         }
-
+        print("GPS ${error}");
         location = null;
       }
 
@@ -180,6 +179,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   }
 
   GeoPoint getCurrentLocation() {
+    print("getCurrentLocation ${_currentLocation}");
     GeoPoint rv;
     if(_currentLocation != null) {
       rv = _currentLocation; 
@@ -298,6 +298,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
         setState(() {
           _locationPermissionGranted = true;
         });
+        initPlatformState();
       }
     });
   }
@@ -411,6 +412,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           ],
         ),
         body: new TabBarView(
+          physics: NeverScrollableScrollPhysics(),
           controller: _tabController,
           children: <Widget>[
             showNotification(),

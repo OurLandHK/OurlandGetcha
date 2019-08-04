@@ -71,12 +71,12 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   GeoPoint messageLocation;
 
   String _currentLocationSelection;
-  bool _locationPermissionGranted = false;
+//  bool _locationPermissionGranted = false;
   List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
 
   String _firstTag = "";
 
-  Geolocator _geolocator = new Geolocator();
+//  Geolocator _geolocator = new Geolocator();
   LocationOptions locationOptions = new LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
   GeolocationStatus geolocationStatus = GeolocationStatus.denied;
   String error;
@@ -84,6 +84,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   final TextEditingController textEditingController = new TextEditingController();
   final ScrollController listScrollController = new ScrollController();
   final FocusNode focusNode = new FocusNode();
+  Function _updateCenter;
 
   
 
@@ -105,6 +106,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     }
     _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;    
+    _updateCenter = setLocation;
     bool _tempExpand = true;
     try {
       _tempExpand = widget.preferences.getBool('TOPIC_EXPANDED');
@@ -117,19 +119,23 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
 
   List<DropdownMenuItem<String>> _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION , true);
 
-  void setLocation(GeoPoint location) {
-    //print("${location}");
+  Future<void> setLocation(GeoPoint location) async {
     GeoPoint _temp = location;
     if(location == null) {
-      _temp = widget.getCurrentLocation();
+      _temp = await widget.getCurrentLocation();
     }
-    setState(() {
-      this.fixLocation = _temp;
-      this.messageLocation = _temp;
-      this._markerList = [];
-      this._pendingMarkerList =[];  
-    });
-    print("setLocation ${this.messageLocation.latitude}");
+    if(_temp != null && _temp.latitude == this.messageLocation.latitude && _temp.longitude == this.messageLocation.longitude ) {
+      _temp  = null;
+    }
+    if(_temp != null && _temp.latitude != null) {
+      setState(() {
+        this.fixLocation = _temp;
+        this.messageLocation = _temp;
+        this._markerList = [];
+        this._pendingMarkerList =[];       
+      });
+      print("setLocation ${this.messageLocation.latitude}");
+    }
   }
 
   void onFocusChange() {
@@ -144,13 +150,6 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     Widget rv; 
     int type = 0;
     GeoPoint location = topic.geoCenter;
-/*
-    if(this._pendingChatMap != null) {
-      this._pendingChatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
-    } else {
-      this.chatMap.addLocation(messageId, location, topic.topic, type, topic.createdUser.username);
-    }
-*/    
     this._pendingMarkerList.add(OurlandMarker(messageId, location, 0, topic.topic, topic.createdUser.username));
     GeoPoint _messageLocation;
     if(this.fixLocation != null) {
@@ -170,6 +169,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         print("Show Home ${widget.user.username}");
         if(widget.user.homeAddress != null) {
           setLocation(widget.user.homeAddress);
+          _updateCenter = null;
         } else {
           Navigator.of(context).push(
             new MaterialPageRoute<void>(
@@ -183,6 +183,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       void showOffice() {
         if(widget.user.officeAddress != null) {
           setLocation(widget.user.officeAddress);
+          _updateCenter = null;
         } else {
           Navigator.of(context).push(
             new MaterialPageRoute<void>(
@@ -195,6 +196,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       }
       void showNearby() {
         setLocation(null);
+        _updateCenter = setLocation;
       }
       void updateLocation(String locationSelection) {
         switch(locationSelection) {
@@ -263,11 +265,10 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     }
     PreferredSizeWidget appBar;
     Widget map = Container(height: MAP_HEIGHT);
-//    print("Marker Length 1 ${this._markerList.length} ${this._pendingMarkerList.length}");
     if(this._markerList.length == this._pendingMarkerList.length) {
-      map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._markerList);
+      map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._markerList, updateCenter: _updateCenter,);
     } else {
-      map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._pendingMarkerList);
+      map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._pendingMarkerList, updateCenter: _updateCenter);
     }
     if(expanded) {
       _pendingMarkerList.clear();
@@ -289,7 +290,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
                 child: Row(children: buildToolBar(context))));
     }
     WidgetsBinding.instance
-      .addPostFrameCallback((_) => _swapMap(context));
+      .addPostFrameCallback((_) => _swapValuable(context));
     return new Scaffold(
         appBar: appBar,
         body: Container(
@@ -317,7 +318,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     );
   }
 
-  void _swapMap(BuildContext context) {
+  void _swapValuable(BuildContext context) {
 //    print("Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
     if(this._markerList.length != this._pendingMarkerList.length) {
       List<OurlandMarker> tempList = new List<OurlandMarker>();

@@ -186,20 +186,12 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           this.messageLocation = widget.user.officeAddress;
           break;
       }
-      /*
-      GeoPoint mapCenter = this.messageLocation;
-      if(this.chatMap == null) {        
-        this.chatMap = new ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation, height: MAP_HEIGHT);
-      } else {
-        this.chatMap.updateCenter(mapCenter);
-      }
-      */
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: []);
+    Widget map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: [], updateCenter: null);
 
     Widget body = new WillPopScope(
       child: Column(
