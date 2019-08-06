@@ -21,6 +21,7 @@ class ChatMap extends StatefulWidget {
   double height;
   double width;
   double zoom;
+  Function updateCenter;
   final List<OurlandMarker> markerList;
   _ChatMapState state;
 
@@ -30,7 +31,8 @@ class ChatMap extends StatefulWidget {
       @required GeoPoint bottomRight,
       this.width,
       @required this.height,
-      this.markerList})
+      this.markerList,
+      this.updateCenter})
       : super(key: key) {
     this.mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
     this.geodesy = Geodesy();
@@ -77,6 +79,12 @@ class _ChatMapState extends State<ChatMap> {
     this.googleMapWidget = createMapWithMarker();
   }
 
+  void upCenter(double longitude, double latitude) {
+    if(widget.updateCenter != null) {
+      widget.updateCenter(GeoPoint(latitude, longitude));
+    }
+  }
+
   GoogleMapWidget createMapWithMarker() {
     Map<GoogleMap.MarkerId, GoogleMap.Marker> googleMarkers = <GoogleMap.MarkerId, GoogleMap.Marker>{};
     for(int i = 0; i < widget.markerList.length; i++) {
@@ -107,11 +115,12 @@ class _ChatMapState extends State<ChatMap> {
       }
       googleMarkers[markerId] = marker;
     }
-//    print("Marker Length 3 ${widget.markerList.length}");
-//    print("Google Marker Length 1 ${googleMarkers.length}");
-//    print("Google Map Center 1 ${widget.mapCenter.latitude} ${widget.mapCenter.longitude}");
+    Function _updateCenter = null;
+    if(widget.updateCenter != null) {
+      _updateCenter = upCenter;
+    }
     return new GoogleMapWidget(widget.mapCenter.latitude,
-        widget.mapCenter.longitude, widget.width, widget.height, widget.zoom, googleMarkers);    
+        widget.mapCenter.longitude, widget.width, widget.height, widget.zoom, googleMarkers, upCenter);    
   }
 
   @override

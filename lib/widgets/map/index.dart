@@ -8,41 +8,12 @@ class GoogleMapWidget extends StatefulWidget {
   final double width;
   final double height;
   final Map<MarkerId, Marker> googleMarkers;
+  final Function upCenter;
   double zoom;
   _GoogleMapWidgetState state;
 
   GoogleMapWidget(
-      this.latitude, this.longitude, this.width, this.height, this.zoom, this.googleMarkers);
-/*
-  void updateMapCenter(GeoPoint center, double zoom) {
-    this.zoom = zoom;
-//    print('GoogleMapWidget called ${center} ${zoom}');
-    state.mapController.animateCamera(CameraUpdate.newCameraPosition(
-        CameraPosition(
-            target: center == null
-                ? LatLng(0, 0)
-                : LatLng(center.latitude, center.longitude),
-            zoom: this.zoom)));
-  }
-
-  void addMarker(GeoPoint location, String label ,String messageId) {
-    final MarkerId markerId = MarkerId(messageId);
-    final Marker marker = Marker(
-      markerId: markerId,
-      position: LatLng(location.latitude, location.longitude),
-      infoWindow: InfoWindow(title: label, snippet: '*'),
-      icon: BitmapDescriptor.fromAsset('assets/images/smallnote.png')
-/*      onTap: () {
-        _onMarkerTapped(markerId);
-      },*/
-    );    
-    state.addMarker(markerId, marker);
-  }
-
-  void clearMarkers() {
-    state.clearMarkers();
-  }
-*/
+      this.latitude, this.longitude, this.width, this.height, this.zoom, this.googleMarkers, this.upCenter);
   @override
   _GoogleMapWidgetState createState() {
     state = new _GoogleMapWidgetState(googleMarkers);
@@ -54,6 +25,8 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
   Map<MarkerId, Marker> markers;
   bool _isCleanUp = false;
   GoogleMap _gMap;
+  double latitude;
+  double longitude;
   _GoogleMapWidgetState(this.markers) {
 //    print("Marker Length 2 ${markers.length}");
   }
@@ -74,6 +47,16 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    void updateCamera(CameraPosition camPos) {
+      this.longitude = camPos.target.longitude;
+      this.latitude = camPos.target.latitude;
+    }
+
+    void updateLatLng() {
+      print("updateLatLng ${longitude} ${latitude}");
+      widget.upCenter(longitude, latitude);
+    }
+
     double width = double.infinity;
     if(widget.width != 0) {
       width = widget.width; 
@@ -85,9 +68,21 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
 //    print("Google Marker Length 3 ${markers.length}");
 //    print("Google Marker Length 4 ${widget.googleMarkers.length}");
 //    print("Google Map Center 1 ${widget.latitude} ${widget.longitude}");
+    Function onCameraMove = null;
+    Function onCameraIdle = null;
+    bool _isMyLocation = false;
+    if(widget.upCenter != null) {
+      onCameraMove = updateCamera;
+      onCameraIdle = updateLatLng;
+      _isMyLocation = true;
+    }
     _gMap = GoogleMap(
                 onMapCreated: _onMapCreated,
-                myLocationEnabled: true,
+                myLocationEnabled: _isMyLocation,
+                myLocationButtonEnabled: _isMyLocation,
+                scrollGesturesEnabled: _isMyLocation,
+                onCameraMove: onCameraMove,
+                onCameraIdle: onCameraIdle,
                 initialCameraPosition: new CameraPosition(
                   target: LatLng(widget.latitude, widget.longitude),
                   zoom: widget.zoom,

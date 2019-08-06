@@ -257,9 +257,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     if(widget.chatMode == Chat_Mode.MAP_MODE) {
           print("build Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
       if(this._markerList.length == this._pendingMarkerList.length) {
-        widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._markerList));
+        widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._markerList, updateCenter: null,));
       } else {
-        widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._pendingMarkerList.values.toList()));
+        widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._pendingMarkerList.values.toList(), updateCenter: null,));
       }
       if(_titleLink != null) {
         widgetList.add(_titleLink);

@@ -136,18 +136,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
       //updateMap();
     }
   }
-/*
-  void updateMap() {
-    if (this.map == null) {
-      this.map = new ChatMap(
-          topLeft: this._currentLocation,
-          bottomRight: this._currentLocation,
-          height: MAP_HEIGHT);
-    } else {
-      this.map.updateCenter(this._currentLocation);
-    }
-  }
-*/
+
   void refreshMarker(String label) {
     setState(() {
       _label = label;
@@ -183,7 +172,8 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
           topLeft: this._currentLocation,
           bottomRight: this._currentLocation,
           height: MAP_HEIGHT,
-          markerList: [OurlandMarker(_label, this._currentLocation, 0, _label, "settings")],);
+          markerList: [OurlandMarker(_label, this._currentLocation, 0, _label, "settings")],
+          updateCenter: null,);
   }
 
   Widget renderLocationField() {
