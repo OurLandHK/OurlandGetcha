@@ -96,10 +96,9 @@ const List<Color> TOPIC_COLORS = [
   Color(0xFFA7FEEA),
   Color(0xFFE6C9A9),
   Color(0xFFE8EAEE),
-  Color(0xFFA7FEEA),
+  Color(0xFFA7A7EA),
   Color(0xFFCAF0F8),
-  Color(0xFFFFFFFF),
-
+  Color(0xFFD0D0D0),
 ];
 
 const List<Color> TOPIC_COLORS_DARKER = [
@@ -110,7 +109,7 @@ const List<Color> TOPIC_COLORS_DARKER = [
   Color(0xFF537876),
   Color(0xFF737454),
   Color(0xFF747570),
-  Color(0xFF547575),
+  Color(0xFF545475),
   Color(0xFF657574),
   Color(0xFF808080),
 ];
