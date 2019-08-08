@@ -264,17 +264,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     super.initState();
   }
 
+/*
   Future getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.gallery);
     setState(() {
       avatarImage = image;
     });
   }
-
+*/
   renderSizeBox() {
     return SizedBox(height: 10.0);
   }
 
+/*
   renderAvatar() {
     return GestureDetector(
         onTap: getImage,
@@ -290,7 +292,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       : new ExactAssetImage(avatarImage.path),
                 ))));
   }
-
+*/
   renderUsernameField() {
     return TextField(
         decoration: InputDecoration(hintText: REG_USERNAME_HINT_TEXT),
@@ -343,7 +345,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  renderAvatar(),
+          //        renderAvatar(),
                   renderSizeBox(),
                   renderUsernameField(),
                   renderSizeBox(),

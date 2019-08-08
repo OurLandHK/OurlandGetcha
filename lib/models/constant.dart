@@ -40,8 +40,8 @@ const String LABEL_RECENT = "睇過";
 const String LABEL_BOOKMARK = "跟";
 
 const String MENU_ITEM_SETTINGS = "設定";
-const String MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION = "地點1";
-const String MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION = "地點2";
+const String MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION = "收風地點1";
+const String MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION = "收風地點2";
 const String MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE = "設定照片（實名Memo 先出）";
 const String MENU_ITEM_NOT_FOUND_ERR = "冇貨";
 
@@ -51,7 +51,7 @@ const String MENU_ITEM_LOGOUT = "變CD-ROM";
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
-const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠", "美食", "秘境", "維修", "遊戲", "交換", "我地.市正"];
+const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠", "美食", "秘境", "維修", "遊戲", "交換", "我地.市正", "求救！"];
 const String LABEL_TOPIC = "Memo";
 const String LABEL_NEW_TOPIC = "新Memo";
 const String LABEL_NEW_BROADCAST_TOPIC = "新廣播";
