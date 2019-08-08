@@ -203,14 +203,12 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        // on message {notification: {title: null, body: {'id': '1553099389364'}}, data: {}}
         var data = message['data'];
         String id = data['id'];
         print('on message $message    data $data id $id');
         _showItemDialog(message);
       },
       onResume: (Map<String, dynamic> message) async {
-        // on resume {notification: {}, data: {collapse_key: hk.ourland.wall, google.original_priority: high, google.sent_time: 1553878529834, google.delivered_priority: high, google.ttl: 2419200, from: 757324443294, id: 1553099389364, click_action: FLUTTER_NOTIFICATION_CLICK, google.message_id: 0:1553878530232073%41221c0241221c02}}
         var data = message['data'];
         String id = data['id'];
         print('on resume $message    data $data id $id');
