@@ -29,6 +29,10 @@ class UserService {
     final User user =
           new User(uuid, username, avatarUrl, null, null, now, now);
     final Map<String, dynamic> data = user.toMap();
+    return userCollection.document(uuid).setData(data).then((value) {
+      return user;
+    });
+/*    
     final TransactionHandler createTransaction = (Transaction tx) async {
       final DocumentSnapshot ds = await tx.get(userCollection.document(uuid));
       await tx.set(ds.reference, data);
@@ -45,6 +49,7 @@ class UserService {
       print('error: $error');
       return null;
     });
+*/    
   }
 
   Future<void> updateUser(String uuid, var newValues) {

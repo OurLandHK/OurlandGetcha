@@ -208,19 +208,21 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   }
 
   void onPressed()  {
-    _geolocator.placemarkFromAddress(_location).then(
-        (List<Placemark> placemark) {
-      Position pos = placemark[0].position;
-      String markerLabel = placemark[0].name;
-      setState(() {
-        this._currentLocation = new GeoPoint(pos.latitude, pos.longitude);
+    if(_location != null && _location.length > 1) {
+      _geolocator.placemarkFromAddress(_location).then(
+          (List<Placemark> placemark) {
+        Position pos = placemark[0].position;
+        String markerLabel = placemark[0].name;
+        setState(() {
+          this._currentLocation = new GeoPoint(pos.latitude, pos.longitude);
+        });
+        //updateMap();
+        refreshMarker(markerLabel);
+      }, onError: (e) {
+        // PlatformException thrown by the Geolocation if the address cannot be translate
+        // DO NOTHING
       });
-      //updateMap();
-      refreshMarker(markerLabel);
-    }, onError: (e) {
-      // PlatformException thrown by the Geolocation if the address cannot be translate
-      // DO NOTHING
-    });
+    }
   }
 
   Widget renderUpdateLocationButton() {
