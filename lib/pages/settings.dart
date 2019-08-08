@@ -20,7 +20,7 @@ class SettingsScreen extends StatelessWidget {
   List<String> _settingsItems = [
     MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION,
     MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION,
-    MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE,
+/*    MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE, */
   ];
 
   void onTapped(BuildContext context, String item) {
