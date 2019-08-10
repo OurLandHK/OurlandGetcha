@@ -365,7 +365,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             return new SendTopicScreen(
-                messageLocation: messageLocation, user: widget.user, isBroadcast: (_tabController.index == 1),);
+                messageLocation: messageLocation, user: widget.user, isBroadcast: (_tabController.index == 0),);
           },
         ),
       );
