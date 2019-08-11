@@ -80,6 +80,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     };
 
     final PhoneVerificationFailed veriFailed = (AuthException exception) {
+      print('falied');
       _scaffoldKey.currentState
           .showSnackBar(new SnackBar(content: new Text(exception.message)));
     };
