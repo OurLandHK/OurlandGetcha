@@ -181,6 +181,24 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       });
   }
 
+  Future updateBroadcast(bool newState) async {
+    int type = 4; // Hide
+    String content = MESSAGE_BROADCAST; 
+    if(newState) {
+      type = 5; //visible
+      content = MESSAGE_LOCAL; 
+    }
+    await messageService.sendChildMessage(widget.topic.id, widget.messageLocation, content, null, type);
+    return _userService.addRecentTopic(messageService.user.uuid, widget.topic.id, widget.messageLocation).then((User temp1) {
+        Map topicMap = widget.topic.toMap();
+        topicMap['public'] = !newState;
+        setState(() {
+          widget.topic = Topic.fromMap(topicMap);
+        }); 
+        return temp1;
+      });
+  }  
+
   buildMessageSummaryWidget() async {
     if(widget.user != null) {
     _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopic) {
@@ -221,21 +239,65 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     WidgetsBinding.instance
       .addPostFrameCallback((_) => _swapMap(context));    
     // _cratedDate
-    Icon icon = Icon(Icons.visibility);
+    Icon visibilityIcon = Icon(Icons.visibility);
     Icon hideIconButton = Icon(Icons.visibility_off);
     if(widget.topic.isGlobalHide) {
-      icon = Icon(Icons.visibility_off);
+      visibilityIcon = Icon(Icons.visibility_off);
       hideIconButton = Icon(Icons.visibility);
     }
-    Material hideIcon = Material(child: new Container(
+    Icon broadcastIcon = Icon(Icons.location_on);
+    Icon broadcastIconButton = Icon(Icons.location_city);
+    if(widget.topic.isPublic) {
+      broadcastIcon = Icon(Icons.location_city);
+      broadcastIconButton = Icon(Icons.location_on);
+    }
+    Material visibilityStatus = Material(child: new Container(
         margin: new EdgeInsets.symmetric(horizontal: 8.0),
         child: new IconButton(
-          icon: icon,
+          icon: visibilityIcon,
           color: primaryColor,
+          onPressed: (widget.user != null && widget.user.globalHideRight == true) ?
+            (() => updateVisible(widget.topic.isGlobalHide)):
+            null          
         ),
       ),
       color: TOPIC_COLORS[widget.topic.color]);
-
+    Material broadcastStatus = Material(child: new Container(
+        margin: new EdgeInsets.symmetric(horizontal: 8.0),
+        child: new IconButton(
+          icon: broadcastIcon,
+          color: primaryColor,
+          onPressed: (widget.user != null && widget.user.sendBroadcastRight == true) ?
+            (() => updateBroadcast(widget.topic.isPublic)):
+            null
+        ),
+      ),
+      color: TOPIC_COLORS[widget.topic.color]);  
+/*
+(widget.user != null && widget.user.globalHideRight == true) ? Material(
+                child: new Container(
+                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
+                  child: new IconButton(
+                    icon: hideIconButton,
+                     onPressed: () => updateVisible(widget.topic.isGlobalHide),
+                    color: Colors.red,
+                  ),
+                ),
+                color: TOPIC_COLORS[widget.topic.color],
+              ):Container(),
+              
+              (widget.user != null && widget.user.sendBroadcastRight == true) ? Material(
+                child: new Container(
+                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
+                  child: new IconButton(
+                    icon: broadcastIconButton,
+                     onPressed: () => updateBroadcast(widget.topic.isPublic),
+                    color: Colors.red,
+                  ),
+                ),
+                color: TOPIC_COLORS[widget.topic.color],
+              ):Container()
+*/
     Text _createdDate = Text(
         DateFormat('dd MMM kk:mm').format(
             new DateTime.fromMicrosecondsSinceEpoch(
@@ -243,7 +305,8 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         style: Theme.of(context).textTheme.subtitle);
     _baseInfo = new Row(children: <Widget>[
       new BaseProfile(user: widget.topic.createdUser), 
-      hideIcon,
+      visibilityStatus,
+      broadcastStatus,
       new Column(children: <Widget>[
         _createdDate,
         new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowName.toString(), style: Theme.of(context).textTheme.subtitle),
@@ -350,17 +413,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                 ),
                 color: TOPIC_COLORS[widget.topic.color],
               ):Container(),
-              (widget.user != null && widget.user.globalHideRight == true) ? Material(
-                child: new Container(
-                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
-                  child: new IconButton(
-                    icon: hideIconButton,
-                     onPressed: () => updateVisible(widget.topic.isGlobalHide),
-                    color: Colors.red,
-                  ),
-                ),
-                color: TOPIC_COLORS[widget.topic.color],
-              ):Container() ]);  
+               ]);  
     widgetList.add(_toolBar);
     Widget summaryPostit = Padding(
             padding: const EdgeInsets.all(4.0),

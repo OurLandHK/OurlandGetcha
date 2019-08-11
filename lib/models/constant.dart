@@ -30,6 +30,8 @@ const String LABEL_CHOICE_OTHER_TAG = "冇貨, 選過第二樣";
 
 const String MESSAGE_HIDE = "隱藏不恰當訊息";
 const String MESSAGE_SHOW = "解除隱藏";
+const String MESSAGE_BROADCAST = "推上香港·主牆";
+const String MESSAGE_LOCAL = "回到地區";
 
 const String LABEL_NEARBY = "附近";
 const String LABEL_REGION0 = "地點1";
