@@ -68,6 +68,8 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     };
 
     final PhoneCodeSent smsCodeSent = (String verId, [int forceCodeResend]) {
+      _scaffoldKey.currentState
+          .showSnackBar(new SnackBar(content: new Text("SMS Sent")));
       this.verificationId = verId;
       smsCodeDialog(context).then((value) {
         print('Signed in');
@@ -75,7 +77,8 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
     };
 
     final PhoneVerificationCompleted verifiedSuccess = (AuthCredential phoneAuthCredential){
-      print('verified');
+      _scaffoldKey.currentState
+          .showSnackBar(new SnackBar(content: new Text("Verified")));
       _auth.signInWithCredential(phoneAuthCredential);
     };
 
