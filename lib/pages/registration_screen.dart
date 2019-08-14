@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
@@ -10,6 +11,8 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
+final GoogleSignIn _googleSignIn = GoogleSignIn();
+
 class PhoneAuthenticationScreen extends StatefulWidget {
   SharedPreferences preferences;
   bool firstPage;
@@ -202,17 +205,116 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   }
 
   renderAccessAsNobody(content) {
-    return RaisedButton(
-        onPressed: () => Navigator.of(context).pushReplacement(
+    return OutlineButton(
+      splashColor: Colors.grey,
+      onPressed:  () => Navigator.of(context).pushReplacement(
             new MaterialPageRoute(builder: (context) => OurlandHome(null ,widget.preferences))),
-        child: Text(NOBODY_BUTTON_TEXT),
-        textColor: Colors.white,
-        elevation: 7.0,
-        color: Colors.blue);
+       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+      highlightElevation: 0,
+      borderSide: BorderSide(color: Colors.grey),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Text(
+                NOBODY_BUTTON_TEXT,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.grey,
+                ),
+              ),
+            )
+          ],
+        ),
+      )
+    );
   }
 
   renderSizeBox() {
     return SizedBox(height: 10.0);
+  }
+
+  Widget _renderGoogleSignInButton() {
+    return OutlineButton(
+      splashColor: Colors.grey,
+      onPressed: () {
+        _signInWithGoogle();
+      /*  .whenComplete(() {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                return FirstScreen();
+              },
+            ),
+          );
+        });
+        */
+      },
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+      highlightElevation: 0,
+      borderSide: BorderSide(color: Colors.grey),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Image(image: AssetImage("assets/images/google_logo.png"), height: 35.0),
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Text(
+                'Sign in with Google',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.grey,
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _signInWithGoogle() async {
+    final GoogleSignInAccount googleSignInAccount = await _googleSignIn.signIn();
+    final GoogleSignInAuthentication googleSignInAuthentication =
+        await googleSignInAccount.authentication;
+
+    final AuthCredential credential = GoogleAuthProvider.getCredential(
+      accessToken: googleSignInAuthentication.accessToken,
+      idToken: googleSignInAuthentication.idToken,
+    );
+
+    final FirebaseUser fbuser = await _auth.signInWithCredential(credential);
+
+    assert(!fbuser.isAnonymous);
+    assert(await fbuser.getIdToken() != null);
+
+    final FirebaseUser currentUser = await _auth.currentUser();
+    assert(fbuser.uid == currentUser.uid);
+    return userService.getUser(fbuser.uid).then((user) {
+          if (user != null) {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
+          } else {
+            Navigator.of(context).push(new MaterialPageRoute(
+                builder: (context) => RegistrationScreen(fbuser, widget.preferences)));
+          }
+        });
+
+//    return 'signInWithGoogle succeeded: $user';
+  }
+
+  void _signOutGoogle() async{
+    await _googleSignIn.signOut();
+
+    print("User Sign Out");
   }
 
   @override
@@ -226,10 +328,13 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 renderAppLogo(),
+                _renderGoogleSignInButton(),
+/*                
                 renderPhoneNumberField(),
                 renderSizeBox(),
                 renderSizeBox(),
                 renderSubmitButton(context),
+ */               
                 (widget.firstPage) ? renderAccessAsNobody(context) : Container(),
               ],
             )),

@@ -7,7 +7,7 @@ description: Location Base Forum.
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
 # Read more about versioning at semver.org.
-version: 2.1.0
+version: 3.0.0
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
@@ -16,7 +16,8 @@ dependencies:
   flutter:
     sdk: flutter
   firebase_core: ^0.4.0+1
-  firebase_auth: ^0.11.1
+  firebase_auth: ^0.11.1+8
+  google_sign_in: ^4.0.4
   cloud_firestore: ^0.11.0+2
   firebase_database: ^3.0.0
   firebase_storage: ^3.0.0
