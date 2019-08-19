@@ -9,7 +9,8 @@ const String SMS_CODE_DIALOG_BUTTON_TEXT = "核實";
 const String REG_BUTTON_TEXT = "註冊";
 const String NOBODY_BUTTON_TEXT = "做CDROM";
 const String REG_USERNAME_HINT_TEXT = "輸入用戶名稱";
-const String OUTLAND_SEARCH_HOST = "https://ourlandtest.firebaseapp.com";
+//const String OUTLAND_SEARCH_HOST = "https://ourlandtest.firebaseapp.com";
+const String OUTLAND_SEARCH_HOST = "https://ourland.hk";
 
 const String REG_PHONE_NUMBER_HINT_TEXT = "輸入香港電話號碼: ########";
 const String REG_FAILED_TO_CREATE_USER_TEXT = "註冊唔到";

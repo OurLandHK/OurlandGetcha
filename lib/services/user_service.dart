@@ -5,6 +5,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+final FirebaseAuth _auth = FirebaseAuth.instance;
+final GoogleSignIn _googleSignIn = GoogleSignIn();
 
 final CollectionReference userCollection =
     Firestore.instance.collection('getChatUsers');
@@ -182,6 +186,7 @@ class UserService {
   }
 
   Future<void> logout() async {
+    //return  _googleSignIn.signOut();
     return FirebaseAuth.instance.signOut();
   }
 
@@ -268,47 +273,47 @@ class UserService {
       "有領導才能的"
     ];
   static List<String> _POSTIVE_NAME = [
-      "涂謹申",
-      "梁耀忠",
-      "李國麟",
-      "毛孟靜",
-      "胡志偉",
-      "莫乃光",
-      "陳志全",
-      "梁繼昌",
-      "郭家麒",
-      "郭榮鏗",
-      "張超雄",
-      "黃碧雲",
-      "葉建源",
-      "楊岳橋",
-      "尹兆堅",
-      "朱凱廸",
-      "何君堯",
-      "林卓廷",
-      "邵家臻",
-      "陳沛然",
-      "陳淑莊",
-      "許智峯",
-      "鄭松泰",
-      "鄺俊宇",
-      "譚文豪",
-      "范國威",
-      "區諾軒",
-      "梁頌恆",
-      "游蕙禎",
-      "梁天琦",
-      "陳浩天",
-      "黃台仰",
-      "周庭",
-      "古思堯",
-      "黃之鋒",
-      "羅冠聰",
-      "梁國雄",
-      "戴耀廷",
-      "吳文遠",
-      "劉小麗",
-      "游蕙禎"
+      "謹申",
+      "耀忠",
+      "國麟",
+      "孟靜",
+      "志偉",
+      "乃光",
+      "志全",
+      "繼昌",
+      "家麒",
+      "榮鏗",
+      "超雄",
+      "碧雲",
+      "建源",
+      "岳橋",
+      "兆堅",
+      "凱廸",
+      "君堯",
+      "卓廷",
+      "家臻",
+      "沛然",
+      "淑莊",
+      "智峯",
+      "松泰",
+      "俊宇",
+      "文豪",
+      "國威",
+      "諾軒",
+      "頌恆",
+      "蕙禎",
+      "天琦",
+      "浩天",
+      "台仰",
+      "庭",
+      "思堯",
+      "之鋒",
+      "冠聰",
+      "國雄",
+      "耀廷",
+      "文遠",
+      "小麗",
+      "蕙禎"
     ];
   static List<String> _NEGATIVE_ADJ = [
       "陳舊的",
