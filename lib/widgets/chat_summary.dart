@@ -182,10 +182,10 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
 
   Future updateBroadcast(bool newState) async {
-    int type = 4; // Hide
+    int type = 6; // Hide
     String content = MESSAGE_BROADCAST; 
     if(newState) {
-      type = 5; //visible
+      type = 7; //visible
       content = MESSAGE_LOCAL; 
     }
     await messageService.sendChildMessage(widget.topic.id, widget.messageLocation, content, null, type);
