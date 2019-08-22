@@ -11,12 +11,16 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
+import 'package:ourland_native/models/searching_msg_model.dart';
 
 final CollectionReference _topicCollection =
     Firestore.instance.collection('topic');
 
 final CollectionReference _chatCollection =
     Firestore.instance.collection('chat');
+
+final CollectionReference _searchingMsgCollection =
+    Firestore.instance.collection('message');
 
 class MessageService {
   User _user;
@@ -58,6 +62,17 @@ class MessageService {
     return rv;
   }
 
+  Future<SearchingMsg> getSearchMsg(String msgID) {
+    var msgReference = _searchingMsgCollection
+            .document(msgID);
+    return msgReference.get().then((onValue) {
+      if(onValue.exists) {
+        return SearchingMsg.fromMap(onValue.data);
+      } else {
+        return null;
+      }
+    });
+  }
   
 
   Future<Topic> getTopic(String topicID) {
@@ -163,8 +178,15 @@ class MessageService {
               break;
             case 5:
               indexData['isGlobalHide'] = false;
-              break;              
+              break;
+            case 6: 
+              indexData['public'] = true;
+              break;
+            case 7:
+              indexData['public'] = false;
+              break;               
           }
+
 
           var chatData = {
                 'created': sendMessageTime,

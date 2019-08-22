@@ -13,6 +13,7 @@ import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:ourland_native/widgets/image_widget.dart';
 //import 'package:open_graph_parser/open_graph_parser.dart';
 import 'package:ourland_native/helper/open_graph_parser.dart';
+import 'package:ourland_native/widgets/searching_widget.dart';
 
 class TopicMessage extends StatelessWidget {
   final Topic topic;
@@ -56,25 +57,41 @@ class TopicMessage extends StatelessWidget {
     if(this.topic != null) {
       Container messageWidget;
       //print(this.messageId);
-      if(isLink() && this.topic.imageUrl == null) {
+      if(this.topic.searchingId != null) {
+        print("searching id ${this.topic.searchingId}");
         messageWidget = Container(
-          child: RichLinkPreview(
-              link: this.topic.topic,
-              appendToLink: true,
-              backgroundColor: TOPIC_COLORS[topic.color],
-              borderColor: greyColor2,
-              textColor: Colors.black,
-              width: MediaQuery.of(context).size.width * 0.45,
-              launchFromLink: false,
-              vertical: true),
-          padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
+          child: SearchingWidget(
+            searchingId: this.topic.searchingId,
+            messageLocation: this.messageLocation,
+            vertical: true,
+            launchFromLink: false,
+            user: user,
+            backgroundColor: TOPIC_COLORS[topic.color],
+            textColor: Colors.black,
+          )
         );
       } else {
-          messageWidget = Container(child:Text(
-                                topicTitle,
-                                style: Theme.of(context).textTheme.body1,
-                              )
+        if(isLink() && this.topic.imageUrl == null) {
+          // Display Ourland Search
+          messageWidget = Container(
+            child: RichLinkPreview(
+                link: this.topic.topic,
+                appendToLink: true,
+                backgroundColor: TOPIC_COLORS[topic.color],
+                borderColor: greyColor2,
+                textColor: Colors.black,
+                width: MediaQuery.of(context).size.width * 0.45,
+                launchFromLink: false,
+                vertical: true),
+            padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
           );
+        } else {
+            messageWidget = Container(child:Text(
+                                  topicTitle,
+                                  style: Theme.of(context).textTheme.body1,
+                                )
+            );
+        }
       }
     List<Widget> footers = []; 
     // tag
@@ -96,7 +113,7 @@ class TopicMessage extends StatelessWidget {
     footers.add(Expanded(flex: 1, child: Container()));
     footers.add(timeWidget);
       
-    if(this.topic.imageUrl != null) {
+    if(this.topic.imageUrl != null && this.topic.searchingId == null) {
       Widget imageWidget;
       imageWidget = new ImageWidget(height: null, width: MediaQuery.of(context).size.width * 0.45, imageUrl: this.topic.imageUrl); 
       messageWidget = Container(child: new Column(children: <Widget>[imageWidget, messageWidget]));
@@ -112,7 +129,8 @@ class TopicMessage extends StatelessWidget {
                       ),
                     ],
                   )];
-    if(this.topic.content != null && this.topic.content.length > 0) {
+    if(this.topic.searchingId == null && this.topic.content != null && this.topic.content.length > 0) {
+      String content = this.topic.content;
       topicColumn.add(
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -121,7 +139,8 @@ class TopicMessage extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: Text(
-                    this.topic.content,
+                    content,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.body2),
               )],),));
     }
