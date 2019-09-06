@@ -157,7 +157,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, enableSendButton: true, messageLocation: _messageLocation);
           },
         ),
       );
@@ -253,7 +253,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, enableSendButton: true, messageLocation: _messageLocation);
           },
         ),
       );

@@ -28,8 +28,9 @@ class ChatScreen extends StatelessWidget {
   final String parentTitle;
   final Topic topic;
   final GeoPoint messageLocation;
+  final bool enableSendButton;
   final User user;
-  ChatScreen({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
+  ChatScreen({Key key, @required this.user, @required this.topic, @required this.parentTitle, @required this.enableSendButton, this.messageLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +51,7 @@ class ChatScreen extends StatelessWidget {
               user: this.user,
               topic: this.topic,
               parentTitle: this.parentTitle,
+              enableSendButton: this.enableSendButton,
               messageLocation: this.messageLocation,
             ),
           ),
@@ -62,8 +64,9 @@ class ChatScreenBody extends StatefulWidget {
   final GeoPoint messageLocation;
   final Topic topic;
   final User user;
+  final bool enableSendButton;
 
-  ChatScreenBody({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
+  ChatScreenBody({Key key, @required this.user, @required this.topic, @required this.parentTitle, @required this.enableSendButton, this.messageLocation}) : super(key: key);
 
   @override
   State createState() => new ChatScreenBodyState(messageLocation: this.messageLocation);
@@ -113,10 +116,10 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     if(this._chatMode == Chat_Mode.COMMENT_MODE) {
       _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController, updateUser: updateUser, getUserName: getUserName, getColor: getColor));
       if(widget.user != null) {
-        if(this.messageLocation != null) {
+        if(this.messageLocation != null && widget.enableSendButton) {
           _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
         } else {
-          _widgetList.add(LinearProgressIndicator());
+          //_widgetList.add(LinearProgressIndicator());
         }
       }
     }
