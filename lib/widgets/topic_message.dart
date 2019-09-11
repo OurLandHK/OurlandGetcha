@@ -62,6 +62,7 @@ class TopicMessage extends StatelessWidget {
         messageWidget = Container(
           child: SearchingWidget(
             searchingId: this.topic.searchingId,
+            searchingMsg: null,
             messageLocation: this.messageLocation,
             vertical: true,
             launchFromLink: false,

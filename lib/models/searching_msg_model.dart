@@ -14,13 +14,13 @@ class OpenningHours {
   String get close => _close;
   bool get enable => _enable;
 
-  OpenningHours.fromMap(Map<String, dynamic> map) {
+  OpenningHours.fromMap(Map map) {
     this._open = map['open'];
     this._close = map['close'];
     this._enable = map['enable'];
   }
 
-  Map<String, dynamic> toMap() {
+  Map toMap() {
     var map = new Map<String, dynamic>();
     if (_open != null) {
       map['open'] = _open;
@@ -57,7 +57,7 @@ class GalleryEntry {
   String get caption => this._caption;
 
 
-  GalleryEntry.fromMap(Map<String, dynamic> map) {
+  GalleryEntry.fromMap(Map map) {
     this._publicImageURL = map['publicImageURL'];
     this._thumbnailPublicImageURL = map['thumbnailPublicImageURL']; 
     this._imageURL = map['imageURL'];
@@ -65,7 +65,7 @@ class GalleryEntry {
     this._caption = map['caption'];
   }
 
-  Map<String, dynamic> toMap() {
+  Map toMap() {
     var map = new Map<String, dynamic>();
     if(this._publicImageURL != null) {
       map['publicImageURL'] = this._publicImageURL;
@@ -114,6 +114,7 @@ class SearchingMsg {
   bool _isReportedUrgentEvent;
   bool _isApprovedUrgentEvent;
   bool _isUrgentEvent;
+  double distance;
 
   // User
   String _name;
@@ -149,6 +150,7 @@ class SearchingMsg {
     this._isUrgentEvent = false;
     this._createdAt = DateTime.now();
     this._lastUpdate =  this._createdAt;
+    this.distance = 0;
   }
 
   String get key => _key;

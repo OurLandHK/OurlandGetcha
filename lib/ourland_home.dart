@@ -8,6 +8,7 @@ import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ourland_native/pages/topic_screen.dart';
+import 'package:ourland_native/pages/searching_main.dart';
 import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
@@ -77,6 +78,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 //  List<CameraDescription> cameras;
   bool _locationPermissionGranted = true;
   Widget _nearBySelection;
+  Widget _searchingMain;
   Widget _pendingWidget;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   UserService userService = new UserService();
@@ -102,6 +104,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     this.uid = '';
     _currentLocation = new GeoPoint(22.266455999999998, 114.23257000000001);
     _nearBySelection = new CircularProgressIndicator();
+    _searchingMain = new CircularProgressIndicator();
     messageService = new MessageService(widget.user);
     /*
     _webView = new WebView(
@@ -132,6 +135,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           print('initState Poisition ${position}');
           _currentLocation = new GeoPoint(position.latitude, position.longitude);
           _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
+          _searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
         }
       });
     }
@@ -172,7 +176,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
         setState(() {
             _currentLocation = new GeoPoint(location.latitude, location.longitude);
             _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
-            //updateLocation();
+            _searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);             
         });
       }
     }
@@ -346,13 +350,18 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
             });            
           }
           break; 
-        case 2:      
+        case 2:
+          setState(() {
+            this._isFabShow = false;
+          });
+/*          
           setState(() {
             _tabController.index = 0;
 //            this._isFabShow = false;
           });
           launch(OUTLAND_SEARCH_HOST);
 //          flutterWebviewPlugin.launch(OUTLAND_SEARCH_HOST, rect: Rect.fromLTWH(0.0, 0.0, MediaQuery.of(context).size.width, 300.0));
+*/
           break;
         default:
 //         _nearBySelection;
@@ -415,7 +424,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           children: <Widget>[
             showNotification(),
             _nearBySelection,
-            new CircularProgressIndicator(),
+            _searchingMain,
+            //new CircularProgressIndicator(),
           ],
         ),
         floatingActionButton:  new Opacity(

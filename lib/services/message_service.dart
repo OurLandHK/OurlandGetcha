@@ -29,6 +29,43 @@ class MessageService {
 
   MessageService(this._user);
 
+//  Stream<List<SearchingMsg>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
+//    Stream<List<SearchingMsg>> rv;
+  Stream<List<Map>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
+    Stream<List<Map>> rv;
+
+    if(position != null) {
+      Query sourceQuery = _searchingMsgCollection;
+      List<QueryConstraint> constraints = [];
+      if(firstTag != null && firstTag.length != 0) {
+        String field = "tagfilter." + firstTag;
+        constraints.add(QueryConstraint(field: field, isGreaterThan: 0));
+      }
+      constraints.add(QueryConstraint(field: "hide", isEqualTo: false));
+      if(constraints.length > 0) {
+        sourceQuery = buildQuery(
+          collection: _searchingMsgCollection, 
+          constraints: constraints);
+      }
+      Area area = new Area(position, distanceInMeter/1000);
+      rv = getDataInArea(
+        source: sourceQuery, 
+        area: area, 
+        locationFieldNameInDB: 'geolocation',
+        mapper: (doc) => doc.data,//SearchingMsg.fromMap(doc.data),
+        serverSideOrdering: [OrderConstraint('lastUpdate', true)],
+        locationAccessor: (item) => item['geolocation'],
+        //locationAccessor: (item) => // item.geolocation,
+          // The distancemapper is applied after the mapper
+          distanceMapper: (item, dist) {
+              //item.distance = dist;
+              item['distance'] = dist;
+              return item;
+          });     
+    }  
+    return rv;
+  }
+
   Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter, String firstTag, bool canViewHide) {
     Stream<List<Topic>> rv;
     if(position != null) {
@@ -51,7 +88,7 @@ class MessageService {
         area: area, 
         locationFieldNameInDB: 'geocenter',
         mapper: (doc) => Topic.fromMap(doc.data),
-        serverSideOrdering: [OrderConstraint('lastUpdate', false)],
+        serverSideOrdering: [OrderConstraint('lastUpdate', true)],
         locationAccessor: (item) => item.geoCenter,
           // The distancemapper is applied after the mapper
           distanceMapper: (item, dist) {
