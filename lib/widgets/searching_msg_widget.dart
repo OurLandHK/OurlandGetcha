@@ -3,12 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ourland_native/services/message_service.dart';
 //import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:ourland_native/widgets/image_widget.dart';
 import 'package:ourland_native/helper/open_graph_parser.dart';
@@ -34,7 +36,15 @@ class SearchingMsgWidget extends StatelessWidget {
     }
     String title = this.searchingMsg.text;
     void _onTap() {
-      this.onTap(searchingMsg, searchingMsg.text, this.messageLocation);
+      MessageService messageService = new MessageService(this.user);
+      messageService.getTopic(this.searchingMsg.key).then((topic) {
+        if(topic == null) {
+          topic = Topic.fromSearchingMsg(this.searchingMsg);
+        } else {
+          topic.searchingMsg = this.searchingMsg;
+        }
+        return this.onTap(topic, searchingMsg.text, this.messageLocation);
+      });
     }
 
     Widget rv = new Container();
@@ -52,7 +62,7 @@ class SearchingMsgWidget extends StatelessWidget {
 
       List<Widget> footers = []; 
     
-      for(int i = 0; i< this.searchingMsg.tagfilter.length; i++) {
+      for(int i = 0; i< this.searchingMsg.tagfilter.length && i < 3 ; i++) {
   //      footers.add(Chip(label: Text(this.topic.tags[i], style: Theme.of(context).textTheme.subtitle), backgroundColor: TOPIC_COLORS_DARKER[this.topic.color]));
         footers.add(Text("#${this.searchingMsg.tagfilter[i]}", style: Theme.of(context).textTheme.subtitle));
 
@@ -66,8 +76,15 @@ class SearchingMsgWidget extends StatelessWidget {
                 this.searchingMsg.lastUpdate.microsecondsSinceEpoch)),
           style: Theme.of(context).textTheme.subtitle),
       );
+      // Distance
+      Container distanceWidget = Container(
+        child: Text(
+                "${this.searchingMsg.distance}m",
+          style: Theme.of(context).textTheme.subtitle),
+      );
       footers.add(Expanded(flex: 1, child: Container()));
       footers.add(timeWidget);
+      footers.add(distanceWidget); 
       
       List<Widget> topicColumn = [Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

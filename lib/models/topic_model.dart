@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import 'dart:math';
 import 'dart:convert';
@@ -16,6 +17,8 @@ class Topic {
   User _createdUser;
   String _imageUrl;
   String _searchingId;
+  SearchingMsg searchingMsg;
+
   User _lastUpdateUser;
   String _topic;
   String _content;
@@ -32,6 +35,7 @@ class Topic {
         this._lastUpdate = this._created;
         this._lastUpdateUser = this._createdUser; 
         this._searchingId = null;
+        this.searchingMsg = null;
         this.distance = 0;
         this._isGlobalHide = false;
         this._id = this._created.millisecondsSinceEpoch.toString();
@@ -162,8 +166,11 @@ class Topic {
     if(map['color'] != null) {
       this._color = map['color'];
     } else {
-      Random rng = new Random();
-      this._color = rng.nextInt(TOPIC_COLORS.length);
+      if(this.created !=null) {
+        this._color = this.created.microsecondsSinceEpoch % TOPIC_COLORS.length;
+      } else {
+        this._color = (this.geoTopLeft.latitude * 1000).round() % TOPIC_COLORS.length;
+      }
     }
     if(map['isGlobalHide'] != null) {
       this._isGlobalHide = map['isGlobalHide'];
@@ -182,4 +189,25 @@ class Topic {
     }
     this._isPublic = map['public'];
   }
+
+  Topic.fromSearchingMsg(SearchingMsg searchingMsg) {
+    this._id = searchingMsg.key;
+    this.searchingMsg = searchingMsg;
+    this._imageUrl = searchingMsg.publicImageURL;
+    this._topic = searchingMsg.text;
+    this._tags = searchingMsg.tagfilter;
+    this._isShowName = true;
+    this._geobottomright = searchingMsg.geolocation;
+    this._geotopleft = searchingMsg.geolocation;
+    this._geocenter = searchingMsg.geolocation;
+    this._searchingId = searchingMsg.key;
+    this._content = searchingMsg.desc;
+    this._color = searchingMsg.createdAt.millisecondsSinceEpoch % TOPIC_COLORS.length;
+    this._isGlobalHide = searchingMsg.hide;
+    this._isPublic = true;
+    this._created = searchingMsg.createdAt;
+    this._lastUpdate = searchingMsg.lastUpdate;
+    this._createdUser = User.fromSearchingCreateUser(searchingMsg);
+    this._lastUpdateUser = this._createdUser;
+  }  
 }

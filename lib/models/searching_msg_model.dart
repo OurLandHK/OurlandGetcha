@@ -159,7 +159,7 @@ class SearchingMsg {
   String get text => _text;
   DateTime get createdAt => _createdAt;
   DateTime get lastUpdate => _lastUpdate;
-  String get stressAddress => _streetAddress;
+  String get streetAddress => _streetAddress;
   String get imageUrl => _imageUrl;
   String get publicImageURL => _publicImageURL;
   String get thumbnailImageURL => _thumbnailImageURL;
@@ -200,7 +200,7 @@ class SearchingMsg {
     map['createdAt'] = _createdAt;
     map['lastUpdate'] = lastUpdate;
     if(_streetAddress != null){
-      map['stressAddress'] = _streetAddress;
+      map['streetAddress'] = _streetAddress;
     }
     if (_imageUrl != null) {
       map['imageUrl'] = _imageUrl;
@@ -266,8 +266,8 @@ class SearchingMsg {
     _text = map['text'];
     _createdAt =  DateTime.fromMicrosecondsSinceEpoch(map['createdAt'].microsecondsSinceEpoch);
     _lastUpdate = DateTime.fromMicrosecondsSinceEpoch(map['lastUpdate'].microsecondsSinceEpoch);
-    if(map['stressAddress'] != null){
-      _streetAddress = map['stressAddress'];
+    if(map['streetAddress'] != null){
+      _streetAddress = map['streetAddress'];
     }
     if (map['imageUrl'] != null) {
        _imageUrl = map['imageUrl'];
@@ -305,10 +305,18 @@ class SearchingMsg {
     }
 
     // User
-    map['name'] = _name;
-    map['photoUrl'] = _photoUrl;
-    map['uid'] = _uid;
-    map['fbuid'] = _fbuid;
+    if(map['name'] != null) {
+      _name = map['name'];
+    }
+    if(map['photoUrl'] != null) {
+      _photoUrl = map['photoUrl'];
+    }
+    if(map['uid'] != null) {
+      _uid = map['uid'];
+    }
+    if(map['fbuid'] != null) {
+      _fbuid = map['fbuid'];
+    }
 
     if(map['tagfilter'] != null) {
       _tagfilter = new List<String>();

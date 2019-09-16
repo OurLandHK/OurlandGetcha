@@ -324,7 +324,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
               //flexibleSpace: (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT),
               flexibleSpace: map,
               bottom: PreferredSize(
-                preferredSize: Size.fromHeight(100), // here the desired height
+                preferredSize: Size.fromHeight(TOOLBAR_HEIGHT), // here the desired height
                 child: Opacity(opacity: 0.6, child: Container(decoration: BoxDecoration(color: Theme.of(context).backgroundColor), child:Row(children: buildToolBar(context)))),
               ),
             ),
@@ -332,7 +332,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     } else {
       _pendingMarkerList.clear();
       appBar = new AppBar(flexibleSpace: PreferredSize(
-                preferredSize: Size.fromHeight(100),
+                preferredSize: Size.fromHeight(TOOLBAR_HEIGHT),
                 child: Row(children: buildToolBar(context))));
     }
     WidgetsBinding.instance

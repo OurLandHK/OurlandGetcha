@@ -4,6 +4,7 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/pages/searching_screen.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 
 // ----------------------------------------
 // SETTING SCREEN LANDING SCREEN
@@ -16,6 +17,7 @@ class SearchingMain extends StatelessWidget {
   final SharedPreferences preferences;
   String _location;
   Widget _searchingScreen;
+  Geolocator _geolocator = new Geolocator();
   SearchingMain({Key key, @required this.user, @required this.getCurrentLocation, @required this.preferences, this.fixLocation}) : super(key: key) {
     _searchingScreen = Container();
   }
@@ -64,14 +66,29 @@ class SearchingMain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void onPressed()  {
-      //_searchingScreen = SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences);
-      Navigator.of(context).push(
+      GeoPoint newLocation; 
+      if(_location != null && _location.length > 0) {
+      _geolocator.placemarkFromAddress(_location).then((List<Placemark> placemark) {
+        Position pos = placemark[0].position;
+        newLocation = new GeoPoint(pos.latitude, pos.longitude);
+        Navigator.of(context).push(
           new MaterialPageRoute<void>(
             builder: (BuildContext context) {
-              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences);
+              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences, fixLocation: newLocation, streetAddress: _location);
             },
           ),
         );
+      }, onError: (e) {
+      });
+      } else {
+        Navigator.of(context).push(
+          new MaterialPageRoute<void>(
+            builder: (BuildContext context) {
+              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences, fixLocation: newLocation);
+            },
+          ),
+        );
+      }
     }
 
     Widget renderLocationField() {

@@ -12,6 +12,7 @@ import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
+import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/widgets/chat_list.dart';
 import 'package:ourland_native/widgets/chat_summary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,6 +64,7 @@ class ChatScreenBody extends StatefulWidget {
   final String parentTitle;
   final GeoPoint messageLocation;
   final Topic topic;
+  SearchingMsg _searchingMsg;
   final User user;
   final bool enableSendButton;
 
@@ -117,7 +119,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
       _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController, updateUser: updateUser, getUserName: getUserName, getColor: getColor));
       if(widget.user != null) {
         if(this.messageLocation != null && widget.enableSendButton) {
-          _widgetList.add(SendMessage(parentID: widget.topic.id, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
+          _widgetList.add(SendMessage(topic: widget.topic, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
         } else {
           //_widgetList.add(LinearProgressIndicator());
         }

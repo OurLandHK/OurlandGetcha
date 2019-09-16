@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/chat_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
@@ -97,7 +98,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       //mapWidth /= 2;
     }
     // Check title is duplicate with desc
-    if(isBeginWithLink(widget.topic.topic) && _summaryImageWidget == null) {
+    if(isBeginWithLink(widget.topic.topic) && _summaryImageWidget == null && widget.topic.searchingId == null) {
       _titleLink = RichLinkPreview(
           height: widget.height * 0.50,
           link: widget.topic.topic,
@@ -105,6 +106,12 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
           backgroundColor: TOPIC_COLORS[widget.topic.color],
           textColor: Colors.black,
           launchFromLink: true);
+    }
+    // add gallery for searchingMsg
+    if(widget.topic.searchingMsg != null && widget.topic.searchingMsg.gallery != null) {
+      for(GalleryEntry entry in widget.topic.searchingMsg.gallery) {
+        _galleryImageUrlList[entry.caption] = entry.publicImageURL;
+      }
     }
     buildMessageSummaryWidget();
   }
@@ -170,7 +177,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       type = 5; //visible
       content = MESSAGE_SHOW; 
     }
-    await messageService.sendChildMessage(widget.topic.id, widget.messageLocation, content, null, type);
+    await messageService.sendChildMessage(widget.topic, widget.messageLocation, content, null, type);
     return _userService.addRecentTopic(messageService.user.uuid, widget.topic.id, widget.messageLocation).then((User temp1) {
         Map topicMap = widget.topic.toMap();
         topicMap['isGlobalHide'] = !newState;
@@ -188,7 +195,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       type = 7; //visible
       content = MESSAGE_LOCAL; 
     }
-    await messageService.sendChildMessage(widget.topic.id, widget.messageLocation, content, null, type);
+    await messageService.sendChildMessage(widget.topic, widget.messageLocation, content, null, type);
     return _userService.addRecentTopic(messageService.user.uuid, widget.topic.id, widget.messageLocation).then((User temp1) {
         Map topicMap = widget.topic.toMap();
         topicMap['public'] = !newState;
@@ -273,31 +280,6 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         ),
       ),
       color: TOPIC_COLORS[widget.topic.color]);  
-/*
-(widget.user != null && widget.user.globalHideRight == true) ? Material(
-                child: new Container(
-                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
-                  child: new IconButton(
-                    icon: hideIconButton,
-                     onPressed: () => updateVisible(widget.topic.isGlobalHide),
-                    color: Colors.red,
-                  ),
-                ),
-                color: TOPIC_COLORS[widget.topic.color],
-              ):Container(),
-              
-              (widget.user != null && widget.user.sendBroadcastRight == true) ? Material(
-                child: new Container(
-                  margin: new EdgeInsets.symmetric(horizontal: 8.0),
-                  child: new IconButton(
-                    icon: broadcastIconButton,
-                     onPressed: () => updateBroadcast(widget.topic.isPublic),
-                    color: Colors.red,
-                  ),
-                ),
-                color: TOPIC_COLORS[widget.topic.color],
-              ):Container()
-*/
     Text _createdDate = Text(
         DateFormat('dd MMM kk:mm').format(
             new DateTime.fromMicrosecondsSinceEpoch(
@@ -337,11 +319,30 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         }
       }
     }
-    // Display the Content for the Topic.
+    // Display the Content for the Topic and Handle the content detail for Searching Message different
+    if(widget.topic.searchingMsg == null) {
       if(widget.topic.content != null && widget.topic.content.length != 0) {
-        Widget _contentText = new Container(child: Text(widget.topic.content,
-            style: Theme.of(context).textTheme.body2));
-        widgetList.add(_contentText);
+          Widget _contentText = new Container(child: Text(widget.topic.content,
+              style: Theme.of(context).textTheme.body2));
+          widgetList.add(_contentText);
+      }
+    } else {
+      SearchingMsg msg = widget.topic.searchingMsg;
+      if(msg.desc != null && msg.desc.length != 0) {
+          Widget _contentText = new Container(child: Text(msg.desc,
+              style: Theme.of(context).textTheme.body2));
+          widgetList.add(_contentText);
+      }
+      if(msg.streetAddress != null && msg.streetAddress.length != 0) {
+          Widget _contentText = new Container(child: Text(msg.streetAddress,
+              style: Theme.of(context).textTheme.body2));
+          widgetList.add(_contentText);
+      }
+      if(msg.isUrgentEvent != null && msg.isUrgentEvent) {
+          Widget _contentText = new Container(child: Text("緊急",
+              style: Theme.of(context).textTheme.body2));
+          widgetList.add(_contentText);
+      }      
     }
     // Display tool bar
     Color bookmarkColor = primaryColor;

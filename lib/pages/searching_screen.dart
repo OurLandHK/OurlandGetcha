@@ -36,9 +36,10 @@ class SearchingScreen extends StatefulWidget {
   final User user;
   final Function getCurrentLocation;
   final SharedPreferences preferences;
+  final String streetAddress;
   SearchingScreenState _state;
 
-  SearchingScreen({Key key, @required this.user, @required this.getCurrentLocation, @required this.preferences, this.fixLocation}) : super(key: key);
+  SearchingScreen({Key key, @required this.user, @required this.getCurrentLocation, @required this.preferences, this.fixLocation, this.streetAddress}) : super(key: key);
   @override
   State createState() {
     /*
@@ -78,7 +79,10 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
 
   String _currentLocationSelection;
 //  bool _locationPermissionGranted = false;
-  List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
+  //List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
+  List<SearchingMsg> _searchingMsgs;
+  List<DropdownMenuItem<String>> _tagDropDownMenuItems;
+  Map<String, int> _tagCountMap;
 
   String _firstTag = "";
   String _searchingTitle = LABEL_NEARBY;
@@ -100,17 +104,26 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
     super.initState();
     this._markerList = [];
     this._pendingMarkerList =[];  
+    this._searchingMsgs = [];
+    this._tagCountMap = new Map();
+    this._tagDropDownMenuItems = getDropDownMenuItems(new List<String>(), true);
     isLoading = false;
-    GeoPoint mapCenter = widget.getCurrentLocation();
+    GeoPoint mapCenter = this.fixLocation;
+    if(mapCenter == null) {
+      mapCenter = widget.getCurrentLocation();
+    } else {
+      if(widget.streetAddress != null) {
+        _searchingTitle = widget.streetAddress;
+      } else {
+        _searchingTitle = "(${this.fixLocation.longitude},${this.fixLocation.latitude})";
+      }
+    }
     this.messageLocation = mapCenter;
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
 
-  if(this.fixLocation != null) {
-    _searchingTitle = this.fixLocation.toString();
-  }
-
-/*        // Init UI
+  /*
+        // Init UI
   List<String> dropDownList = [LABEL_NEARBY];
     if(widget.user != null) {
       dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
@@ -124,12 +137,10 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
     } catch (Exception) {
       widget.preferences.setBool('TOPIC_EXPANDED', _tempExpand);
     } 
-    this.expanded = _tempExpand;
-  */
+    //this.expanded = _tempExpand;
+    */
   }
-
-
-//  List<DropdownMenuItem<String>> _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION , true);
+  
 
   Future<void> setLocation(GeoPoint location) async {
     GeoPoint _temp = location;
@@ -171,7 +182,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
         _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
       }
     }
-    rv = new SearchingMsgWidget(user: widget.user, searchingMsg: searchingMsg, onTap: _onTap, messageLocation: _messageLocation);
+    rv = new SearchingMsgWidget(key: Key(searchingMsg.key), user: widget.user, searchingMsg: searchingMsg, onTap: _onTap, messageLocation: _messageLocation);
     return rv;
   }
 
@@ -188,7 +199,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
       return rv;
     }
 
-    void _onTap(SearchingMsg searchingMsg, String parentTitle, GeoPoint messageLocation) async {
+    void _onTap(Topic topic, String parentTitle, GeoPoint messageLocation) async {
       //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
       GeoPoint _messageLocation = messageLocation;
       if(_messageLocation == null && this.fixLocation != null) {
@@ -201,7 +212,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
       // Check for previous edit topic
       if(widget.user != null) {
         UserService userService = new UserService();
-        RecentTopic recentTopic = await userService.getRecentTopic(widget.user.uuid, searchingMsg.key);
+        RecentTopic recentTopic = await userService.getRecentTopic(widget.user.uuid, topic.id);
         if(recentTopic != null) {
           print("Recent Topic");
           _messageLocation = recentTopic.messageLocation;
@@ -209,38 +220,137 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
         } else {
           if(widget.user.homeAddress != null) {
             print("Home");
-            enableSendButton = isAddressWithinTopic(widget.user.homeAddress, searchingMsg);
+            enableSendButton = isAddressWithinTopic(widget.user.homeAddress, topic.searchingMsg);
           }
           if(!enableSendButton && widget.user.officeAddress != null) {
             print("Office");
-            enableSendButton = isAddressWithinTopic(widget.user.officeAddress, searchingMsg);
+            enableSendButton = isAddressWithinTopic(widget.user.officeAddress, topic.searchingMsg);
           }
           if(!enableSendButton) {
             print("Current");
             GeoPoint mapCenter = widget.getCurrentLocation();
-            enableSendButton = isAddressWithinTopic(mapCenter, searchingMsg);
+            enableSendButton = isAddressWithinTopic(mapCenter, topic.searchingMsg);
           }
         }
       } 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            Key chatKey = new Key(searchingMsg.key);
-            return new ChatScreen(key: chatKey, user : widget.user, topic: null, parentTitle: parentTitle, enableSendButton: enableSendButton, messageLocation: _messageLocation);
+            Key chatKey = new Key(topic.id);
+            return new ChatScreen(key: chatKey, user : widget.user, topic: topic,  parentTitle: parentTitle, enableSendButton: enableSendButton, messageLocation: _messageLocation);
           },
         ),
       );
     }
-/*
-    List<Widget> buildToolBar(BuildContext context) {
+
+    Widget buildLoading() {
+      return Positioned(
+        child: isLoading
+            ? Container(
+                child: Center(
+                  child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)),
+                ),
+                color: Colors.white.withOpacity(0.8),
+              )
+            :  new Container()
+      );
+    }
+
+    void _swapValuable(BuildContext context) {
+//    print("Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
+/*    if(this._markerList.length != this._pendingMarkerList.length) {
+      List<OurlandMarker> tempList = new List<OurlandMarker>();
+      for(int i = 0; i <  this._pendingMarkerList.length; i++) {
+        tempList.add(this._pendingMarkerList[i]);
+      }
+*/     print("Searching Screen ${_tagDropDownMenuItems.length} ${this._tagCountMap.length}");
+      if(_tagDropDownMenuItems.length == 1 || _tagDropDownMenuItems.length != (this._tagCountMap.length + 1)){
+        setState(() {
+          _tagDropDownMenuItems = getDropDownMenuItems(this._tagCountMap.keys.toList(), true);
+        });
+      }
+    }
+
+    void updateTagCount(SearchingMsg msg) {
+      for(String tag in msg.tagfilter) {
+        if(_tagCountMap[tag] == null) {
+          _tagCountMap[tag] = 0;
+        } else {
+          _tagCountMap[tag]++;
+        }
+      }
+    }
+
+    void buildSearchingMsgs(List<SearchingMsg> documents) {
+      _searchingMsgs = [];
+      _tagCountMap = new Map<String, int>();
+      for (SearchingMsg searchingMsg in documents) {
+        if(_firstTag.length == 0 || searchingMsg.tagfilter.contains(_firstTag)) {
+          updateTagCount(searchingMsg);
+        _searchingMsgs.add(searchingMsg);
+        } 
+      }
+    }
+
+    List<Widget> buildGrid(List<SearchingMsg> documents, Function _onTap, BuildContext context) {
+      List<Widget> _gridItems = [];
+      for (SearchingMsg searchingMsg in documents) {
+        _gridItems.add(buildItem(searchingMsg.key, searchingMsg, _onTap, context));
+      }
+      return _gridItems;
+    }  
+
+
+    Widget buildListView(Function _onTap, BuildContext context) {
+      this._pendingMarkerList.clear();
+      bool canViewHide = false;
+      if(widget.user != null && widget.user.globalHideRight) {
+        canViewHide = true;
+      }
+      print("StreamBuilder ${this.messageLocation.latitude}");
+      return new StreamBuilder<List<SearchingMsg>>(
+        stream: this.messageService.getSearchingMsgSnap(this.messageLocation, 2500, ""),
+          builder: (BuildContext context, AsyncSnapshot<List<SearchingMsg>> snapshot) {
+          if (!snapshot.hasData) {
+            print("StreamBuilder No Data ${snapshot.data}");
+            return new Center(child: new CircularProgressIndicator());
+          } else {
+            if(snapshot.data.length > 0) {
+              //print("snapshot.data.length ${snapshot.data.length}");
+              buildSearchingMsgs(snapshot.data);
+              List<Widget> children = buildGrid(_searchingMsgs, _onTap, context);
+              return ListView(
+                padding: EdgeInsets.symmetric(vertical: 8.0), 
+                children: children);
+              /*
+              return new StaggeredGridView.count(
+                physics: new BouncingScrollPhysics(),
+                crossAxisCount: 2,
+                children: children, 
+                staggeredTiles: staggeredTileBuilder(children),
+              );
+              */
+            } else {
+              return new Container(child: Text(LABEL_CHOICE_OTHER_TAG,
+              style: Theme.of(context).textTheme.headline));
+            }
+            //staggeredTiles: generateRandomTiles(snapshot.data.length),
+          }
+        },
+      );
+    }   
+
+    List<Widget> buildToolBarWidget(BuildContext context) {
       return  <Widget> [
-                Expanded(flex: 1, child: Text(LABEL_IN, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
+/*                Expanded(flex: 1, child: Text(LABEL_IN, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
                 Expanded(flex: 2, child: DropdownButton(
                   value: _currentLocationSelection,
                   items: _locationDropDownMenuItems,
                   onChanged: updateLocation,
                   style: Theme.of(context).textTheme.subhead
                 )),
+                */
+                Text(_searchingTitle, style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
                 Expanded(flex: 1, child: Text(LABEL_HAS, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
                 Expanded(flex: 2, child: DropdownButton(
                   value: _firstTag,
@@ -248,7 +358,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
                   style: Theme.of(context).textTheme.subhead,
                   onChanged: (String value) {setState(() {_firstTag = value;});},
                 )),
-                IconButton(
+/*                IconButton(
                   icon: Icon(Icons.expand_more),
                     onPressed: () {
                       setState(() {
@@ -257,107 +367,42 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
                       widget.preferences.setBool('TOPIC_EXPANDED', expanded);
                     },
                 ),
+                */
               ];
     }
-    */
-    PreferredSizeWidget appBar;
-    Widget map = Container(height: MAP_HEIGHT);
-    if(this._markerList.length == this._pendingMarkerList.length) {
-      map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._markerList, updateCenter: _updateCenter,);
-    } else {
-      map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: this._pendingMarkerList, updateCenter: _updateCenter);
-    }
+    
+    PreferredSize toolBar = new PreferredSize(child: Row(children: buildToolBarWidget(context)), preferredSize: Size.fromHeight(TOOLBAR_HEIGHT));
+    
     WidgetsBinding.instance
       .addPostFrameCallback((_) => _swapValuable(context));
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text(
-            _searchingTitle,
-            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
-          ),
+          title: Row(children: buildToolBarWidget(context)),
           centerTitle: true,
           elevation: 0.7,
           actionsIconTheme: Theme.of(context).primaryIconTheme,
+          //bottom: toolBar,
         ),
         body: Container(
           color: Colors.white,
-          child: new Stack(
-            children: <Widget>[
-            // buildScrollView(_onTap, context),
-              buildListView(_onTap, context),
-              buildLoading(),
-            ],
-          ),
+          child:
+//           Column(
+//            children: <Widget>
+//            [
+//              Row(children: buildToolBar(context)),
+              Stack(
+                children: <Widget>[
+              // buildScrollView(_onTap, context),
+                  buildListView(_onTap, context),
+                  buildLoading(),
+                ],
+              )
+//            ]
+//          ),
         ),
     );     
   }
-  Widget buildLoading() {
-    return Positioned(
-      child: isLoading
-          ? Container(
-              child: Center(
-                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)),
-              ),
-              color: Colors.white.withOpacity(0.8),
-            )
-          :  new Container()
-    );
-  }
 
-  void _swapValuable(BuildContext context) {
-//    print("Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
-    if(this._markerList.length != this._pendingMarkerList.length) {
-      List<OurlandMarker> tempList = new List<OurlandMarker>();
-      for(int i = 0; i <  this._pendingMarkerList.length; i++) {
-        tempList.add(this._pendingMarkerList[i]);
-      }
-      setState(() {
-        this._markerList = tempList;
-      });      
-    }
-  }
-
-
-
-  Widget buildListView(Function _onTap, BuildContext context) {
-    this._pendingMarkerList.clear();
-    bool canViewHide = false;
-    if(widget.user != null && widget.user.globalHideRight) {
-      canViewHide = true;
-    }
-    print("StreamBuilder ${this.messageLocation.latitude}");
-    //return new StreamBuilder<List<SearchingMsg>>(
-    return new StreamBuilder<List<Map>>(
-      stream: this.messageService.getSearchingMsgSnap(this.messageLocation, 2500, _firstTag),
-//      builder: (BuildContext context, AsyncSnapshot<List<SearchingMsg>> snapshot) {
-        builder: (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
-        if (!snapshot.hasData) {
-          print("StreamBuilder No Data ${snapshot.data}");
-          return new Center(child: new CircularProgressIndicator());
-        } else {
-          if(snapshot.data.length > 0) {
-            print("snapshot.data.length ${snapshot.data.length}");
-            List<Widget> children =  buildGrid(snapshot.data, _onTap, context);
-            /*
-            return ListView(
-              padding: EdgeInsets.symmetric(vertical: 8.0), 
-              children: children);
-            */
-            return new StaggeredGridView.count(
-              physics: new BouncingScrollPhysics(),
-              crossAxisCount: 2,
-              children: children, 
-              staggeredTiles: staggeredTileBuilder(children),
-            );
-          } else {
-            return new Container(child: Text(LABEL_CHOICE_OTHER_TAG,
-            style: Theme.of(context).textTheme.headline));
-          }
-          //staggeredTiles: generateRandomTiles(snapshot.data.length),
-        }
-      },
-    );
-  }
 
   List<StaggeredTile> staggeredTileBuilder(List<Widget> widgets) {
     List<StaggeredTile> _staggeredTiles = [];
@@ -366,16 +411,5 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
     }
     return _staggeredTiles;
   }
-
-  //List<Widget> buildGrid(List<SearchingMsg> documents, Function _onTap, BuildContext context) {
-  List<Widget> buildGrid(List<Map> documents, Function _onTap, BuildContext context) {
-    List<Widget> _gridItems = [];
-//    for (SearchingMsg searchingMsg in documents) {
-    for (Map map in documents) {
-      SearchingMsg searchingMsg = SearchingMsg.fromMap(map);
-      _gridItems.add(buildItem(searchingMsg.key, searchingMsg, _onTap, context));
-    }
-    return _gridItems;
-  }  
 }
 

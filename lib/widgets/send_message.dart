@@ -15,6 +15,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
 
@@ -27,9 +28,9 @@ class SendMessage extends StatefulWidget {
   final MessageService messageService;
   final GeoPoint messageLocation;
   final ScrollController listScrollController;
-  final String parentID;
+  final Topic topic;
 
-  SendMessage({Key key, @required this.parentID, @required this.messageService, @required this.messageLocation, @required this.listScrollController}) : super(key: key);
+  SendMessage({Key key, @required this.topic, @required this.messageService, @required this.messageLocation, @required this.listScrollController}) : super(key: key);
 
   @override
   State createState() => new SendMessageState(messageService: this.messageService, messageLocation: this.messageLocation, listScrollController: this.listScrollController);
@@ -126,8 +127,8 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
         imageFile = null;
         _isButtonDisabled = true;
       });
-      messageService.sendChildMessage(widget.parentID, this.messageLocation, content, _imageFile, type).then((void v) {
-        userService.addRecentTopic(messageService.user.uuid, widget.parentID, this.messageLocation).then((var user) {
+      messageService.sendChildMessage(widget.topic, this.messageLocation, content, _imageFile, type).then((void v) {
+        userService.addRecentTopic(messageService.user.uuid, widget.topic.id, this.messageLocation).then((var user) {
           setState(( ){
             _isButtonDisabled = false;
           });
