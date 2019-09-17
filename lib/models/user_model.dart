@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ourland_native/models/searching_msg_model.dart';
 
 class User {
   String _uuid;
@@ -127,6 +128,16 @@ class User {
     this._fcmToken = '';
   }
 
+  User.fromSearchingCreateUser(SearchingMsg searchingMsg) {
+    this._uuid = searchingMsg.fbuid;
+    this._username = searchingMsg.name;
+    this._avatarUrl = searchingMsg.photoUrl;
+    this._homeAddress = null;
+    this._officeAddress = null;
+    this._createdAt = DateTime.now();
+    this._updatedAt = this._createdAt;
+    this._fcmToken = '';   
+  }
 
 
   User.fromMap(Map<String, dynamic> map) {

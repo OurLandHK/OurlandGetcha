@@ -29,6 +29,42 @@ class MessageService {
 
   MessageService(this._user);
 
+  Stream<List<SearchingMsg>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
+    Stream<List<SearchingMsg>> rv;
+    if(position != null) {
+      Query sourceQuery = _searchingMsgCollection;
+      List<QueryConstraint> constraints = [];
+      List<QueryConstraint> serverConstraints = [];
+      /* not yet
+      if(firstTag != null && firstTag.length != 0) {
+        String field = "tagfilter." + firstTag;
+        serverConstraints.add(QueryConstraint(field: field, isEqualTo: 1));
+      }
+      */
+      constraints.add(QueryConstraint(field: "hide", isEqualTo: false));
+      if(constraints.length > 0) {
+        sourceQuery = buildQuery(
+          collection: _searchingMsgCollection, 
+          constraints: constraints);
+      }
+      Area area = new Area(position, distanceInMeter/1000);
+      rv = getDataInArea(
+        source: sourceQuery, 
+        area: area, 
+        locationFieldNameInDB: 'geolocation',
+        mapper: (doc) => SearchingMsg.fromMap(doc.data),
+        serverSideOrdering: [OrderConstraint('lastUpdate', true)],
+        serverSideConstraints: serverConstraints,
+        locationAccessor: (item) => item.geolocation,
+          // The distancemapper is applied after the mapper
+          distanceMapper: (item, dist) {
+              item.distance = dist;
+              return item;
+          });     
+    }  
+    return rv;
+  }
+
   Stream<List<Topic>> getTopicSnap(GeoPoint position, double distanceInMeter, String firstTag, bool canViewHide) {
     Stream<List<Topic>> rv;
     if(position != null) {
@@ -51,7 +87,7 @@ class MessageService {
         area: area, 
         locationFieldNameInDB: 'geocenter',
         mapper: (doc) => Topic.fromMap(doc.data),
-        serverSideOrdering: [OrderConstraint('lastUpdate', false)],
+        serverSideOrdering: [OrderConstraint('lastUpdate', true)],
         locationAccessor: (item) => item.geoCenter,
           // The distancemapper is applied after the mapper
           distanceMapper: (item, dist) {
@@ -148,7 +184,7 @@ class MessageService {
     }
   }
 
-  Future sendChildMessage(String parentID, GeoPoint position, String content, File imageFile, int type) async {
+  Future sendChildMessage(Topic topic, GeoPoint position, String content, File imageFile, int type) async {
       var sendMessageTime = DateTime.now();
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
       String imageUrl;
@@ -157,66 +193,67 @@ class MessageService {
       }
       DocumentReference chatReference;
       DocumentReference indexReference;
+      String parentID = topic.id;
       indexReference = _topicCollection.document(parentID);
       return indexReference.get().then((var indexDataSnap) {
         if(indexDataSnap.exists) {
-          Topic topic = Topic.fromMap(indexDataSnap.data);
-          var basicUserMap = _user.toBasicMap();
-          GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
-
-          Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(topic.geoTopLeft, topic.geoBottomRight, dest, 1000);
-          Map<String, dynamic> indexData = topic.toMap();
-          indexData['geotopleft'] = enlargeBox['topLeft'];
-          indexData['geobottomright'] = enlargeBox['bottomRight'];
-          indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
-          indexData['lastUpdateUser'] = basicUserMap;
-          indexData['lastUpdate'] = sendMessageTime;
-          // for Hide and show
-          switch(type) {
-            case 4: 
-              indexData['isGlobalHide'] = true;
-              break;
-            case 5:
-              indexData['isGlobalHide'] = false;
-              break;
-            case 6: 
-              indexData['public'] = true;
-              break;
-            case 7:
-              indexData['public'] = false;
-              break;               
-          }
-
-
-          var chatData = {
-                'created': sendMessageTime,
-                'id': sendMessageTimeString,
-                'geo': new GeoPoint(position.latitude, position.longitude),
-                'content': content,
-                'type': type,
-                'createdUser' : basicUserMap,
-          };
-          if(imageUrl != null) {
-            chatData['imageUrl'] =  imageUrl;
-          }
-          chatReference = _chatCollection.document(parentID).collection("messages").document(sendMessageTimeString);
-          try{
-            return indexReference.setData(indexData).then((var test) {
-              return chatReference.setData(chatData);
-            });
-            /*
-            print("ID exist ${sendMessageTimeString}.");
-            Firestore.instance.runTransaction((transaction) async {
-              await transaction.set(indexReference, indexData);
-              await transaction.set(chatReference, chatData);
-            });         
-            */
-          } catch (exception) {
-            print(exception);
-          } 
+          topic = Topic.fromMap(indexDataSnap.data);
         } else {
           print("ID not exist ${parentID}.");
         }
+        var basicUserMap = _user.toBasicMap();
+        GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
+
+        Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(topic.geoTopLeft, topic.geoBottomRight, dest, 1000);
+        Map<String, dynamic> indexData = topic.toMap();
+        indexData['geotopleft'] = enlargeBox['topLeft'];
+        indexData['geobottomright'] = enlargeBox['bottomRight'];
+        indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
+        indexData['lastUpdateUser'] = basicUserMap;
+        indexData['lastUpdate'] = sendMessageTime;
+        // for Hide and show
+        switch(type) {
+          case 4: 
+            indexData['isGlobalHide'] = true;
+            break;
+          case 5:
+            indexData['isGlobalHide'] = false;
+            break;
+          case 6: 
+            indexData['public'] = true;
+            break;
+          case 7:
+            indexData['public'] = false;
+            break;               
+        }
+
+
+        var chatData = {
+              'created': sendMessageTime,
+              'id': sendMessageTimeString,
+              'geo': new GeoPoint(position.latitude, position.longitude),
+              'content': content,
+              'type': type,
+              'createdUser' : basicUserMap,
+        };
+        if(imageUrl != null) {
+          chatData['imageUrl'] =  imageUrl;
+        }
+        chatReference = _chatCollection.document(parentID).collection("messages").document(sendMessageTimeString);
+        try{
+          return indexReference.setData(indexData).then((var test) {
+            return chatReference.setData(chatData);
+          });
+          /*
+          print("ID exist ${sendMessageTimeString}.");
+          Firestore.instance.runTransaction((transaction) async {
+            await transaction.set(indexReference, indexData);
+            await transaction.set(chatReference, chatData);
+          });         
+          */
+        } catch (exception) {
+          print(exception);
+        } 
       });
   }
 

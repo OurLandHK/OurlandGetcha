@@ -15,6 +15,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ourland_native/models/constant.dart';
+import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
 
@@ -27,9 +28,9 @@ class SendMessage extends StatefulWidget {
   final MessageService messageService;
   final GeoPoint messageLocation;
   final ScrollController listScrollController;
-  final String parentID;
+  final Topic topic;
 
-  SendMessage({Key key, @required this.parentID, @required this.messageService, @required this.messageLocation, @required this.listScrollController}) : super(key: key);
+  SendMessage({Key key, @required this.topic, @required this.messageService, @required this.messageLocation, @required this.listScrollController}) : super(key: key);
 
   @override
   State createState() => new SendMessageState(messageService: this.messageService, messageLocation: this.messageLocation, listScrollController: this.listScrollController);
@@ -52,6 +53,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
   bool isShowSticker;
   String imageUrl;
   String error;
+  bool _isButtonDisabled;
 
   final TextEditingController textEditingController = new TextEditingController();
   
@@ -64,6 +66,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
     userService = new UserService();
     isLoading = false;
     isShowSticker = false;
+    _isButtonDisabled = false;
     imageUrl = '';
   }
 
@@ -114,57 +117,20 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
       isShowSticker = !isShowSticker;
     });
   }
-/*
-  Future uploadFile() async {
-    File uploadImage = imageFile;
-    List<int> blob = uploadImage.readAsBytesSync();
-    
-    Img.Image originImage = Img.decodeImage(blob);
-    Img.Image image = originImage;
 
-    bool newImage = false;
-    if(originImage.width > 1280) {
-      image = Img.copyResize(originImage, 1280);
-      newImage = true;
-    } else {
-      if(originImage.height > 1280) {
-        int width = (originImage.width * 1280 / originImage.height).round();
-        image = Img.copyResize(originImage, width, 1280);  
-        newImage = true;     
-      }
-    }
-
-    if(newImage) {
-  //    uploadImage = new File('temp.png').writeAsBytesSync(Img.encodePng(image));
-//      blob = new Img.PngEncoder({level: 3}).encodeImage(image);
-      blob = new Img.JpegEncoder(quality: 75).encodeImage(image);
-    }
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
-    StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
-    StorageUploadTask uploadTask = reference.putData(blob);
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
-      imageUrl = downloadUrl;
-      setState(() {
-        isLoading = false;
-        onSendMessage(imageUrl, 1);
-      });
-    }, onError: (err) {
-      setState(() {
-        isLoading = false;
-      });
-      _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(CHAT_FILE_NOT_IMG)));
-    });
-  }
-*/
   void onSendMessage(String content, int type) {
     // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
-      textEditingController.clear();  
-      messageService.sendChildMessage(widget.parentID, this.messageLocation, content, imageFile, type).then((void v) {
-        userService.addRecentTopic(messageService.user.uuid, widget.parentID, this.messageLocation).then((var user) {
+      textEditingController.clear(); 
+      File _imageFile = imageFile;
+      setState(( ){
+        imageFile = null;
+        _isButtonDisabled = true;
+      });
+      messageService.sendChildMessage(widget.topic, this.messageLocation, content, _imageFile, type).then((void v) {
+        userService.addRecentTopic(messageService.user.uuid, widget.topic.id, this.messageLocation).then((var user) {
           setState(( ){
-            imageFile = null;
+            _isButtonDisabled = false;
           });
         });
       });
@@ -385,7 +351,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
                   margin: new EdgeInsets.symmetric(horizontal: 8.0),
                   child: new IconButton(
                     icon: new Icon(Icons.send),
-                    onPressed: () => onSendMessage(textEditingController.text, 0),
+                    onPressed: _isButtonDisabled ? null : () => onSendMessage(textEditingController.text, 0),
                     color: primaryColor,
                   ),
                 ),

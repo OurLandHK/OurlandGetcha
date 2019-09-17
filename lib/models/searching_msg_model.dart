@@ -14,13 +14,13 @@ class OpenningHours {
   String get close => _close;
   bool get enable => _enable;
 
-  OpenningHours.fromMap(Map<String, dynamic> map) {
+  OpenningHours.fromMap(Map map) {
     this._open = map['open'];
     this._close = map['close'];
     this._enable = map['enable'];
   }
 
-  Map<String, dynamic> toMap() {
+  Map toMap() {
     var map = new Map<String, dynamic>();
     if (_open != null) {
       map['open'] = _open;
@@ -57,7 +57,7 @@ class GalleryEntry {
   String get caption => this._caption;
 
 
-  GalleryEntry.fromMap(Map<String, dynamic> map) {
+  GalleryEntry.fromMap(Map map) {
     this._publicImageURL = map['publicImageURL'];
     this._thumbnailPublicImageURL = map['thumbnailPublicImageURL']; 
     this._imageURL = map['imageURL'];
@@ -65,7 +65,7 @@ class GalleryEntry {
     this._caption = map['caption'];
   }
 
-  Map<String, dynamic> toMap() {
+  Map toMap() {
     var map = new Map<String, dynamic>();
     if(this._publicImageURL != null) {
       map['publicImageURL'] = this._publicImageURL;
@@ -114,6 +114,7 @@ class SearchingMsg {
   bool _isReportedUrgentEvent;
   bool _isApprovedUrgentEvent;
   bool _isUrgentEvent;
+  double distance;
 
   // User
   String _name;
@@ -149,6 +150,7 @@ class SearchingMsg {
     this._isUrgentEvent = false;
     this._createdAt = DateTime.now();
     this._lastUpdate =  this._createdAt;
+    this.distance = 0;
   }
 
   String get key => _key;
@@ -157,7 +159,7 @@ class SearchingMsg {
   String get text => _text;
   DateTime get createdAt => _createdAt;
   DateTime get lastUpdate => _lastUpdate;
-  String get stressAddress => _streetAddress;
+  String get streetAddress => _streetAddress;
   String get imageUrl => _imageUrl;
   String get publicImageURL => _publicImageURL;
   String get thumbnailImageURL => _thumbnailImageURL;
@@ -198,7 +200,7 @@ class SearchingMsg {
     map['createdAt'] = _createdAt;
     map['lastUpdate'] = lastUpdate;
     if(_streetAddress != null){
-      map['stressAddress'] = _streetAddress;
+      map['streetAddress'] = _streetAddress;
     }
     if (_imageUrl != null) {
       map['imageUrl'] = _imageUrl;
@@ -264,8 +266,8 @@ class SearchingMsg {
     _text = map['text'];
     _createdAt =  DateTime.fromMicrosecondsSinceEpoch(map['createdAt'].microsecondsSinceEpoch);
     _lastUpdate = DateTime.fromMicrosecondsSinceEpoch(map['lastUpdate'].microsecondsSinceEpoch);
-    if(map['stressAddress'] != null){
-      _streetAddress = map['stressAddress'];
+    if(map['streetAddress'] != null){
+      _streetAddress = map['streetAddress'];
     }
     if (map['imageUrl'] != null) {
        _imageUrl = map['imageUrl'];
@@ -303,10 +305,18 @@ class SearchingMsg {
     }
 
     // User
-    map['name'] = _name;
-    map['photoUrl'] = _photoUrl;
-    map['uid'] = _uid;
-    map['fbuid'] = _fbuid;
+    if(map['name'] != null) {
+      _name = map['name'];
+    }
+    if(map['photoUrl'] != null) {
+      _photoUrl = map['photoUrl'];
+    }
+    if(map['uid'] != null) {
+      _uid = map['uid'];
+    }
+    if(map['fbuid'] != null) {
+      _fbuid = map['fbuid'];
+    }
 
     if(map['tagfilter'] != null) {
       _tagfilter = new List<String>();

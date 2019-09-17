@@ -17,6 +17,10 @@ class BaseProfile extends StatelessWidget {
   Widget build(BuildContext context) {
     String imageUrl = (this.user.avatarUrl != null) ? this.user.avatarUrl : 'assets/images/default-avatar.jpg';
     Widget imageWidget = new ImageWidget(width: 50, height: 50, imageUrl: imageUrl);
+    String username = "";
+    if(this.user.username != null) {
+      username = this.user.username;
+    }
     Widget rv = Column(
       children: <Widget>[
         Material(
@@ -26,7 +30,7 @@ class BaseProfile extends StatelessWidget {
         ),
         Container(
           child: Text(
-            this.user.username,
+            username,
             style: Theme.of(context).textTheme.body2,
           ),
           alignment: Alignment.center,

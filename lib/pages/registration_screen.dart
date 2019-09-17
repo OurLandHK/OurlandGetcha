@@ -328,13 +328,14 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 renderAppLogo(),
-                _renderGoogleSignInButton(),
-/*                
+                renderSizeBox(),
+                _renderGoogleSignInButton(),     
+                renderSizeBox(),          
                 renderPhoneNumberField(),
                 renderSizeBox(),
                 renderSizeBox(),
-                renderSubmitButton(context),
- */               
+                renderSubmitButton(context),    
+                renderSizeBox(),       
                 (widget.firstPage) ? renderAccessAsNobody(context) : Container(),
               ],
             )),

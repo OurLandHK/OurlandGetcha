@@ -81,9 +81,12 @@ const String NEW_OFFICE_LOCATION = "入新地點2";
 const String UPDATE_LOCATION_BTN_TEXT = "確認地點";
 const String UPDATE_LOCATION_SUCCESS = "地點更新成功";
 
+const String HINT_SEARCH_LOCATION = "找附近正料或輸入指定地方";
+
 const String TOPIC_ROOT_ID = "";
 
 const double MAP_HEIGHT = 200.0;
+const double TOOLBAR_HEIGHT = 25.0;
 const double CREATE_TOPIC_MAP_HEIGHT = 150.0;
 
 final themeColor = Color(0xfff5a623);

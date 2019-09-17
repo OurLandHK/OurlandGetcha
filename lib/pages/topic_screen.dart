@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ourland_native/models/user_model.dart' as prefix0;
 import 'package:permission_handler/permission_handler.dart';
 //import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,11 +18,13 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/services/message_service.dart';
+import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/Topic_message.dart';
 import 'package:ourland_native/pages/settings.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geodesy/geodesy.dart';
 
 //final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -217,7 +220,25 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         });
       }   
 
-    void _onTap(Topic topic, String parentTitle, GeoPoint messageLocation) {
+    
+    bool isAddressWithinTopic(GeoPoint address, Topic topic) {
+      Geodesy geodesy = Geodesy();
+      bool rv = false;
+      LatLng l1 = new LatLng(address.latitude, address.longitude);
+      LatLng topLeft = new LatLng(topic.geoTopLeft.latitude, topic.geoTopLeft.longitude);
+      LatLng bottomRight = new LatLng(topic.geoBottomRight.latitude, topic.geoBottomRight.longitude);
+      print("${topic.geoTopLeft.latitude}, ${topic.geoTopLeft.longitude}");
+      print("${address.latitude}, ${address.longitude}");
+      print("${topic.geoBottomRight.latitude}, ${topic.geoBottomRight.longitude}");
+      if(geodesy.isGeoPointInBoudingBox(l1, topLeft, bottomRight)) {
+        rv = true;
+      } else if(geodesy.isGeoPointInBoudingBox(l1, bottomRight, topLeft)){
+        rv = true;
+      }
+      return rv;
+    }
+
+    void _onTap(Topic topic, String parentTitle, GeoPoint messageLocation) async {
       //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
       GeoPoint _messageLocation = messageLocation;
       if(_messageLocation == null && this.fixLocation != null) {
@@ -226,11 +247,36 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       if(_messageLocation == null && this.messageLocation != null) {
         _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
       }
+      bool enableSendButton = false;
+      // Check for previous edit topic
+      if(widget.user != null) {
+        UserService userService = new UserService();
+        RecentTopic recentTopic = await userService.getRecentTopic(widget.user.uuid, topic.id);
+        if(recentTopic != null) {
+          print("Recent Topic");
+          _messageLocation = recentTopic.messageLocation;
+          enableSendButton = true;
+        } else {
+          if(widget.user.homeAddress != null) {
+            print("Home");
+            enableSendButton = isAddressWithinTopic(widget.user.homeAddress, topic);
+          }
+          if(!enableSendButton && widget.user.officeAddress != null) {
+            print("Office");
+            enableSendButton = isAddressWithinTopic(widget.user.officeAddress, topic);
+          }
+          if(!enableSendButton) {
+            print("Current");
+            GeoPoint mapCenter = widget.getCurrentLocation();
+            enableSendButton = isAddressWithinTopic(mapCenter, topic);
+          }
+        }
+      } 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             Key chatKey = new Key(topic.id);
-            return new ChatScreen(key: chatKey, user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+            return new ChatScreen(key: chatKey, user : widget.user, topic: topic, parentTitle: parentTitle, enableSendButton: enableSendButton, messageLocation: _messageLocation);
           },
         ),
       );
@@ -278,7 +324,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
               //flexibleSpace: (this.chatMap != null) ? this.chatMap : new Container(height: MAP_HEIGHT),
               flexibleSpace: map,
               bottom: PreferredSize(
-                preferredSize: Size.fromHeight(100), // here the desired height
+                preferredSize: Size.fromHeight(TOOLBAR_HEIGHT), // here the desired height
                 child: Opacity(opacity: 0.6, child: Container(decoration: BoxDecoration(color: Theme.of(context).backgroundColor), child:Row(children: buildToolBar(context)))),
               ),
             ),
@@ -286,7 +332,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     } else {
       _pendingMarkerList.clear();
       appBar = new AppBar(flexibleSpace: PreferredSize(
-                preferredSize: Size.fromHeight(100),
+                preferredSize: Size.fromHeight(TOOLBAR_HEIGHT),
                 child: Row(children: buildToolBar(context))));
     }
     WidgetsBinding.instance
