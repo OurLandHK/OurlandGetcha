@@ -14,8 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 
 final ThemeData kIOSTheme = new ThemeData(
-  primarySwatch: Colors.blue[300],
-  primaryColor: Colors.grey[100],
+  primarySwatch: Colors.blue,
+  primaryColor: Colors.grey,
   primaryColorBrightness: Brightness.light,
 );
 
@@ -69,7 +69,8 @@ void initFirestoreSettings() async {
 }
 
 class OurlandApp extends StatelessWidget {
-  SharedPreferences preferences;
+  final SharedPreferences preferences;
+
   OurlandApp(@required this.preferences);
   @override
   Widget build(BuildContext context) {
