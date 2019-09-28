@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/pages/searching_screen.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/widgets/searching_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -22,12 +23,6 @@ class SearchingMain extends StatelessWidget {
     _searchingScreen = Container();
   }
 
-
-  List<String> _tagItems = [
-    MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION,
-    MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION,
-/*    MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE, */
-  ];
 /*
   void onTapped(BuildContext context, String item) {
     if (item == MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION) {
@@ -65,7 +60,7 @@ class SearchingMain extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    void onPressed()  {
+    void onPressed(context, tag)  {
       GeoPoint newLocation; 
       if(_location != null && _location.length > 0) {
       _geolocator.placemarkFromAddress(_location).then((List<Placemark> placemark) {
@@ -74,7 +69,7 @@ class SearchingMain extends StatelessWidget {
         Navigator.of(context).push(
           new MaterialPageRoute<void>(
             builder: (BuildContext context) {
-              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences, fixLocation: newLocation, streetAddress: _location);
+              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences, fixLocation: newLocation, streetAddress: _location, tag: tag);
             },
           ),
         );
@@ -84,7 +79,7 @@ class SearchingMain extends StatelessWidget {
         Navigator.of(context).push(
           new MaterialPageRoute<void>(
             builder: (BuildContext context) {
-              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences, fixLocation: newLocation);
+              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences, fixLocation: newLocation, tag: tag);
             },
           ),
         );
@@ -115,37 +110,37 @@ class SearchingMain extends StatelessWidget {
                           ],
                           */  //borderRadius: BorderRadius.circular(6.0)
                         ),
-                      child: IconButton(icon: Icon(Icons.location_searching), onPressed: onPressed))),
+                      child: IconButton(icon: Icon(Icons.location_searching), onPressed: () => onPressed(context, "")))),
                   SizedBox(width: 12.0)]));
     }
-    /*
-    return Column(children: [
-          renderLocationField(),
-          ListView(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            children: _tagItems
-                .map((settingItem) => ListTile(
-                      title: Text(settingItem),
-                     // onTap: () => onTapped(context, settingItem),
+
+    Row renderTagButtons(List<String> tags) {
+      List<Widget> widgets = tags
+                .map((tag) => Expanded(
+                  //flex: 1,
+                  child:OutlineButton(
+                      child: Text(tag),
+                      onPressed: () => onPressed(context, tag),
+                      borderSide: BorderSide(
+                        color: Colors.blue, //Color of the border
+                        style: BorderStyle.solid, //Style of the border
+                        width: 0.8, //width of the border
+                      )
                     ))
-                .toList())]);
-                */
+                )
+                .toList();
+      return(Row(children: widgets));
+    }
+
+    List<String> firstButtonRow = TagList.sublist(0, (TagList.length/2).round());
+    List<String> secondButtonRow = TagList.sublist((TagList.length/2).round(), TagList.length);
 
     return Scaffold(
+        
         appBar: renderLocationField(),
-        body: Container());
-        /*
         body: Column(children: [
-          //renderLocationField(),
-          ListView(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            children: _tagItems
-                .map((settingItem) => ListTile(
-                      title: Text(settingItem),
-                     // onTap: () => onTapped(context, settingItem),
-                    ))
-                .toList())]));
-                */
-                
+              renderTagButtons(firstButtonRow),
+              renderTagButtons(secondButtonRow)
+          ]));
   } 
 }

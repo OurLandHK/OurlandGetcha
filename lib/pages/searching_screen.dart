@@ -37,9 +37,10 @@ class SearchingScreen extends StatefulWidget {
   final Function getCurrentLocation;
   final SharedPreferences preferences;
   final String streetAddress;
+  final String tag;
   SearchingScreenState _state;
 
-  SearchingScreen({Key key, @required this.user, @required this.getCurrentLocation, @required this.preferences, this.fixLocation, this.streetAddress}) : super(key: key);
+  SearchingScreen({Key key, @required this.user, @required this.getCurrentLocation, @required this.preferences, this.fixLocation, this.streetAddress, this.tag}) : super(key: key);
   @override
   State createState() {
     /*
@@ -117,6 +118,9 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
       } else {
         _searchingTitle = "(${this.fixLocation.longitude},${this.fixLocation.latitude})";
       }
+    }
+    if(widget.tag != null && widget.tag.length !=0) {
+      _searchingTitle += " " + widget.tag + " ";
     }
     this.messageLocation = mapCenter;
     focusNode.addListener(onFocusChange);
@@ -263,7 +267,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
       for(int i = 0; i <  this._pendingMarkerList.length; i++) {
         tempList.add(this._pendingMarkerList[i]);
       }
-*/     print("Searching Screen ${_tagDropDownMenuItems.length} ${this._tagCountMap.length}");
+*/     //print("Searching Screen ${_tagDropDownMenuItems.length} ${this._tagCountMap.length}");
       if(_tagDropDownMenuItems.length == 1 || _tagDropDownMenuItems.length != (this._tagCountMap.length + 1)){
         setState(() {
           _tagDropDownMenuItems = getDropDownMenuItems(this._tagCountMap.keys.toList(), true);
@@ -281,10 +285,13 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
       }
     }
 
-    void buildSearchingMsgs(List<SearchingMsg> documents) {
+//    void buildSearchingMsgs(List<SearchingMsg> documents) {
+      void buildSearchingMsgs(List<Map> documents) {
       _searchingMsgs = [];
       _tagCountMap = new Map<String, int>();
-      for (SearchingMsg searchingMsg in documents) {
+//      for (SearchingMsg searchingMsg in documents) {
+      for (Map data in documents) {
+        SearchingMsg searchingMsg = SearchingMsg.fromMap(data); 
         if(_firstTag.length == 0 || searchingMsg.tagfilter.contains(_firstTag)) {
           updateTagCount(searchingMsg);
         _searchingMsgs.add(searchingMsg);
@@ -307,12 +314,14 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
       if(widget.user != null && widget.user.globalHideRight) {
         canViewHide = true;
       }
-      print("StreamBuilder ${this.messageLocation.latitude}");
-      return new StreamBuilder<List<SearchingMsg>>(
-        stream: this.messageService.getSearchingMsgSnap(this.messageLocation, 2500, ""),
-          builder: (BuildContext context, AsyncSnapshot<List<SearchingMsg>> snapshot) {
+      //print("StreamBuilder ${this.messageLocation.latitude}");
+//      return new StreamBuilder<List<SearchingMsg>>(
+        return new StreamBuilder<List<Map>>(
+        stream: this.messageService.getSearchingMsgSnap(this.messageLocation, 2500, widget.tag),
+//          builder: (BuildContext context, AsyncSnapshot<List<SearchingMsg>> snapshot) {
+            builder: (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
           if (!snapshot.hasData) {
-            print("StreamBuilder No Data ${snapshot.data}");
+            //print("StreamBuilder No Data ${snapshot.data}");
             return new Center(child: new CircularProgressIndicator());
           } else {
             if(snapshot.data.length > 0) {

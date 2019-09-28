@@ -12,10 +12,12 @@ import 'package:ourland_native/widgets/image_widget.dart';
 import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/services/message_service.dart';
+import 'package:ourland_native/widgets/polling_widget.dart';
 //import 'package:rich_link_preview/rich_link_preview.dart';
 import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 
   enum Chat_Mode {
@@ -91,9 +93,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
     if(widget.imageUrl != null && widget.imageUrl.length != 0) {
       if(isBeginWithLink(widget.topic.topic)) {
-        _summaryImageWidget = new ImageWidget(width: (widget.width * 0.9), imageUrl: widget.imageUrl, link: widget.topic.topic);
+        _summaryImageWidget = new ImageWidget(width: (widget.width * 0.9), height: null, imageUrl: widget.imageUrl, link: widget.topic.topic);
       } else {
-        _summaryImageWidget = new ImageWidget(width: (widget.width * 0.9), imageUrl: widget.imageUrl);
+        _summaryImageWidget = new ImageWidget(width: (widget.width * 0.9), height: null, imageUrl: widget.imageUrl);
       }
       //mapWidth /= 2;
     }
@@ -151,6 +153,14 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
 
   void addMessage(String message) {
     this.messageList.add(message);
+  }
+
+  void _launchURL(url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   List<T> map<T>(List list, Function handler) {
@@ -241,6 +251,131 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
           _progressBarActive = false;
       });
   }
+
+
+  Widget _buildPolling(BuildContext context, SearchingMsg _sMsg) {
+    if (_sMsg != null && _sMsg.polling != null) {
+      return  PollingWidget(searchingMsg: _sMsg, 
+        messageLocation: widget.messageLocation, 
+        width: widget.width, 
+        user: widget.user,
+        darkBackgroundColor: TOPIC_COLORS_DARKER[widget.topic.color],
+        backgroundColor: TOPIC_COLORS[widget.topic.color],
+        textColor: Colors.black);
+    } else {
+      return Container();
+    }
+  }
+  Widget _buildStreetAddress(BuildContext context, SearchingMsg _sMsg) {
+    if (_sMsg != null) {
+      String text = "";
+      if(_sMsg.streetAddress != null) {
+        text = _sMsg.streetAddress;
+      }
+      return Padding(
+          padding: EdgeInsets.all(2.0),
+          child: new Text(text,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.body2,
+              textAlign: TextAlign.left,));
+    } else {
+      return Container();
+    }
+  }  
+
+  Widget _buildStatus(BuildContext context, SearchingMsg _sMsg) {
+    if (_sMsg != null) {
+      String text = "";
+      if(_sMsg.status != null) {
+        text = _sMsg.status;
+      }
+      return Padding(
+          padding: EdgeInsets.all(2.0),
+          child: new Text(text,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.body2,
+              textAlign: TextAlign.left,));
+    } else {
+      return Container();
+    }
+  }
+
+  Widget _buildTimingInfo(BuildContext context, SearchingMsg _sMsg) {
+    if (_sMsg != null) {
+      String text = LABEL_TIME;
+      // check any start time
+      if(_sMsg.start != null &&_sMsg.start.millisecondsSinceEpoch != 0) {
+        text += LABEL_DATE;
+        text += LABEL_START_TIME;
+        text += DateFormat('MMM dd').format(
+            new DateTime.fromMicrosecondsSinceEpoch(
+                _sMsg.start.microsecondsSinceEpoch));
+        if(_sMsg.startTime != null) {
+          text += _sMsg.startTime;
+        }
+        text += "\n";
+        if(_sMsg.endDate !=null && _sMsg.endDate.millisecondsSinceEpoch!= 0) {
+          text += LABEL_END_TIME;
+          text += DateFormat('MMM dd').format(
+              new DateTime.fromMicrosecondsSinceEpoch(
+                  _sMsg.endDate.microsecondsSinceEpoch));
+          text += "\n";
+        }
+        if(_sMsg.duration != null) {
+            text += LABEL_DURATION;
+            text += _sMsg.duration;
+            text += "\n";
+        }
+      }
+      // check any opening hour
+      if(_sMsg.everydayOpenning != null) {
+        text += LABEL_EVERYDAY;
+        text += _sMsg.everydayOpenning.toString();
+        text += "\n";
+      } else {
+        // check any weekly openninbg hour
+        print("Open ${_sMsg.weekdaysOpennings.length}");
+        if(_sMsg.weekdaysOpennings != null) {
+          for(int i = 0; i < _sMsg.weekdaysOpennings.length; i++) {
+            text += LABEL_WEEKLY[i];
+            text += _sMsg.weekdaysOpennings[i].toString();
+            text += "\n";
+          }
+        }
+      }
+      
+      return Padding(
+          padding: EdgeInsets.all(2.0),
+          child: new Text(text,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.body2,
+              textAlign: TextAlign.left,));
+    } else {
+      return Container();
+    }
+  }   
+
+
+  Widget _buildLink(BuildContext context, SearchingMsg _sMsg) {
+    if (_sMsg != null) {
+      String text = "";
+      if(_sMsg.link != null) {
+        text = _sMsg.link;
+      }
+      TextStyle style = Theme.of(context).textTheme.body2;
+      style.apply(decoration: TextDecoration.underline);
+      Widget widget1 = Padding(
+          padding: EdgeInsets.all(2.0),
+          child: new Text(text,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+              textAlign: TextAlign.left));
+      return InkWell(child: widget1, onTap: () => _launchURL(text));
+    } else {
+      return Container();
+    }
+  }     
+
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance
@@ -285,6 +420,10 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
             new DateTime.fromMicrosecondsSinceEpoch(
                 widget.topic.created.microsecondsSinceEpoch)),
         style: Theme.of(context).textTheme.subtitle);
+    Widget _ourlandLaunch = Container();
+    if(widget.topic.searchingId != null) {
+      _ourlandLaunch = GestureDetector(child: Image.asset('assets/images/app-logo.png', width: 64.0), onTap: () => {launch(OUTLAND_SEARCH_HOST)});
+    }
     _baseInfo = new Row(children: <Widget>[
       new BaseProfile(user: widget.topic.createdUser), 
       visibilityStatus,
@@ -292,7 +431,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       new Column(children: <Widget>[
         _createdDate,
         new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowName.toString(), style: Theme.of(context).textTheme.subtitle),
-        ])]); // need to show hash tag
+      ]),_ourlandLaunch]); // need to show hash tag
     
 
 
@@ -328,21 +467,12 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       }
     } else {
       SearchingMsg msg = widget.topic.searchingMsg;
-      if(msg.desc != null && msg.desc.length != 0) {
-          Widget _contentText = new Container(child: Text(msg.desc,
-              style: Theme.of(context).textTheme.body2));
-          widgetList.add(_contentText);
-      }
-      if(msg.streetAddress != null && msg.streetAddress.length != 0) {
-          Widget _contentText = new Container(child: Text(msg.streetAddress,
-              style: Theme.of(context).textTheme.body2));
-          widgetList.add(_contentText);
-      }
-      if(msg.isUrgentEvent != null && msg.isUrgentEvent) {
-          Widget _contentText = new Container(child: Text("緊急",
-              style: Theme.of(context).textTheme.body2));
-          widgetList.add(_contentText);
-      }      
+      widgetList.add(_buildStatus(context, msg));
+      widgetList.add(_buildStreetAddress(context, msg));
+      widgetList.add(_buildPolling(context, msg));
+      widgetList.add(_buildTimingInfo(context, msg));
+      widgetList.add(_buildLink(context, msg));
+      //msg.distance             
     }
     // Display tool bar
     Color bookmarkColor = primaryColor;
@@ -433,7 +563,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
                 ],
                 //borderRadius: BorderRadius.circular(6.0)
                 ),
-              child: Column(children: widgetList)
+              child: Column(children: widgetList, crossAxisAlignment: CrossAxisAlignment.start,)
             )); 
     finalWidgetList.add(summaryPostit);
     int colorIndex = widget.topic.color;
@@ -445,7 +575,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         String imageUrl = _urlList[i];
         colorIndex++;
         colorIndex%=TOPIC_COLORS.length;
-        Widget _imageWidget =  new ImageWidget(width: (widget.width * 0.9), imageUrl: imageUrl);
+        Widget _imageWidget =  new ImageWidget(width: (widget.width * 0.9), height: null, imageUrl: imageUrl);
         Widget _imagePostit = Padding(
               padding: const EdgeInsets.all(4.0),
               child: Container(

@@ -56,7 +56,7 @@ class SearchingMsgWidget extends StatelessWidget {
           vertical: false,
           launchFromLink: false,
           user: user,
-          backgroundColor: TOPIC_COLORS[0],
+          backgroundColor: TOPIC_COLORS[this.searchingMsg.key.hashCode % TOPIC_COLORS.length],
           textColor: Colors.black
       );
 
@@ -79,7 +79,7 @@ class SearchingMsgWidget extends StatelessWidget {
       // Distance
       Container distanceWidget = Container(
         child: Text(
-                "${this.searchingMsg.distance}m",
+                "  ${this.searchingMsg.distance}km",
           style: Theme.of(context).textTheme.subtitle),
       );
       footers.add(Expanded(flex: 1, child: Container()));
@@ -107,7 +107,7 @@ class SearchingMsgWidget extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(4.0),
               decoration: BoxDecoration(
-                color: TOPIC_COLORS[0],
+                color: TOPIC_COLORS[this.searchingMsg.key.hashCode % TOPIC_COLORS.length],
                 border: Border.all(width: 1, color: Colors.grey),
                 boxShadow: [
                   new BoxShadow(

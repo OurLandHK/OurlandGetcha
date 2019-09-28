@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/user_model.dart';
+import 'package:ourland_native/models/polling_model.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
 import 'dart:math';
 import 'dart:convert';
@@ -37,6 +38,15 @@ class OpenningHours {
     } else {
       map['enable'] = false;
     }
+  }
+
+  @override
+  String toString() {
+     String text = LABEL_CLOSED;
+     if(this.enable) {
+        text = this .open + " - " + close;
+     }
+    return text;
   }
 }
 
@@ -96,6 +106,7 @@ class GalleryEntry {
   
 }            
 
+
 class SearchingMsg {
   String _key;
   bool _hide; 
@@ -133,7 +144,7 @@ class SearchingMsg {
   OpenningHours _everydayOpenning;
   List<OpenningHours> _weekdaysOpennings;
   String _link;
-  List<dynamic> _polling;
+  Polling _polling;
 
   SearchingMsg(this._key, this._geolocation, this._streetAddress, this._text, 
       this._name, this._photoUrl, this._uid, this._fbuid,
@@ -188,7 +199,7 @@ class SearchingMsg {
   OpenningHours get everydayOpenning => _everydayOpenning;
   List<OpenningHours> get weekdaysOpennings => _weekdaysOpennings;
   String get link => _link;
-  List<dynamic> get polling => _polling;
+  Polling get polling => _polling;
 
 
   Map<String, dynamic> toMap() {
@@ -234,10 +245,7 @@ class SearchingMsg {
     map['fbuid'] = _fbuid;
 
     if(_tagfilter != null) {
-      map['tagfilter'] = new Map<String, int>();
-      for(int i = 0; i < _tagfilter.length; i++) {
-        map['tagfilter'][_tagfilter.elementAt(i)] = 1;
-      }
+      map['tag'] = _tagfilter;
     }
     map['desc'] = _desc;
     map['start'] = _start;
@@ -318,9 +326,15 @@ class SearchingMsg {
       _fbuid = map['fbuid'];
     }
 
-    if(map['tagfilter'] != null) {
-      _tagfilter = new List<String>();
-      map['tagfilter'].forEach((key, valu) => {_tagfilter.add(key)});
+    _tagfilter = [];
+    if(map['tag'] != null) {
+      for(int i = 0; i < map['tag'].length; i++) {
+        _tagfilter.add(map['tag'][i]);
+      }
+    }
+    distance = 0;
+    if(map['distance'] != null) {
+      distance = map['distance'];
     }
 
     if(map['desc'] != null) {
@@ -348,9 +362,16 @@ class SearchingMsg {
     if(map['everydayOpenning'] != null) {
       _everydayOpenning = OpenningHours.fromMap(map['everydayOpenning']);
     }
+    _weekdaysOpennings = [];
     if(map['weekdaysOpennings']!= null) {
       _weekdaysOpennings = new List<OpenningHours>();
-      map['weekdaysOpennings'].forEach((key, value) => {_weekdaysOpennings.add(OpenningHours.fromMap(value))});
+      for(int i = 0; i < map['weekdaysOpennings'].length; i++) {
+        _weekdaysOpennings.add(OpenningHours.fromMap(map['weekdaysOpennings'][i]));
+      }
+    }
+
+    if(map['polling'] != null) {
+      _polling = Polling.fromMap(map['polling']);
     }
     //List<dynamic> get polling => _polling;
   }

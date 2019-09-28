@@ -163,14 +163,17 @@ class Topic {
     } else {
       this._geocenter = null;
     }
+
     if(map['color'] != null) {
       this._color = map['color'];
     } else {
       if(this.created !=null) {
-        this._color = this.created.microsecondsSinceEpoch % TOPIC_COLORS.length;
+        this._color = this.searchingId.hashCode % TOPIC_COLORS.length;
+        //print("${this.searchingId.hashCode}");
       } else {
         this._color = (this.geoTopLeft.latitude * 1000).round() % TOPIC_COLORS.length;
       }
+      print("${this._color}");
     }
     if(map['isGlobalHide'] != null) {
       this._isGlobalHide = map['isGlobalHide'];
@@ -197,14 +200,15 @@ class Topic {
     this._topic = searchingMsg.text;
     this._tags = searchingMsg.tagfilter;
     this._isShowName = true;
-    this._geobottomright = searchingMsg.geolocation;
-    this._geotopleft = searchingMsg.geolocation;
     this._geocenter = searchingMsg.geolocation;
+    this._geobottomright = new GeoPoint(searchingMsg.geolocation.latitude - 0.0032, searchingMsg.geolocation.longitude + 0.005);
+    this._geotopleft = new GeoPoint(searchingMsg.geolocation.latitude + 0.0032, searchingMsg.geolocation.longitude - 0.005);
     this._searchingId = searchingMsg.key;
     this._content = searchingMsg.desc;
-    this._color = searchingMsg.createdAt.millisecondsSinceEpoch % TOPIC_COLORS.length;
+    this._color = (searchingMsg.uid.hashCode) % TOPIC_COLORS.length ;
     this._isGlobalHide = searchingMsg.hide;
     this._isPublic = true;
+    this.distance = searchingMsg.distance;
     this._created = searchingMsg.createdAt;
     this._lastUpdate = searchingMsg.lastUpdate;
     this._createdUser = User.fromSearchingCreateUser(searchingMsg);
