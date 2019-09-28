@@ -16,6 +16,9 @@ import 'package:ourland_native/models/searching_msg_model.dart';
 final CollectionReference _topicCollection =
     Firestore.instance.collection('topic');
 
+final CollectionReference _ourlandCollection =
+    Firestore.instance.collection('ourlandDB');
+
 final CollectionReference _chatCollection =
     Firestore.instance.collection('chat');
 
@@ -28,19 +31,18 @@ class MessageService {
   User get user => _user;
 
   MessageService(this._user);
-
+/*
   Stream<List<SearchingMsg>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
     Stream<List<SearchingMsg>> rv;
-    if(position != null) {
+*/
+ Stream<List<Map>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
+    Stream<List<Map>> rv;
+     if(position != null) {
       Query sourceQuery = _searchingMsgCollection;
       List<QueryConstraint> constraints = [];
-      List<QueryConstraint> serverConstraints = [];
-      /* not yet
       if(firstTag != null && firstTag.length != 0) {
-        String field = "tagfilter." + firstTag;
-        serverConstraints.add(QueryConstraint(field: field, isEqualTo: 1));
+        constraints.add(QueryConstraint(field: "tag", arrayContains: firstTag));
       }
-      */
       constraints.add(QueryConstraint(field: "hide", isEqualTo: false));
       if(constraints.length > 0) {
         sourceQuery = buildQuery(
@@ -52,13 +54,17 @@ class MessageService {
         source: sourceQuery, 
         area: area, 
         locationFieldNameInDB: 'geolocation',
-        mapper: (doc) => SearchingMsg.fromMap(doc.data),
+//        mapper: (doc) => SearchingMsg.fromMap(doc.data),
+        mapper: (doc) => doc.data,
         serverSideOrdering: [OrderConstraint('lastUpdate', true)],
-        serverSideConstraints: serverConstraints,
-        locationAccessor: (item) => item.geolocation,
+//        locationAccessor: (item) => item.geolocation,
+          locationAccessor: (item) => item['geolocation'],
           // The distancemapper is applied after the mapper
           distanceMapper: (item, dist) {
-              item.distance = dist;
+//              item.distance = dist;
+             int tenM = (dist * 100).round();
+             double dist1 = tenM.roundToDouble() / 100;
+             item['distance'] = dist1;
               return item;
           });     
     }  
@@ -120,6 +126,21 @@ class MessageService {
       } else {
         return null;
       }
+    });
+  }
+
+  Future<Topic> getLatestTopic() {
+    var ourlandReference = _ourlandCollection.document("RecentMessage");
+    return ourlandReference.get().then((onValue0) {
+      var topicReference = _topicCollection
+              .document(onValue0['id']);
+      return topicReference.get().then((onValue) {
+        if(onValue.exists) {
+          return Topic.fromMap(onValue.data);
+        } else {
+          return null;
+        }
+      });
     });
   }
 

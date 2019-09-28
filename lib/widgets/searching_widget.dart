@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ourland_native/models/searching_msg_model.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
-import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/constant.dart';
-import 'package:ourland_native/widgets/image_widget.dart';
 import 'package:ourland_native/services/message_service.dart';
 
 class SearchingWidget extends StatefulWidget {
@@ -46,7 +42,7 @@ class SearchingView extends SearchingModel {
   Widget build(BuildContext context) {
     return Container(
         child: Column(
-            children: [Container(child: buildRichLinkPreview(context))]));
+            children: [Container(child: buildPreview(context))]));
   }
 }
 
@@ -92,25 +88,7 @@ abstract class SearchingModel extends State<SearchingWidget>
     _fetchData();  
     super.initState();
   }
-/*
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
-  @override
-  void didUpdateWidget(SearchingWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    /*
-    if (this.mounted && _appendToLink == false) {
-      setState(() {
-        _link = oldWidget.link != widget.link ? widget.link : '';
-      });
-    }
-    */
-    _fetchData();
-  }
-*/
   void _fetchData() {
     if(this._sMsg == null) {
       getSearchingData();
@@ -130,9 +108,9 @@ abstract class SearchingModel extends State<SearchingWidget>
     }
   }
 
-  Widget buildRichLinkPreview(BuildContext context) {
+  Widget buildPreview(BuildContext context) {
     if (_sMsg == null) {
-      print("buildRichLinkPreview _sMsg == null"); 
+      print("buildPreview _sMsg == null"); 
       return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -231,7 +209,7 @@ abstract class SearchingModel extends State<SearchingWidget>
           child: new Text(
             _sMsg.text,
             overflow: TextOverflow.ellipsis,
-            //style: TextStyle(fontWeight: FontWeight.bold, color: _textColor),
+            style: TextStyle(fontWeight: FontWeight.bold, color: widget.textColor),
           ));
     } else {
       return Container();
@@ -249,11 +227,13 @@ abstract class SearchingModel extends State<SearchingWidget>
           child: new Text(desc,
               overflow: TextOverflow.ellipsis,
               maxLines: 3,
-              style: TextStyle(color: widget.textColor)));
+              style: TextStyle(color: widget.textColor),
+              textAlign: TextAlign.left,));
     } else {
       return Container();
     }
   }
+
 
   Widget _buildLoading(BuildContext context) {
     return Container(

@@ -54,7 +54,8 @@ const String MENU_ITEM_LOGOUT = "變CD-ROM";
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
-const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠", "美食", "秘境", "維修", "遊戲", "交換", "我地.市正", "求救！"];
+const List<String> SEARCHING_STATUS_OPTIONS = ['開緊', '完結', '政府跟進中', '流料', '不恰當訊息'];
+const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠/美食", "投票", "秘境", "維修/求助", "交換", "我地.市正"];
 const String LABEL_TOPIC = "Memo";
 const String LABEL_NEW_TOPIC = "新Memo";
 const String LABEL_NEW_BROADCAST_TOPIC = "新廣播";
@@ -85,6 +86,22 @@ const String HINT_SEARCH_LOCATION = "找附近正料或輸入指定地方";
 
 const String TOPIC_ROOT_ID = "";
 
+const String LABEL_TIME = "時間\n";
+const String LABEL_START_TIME = "開始: ";
+const String LABEL_DATE = "日期: ";
+const String LABEL_END_TIME = "完結: ";
+const String LABEL_OPENNING_HOUR = "開放時間: ";
+const String LABEL_EVERYDAY = "每日: ";
+const List<String> LABEL_WEEKLY = ["日: ","一: ","二: ","三: ","四: ","五: ","六: "];
+
+const String LABEL_CLOSED = "關閉";
+const String LABEL_DURATION = "為期";
+const String LABEL_VOTED = "閣下已投票 ";
+const String LABEL_VOTE = "我要投票"; 
+const String LABEL_KM = "km";
+const String LABEL_VOTE_MAX = "最多可投票數：";
+const String LABEL_VOTE_RANGE ="投票範圍：";
+
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;
 const double CREATE_TOPIC_MAP_HEIGHT = 150.0;
@@ -105,6 +122,17 @@ const List<Color> TOPIC_COLORS = [
   Color(0xFFA7A7EA),
   Color(0xFFCAF0F8),
   Color(0xFFD0D0D0),
+];
+
+const List<String> TagList = [
+  "公共設施",
+  "活動",
+  "義工招募",
+  "寵物",
+  "兒童遊樂場",
+  "社區匯報",
+  "環保",
+  "社區規劃",
 ];
 
 const List<Color> TOPIC_COLORS_DARKER = [
