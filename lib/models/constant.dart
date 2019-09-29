@@ -1,7 +1,10 @@
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+
+const GeoPoint HongKongGeoPoint = GeoPoint(22.3524813,113.8468152);
 
 const String APP_NAME = "我地.壁報";
 const String SMS_CODE_DIALOG_TITLE = "入 SMS Code";
@@ -75,7 +78,8 @@ const String LABEL_NOBODY = "沒有人";
 const String LABEL_DISTRICT ="社區";
 const String LABEL_CARE ="關心";
 const String PERM_LOCATION_NOT_GRANTED = "唔該俾我用 GPS";
-const String PERM_LOCATION_GRANT_BTN_TEXT = "重試";
+const String PERM_LOCATION_GRANT_BTN_TEXT = "俾";
+const String PERM_LOCATION_NOT_GRANT_BTN_TEXT = "唔俾";
 
 const String NEW_HOME_LOCATION = "入新地點1";
 const String NEW_OFFICE_LOCATION = "入新地點2";

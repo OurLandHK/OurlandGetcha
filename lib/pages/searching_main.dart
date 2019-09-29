@@ -16,60 +16,26 @@ class SearchingMain extends StatelessWidget {
   final User user;
   final Function getCurrentLocation;
   final SharedPreferences preferences;
-  String _location;
+  final bool disableLocation;
+  String _streetAddress;
   Widget _searchingScreen;
   Geolocator _geolocator = new Geolocator();
-  SearchingMain({Key key, @required this.user, @required this.getCurrentLocation, @required this.preferences, this.fixLocation}) : super(key: key) {
+  SearchingMain({Key key, @required this.user, @required this.getCurrentLocation, @required this.preferences, this.fixLocation, @required this.disableLocation}) : super(key: key) {
     _searchingScreen = Container();
   }
 
-/*
-  void onTapped(BuildContext context, String item) {
-    if (item == MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION) {
-      Navigator.of(context).push(
-        new MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return new UpdateLocationScreen(
-                locationType: LABEL_REGION0, user: this.user, preferences: this.preferences);
-          },
-        ),
-      );
-    } else if (item == MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION) {
-      Navigator.of(context).push(
-        new MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return new UpdateLocationScreen(
-                locationType: LABEL_REGION1, user: this.user, preferences: this.preferences);
-          },
-        ),
-      );
-    } else if (item == MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE) {
-      Navigator.of(context).push(
-        new MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            // TODO: update it when the screen is available
-            return new Container();
-          },
-        ),
-      );
-    } else {
-      throw MENU_ITEM_NOT_FOUND_ERR;
-    }
-  }
-*/
-  
   @override
   Widget build(BuildContext context) {
     void onPressed(context, tag)  {
       GeoPoint newLocation; 
-      if(_location != null && _location.length > 0) {
-      _geolocator.placemarkFromAddress(_location).then((List<Placemark> placemark) {
+      if(_streetAddress != null && _streetAddress.length > 0) {
+      _geolocator.placemarkFromAddress(_streetAddress).then((List<Placemark> placemark) {
         Position pos = placemark[0].position;
         newLocation = new GeoPoint(pos.latitude, pos.longitude);
         Navigator.of(context).push(
           new MaterialPageRoute<void>(
             builder: (BuildContext context) {
-              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences, fixLocation: newLocation, streetAddress: _location, tag: tag);
+              return new SearchingScreen(user: user, getCurrentLocation: getCurrentLocation, preferences: preferences, fixLocation: newLocation, streetAddress: _streetAddress, tag: tag);
             },
           ),
         );
@@ -85,42 +51,45 @@ class SearchingMain extends StatelessWidget {
         );
       }
     }
-
+/*
+    void onSubmitted() {
+      setState(() {_streetAddress = value});
+    }
+*/
     Widget renderLocationField() {
+      bool _isSubmitDisable = true;
+      if((_streetAddress != null && _streetAddress.length > 0) || this.disableLocation == false) {
+        _isSubmitDisable = false;
+      }
       return PreferredSize(
                 preferredSize: Size.fromHeight(100),
                 child: Row(children: [SizedBox(width: 12.0), Expanded(child: TextField(
                   decoration: InputDecoration(
                       hintText: HINT_SEARCH_LOCATION),
                   keyboardType: TextInputType.text,
-                  onChanged: (value) {_location = value;})),
-                  //onChanged: (value) {setState(() {_location = value;});},
+                  onChanged: (value) {_streetAddress = value;})),
+                  //onChanged: (value) {setState(() {_streetAddress = value;});},
                   //onSubmitted: onSubmitted)), 
                   Material(child: Container(
                     decoration: BoxDecoration(
                           border: Border.all(width: 0.5, color: Colors.grey),
-                          /*
-                          boxShadow: [
-                            new BoxShadow(
-                              color: Colors.grey,
-                              offset: new Offset(0.0, 2.5),
-                              blurRadius: 4.0,
-                              spreadRadius: 0.0
-                            )
-                          ],
-                          */  //borderRadius: BorderRadius.circular(6.0)
                         ),
-                      child: IconButton(icon: Icon(Icons.location_searching), onPressed: () => onPressed(context, "")))),
+                      child: IconButton(icon: Icon(Icons.location_searching), onPressed: _isSubmitDisable ? null : () => onPressed(context, "")))),
                   SizedBox(width: 12.0)]));
     }
 
     Row renderTagButtons(List<String> tags) {
+      bool _isSubmitDisable = true;
+      if((_streetAddress != null && _streetAddress.length > 0) || this.disableLocation == false) {
+        _isSubmitDisable = false;
+      }
       List<Widget> widgets = tags
                 .map((tag) => Expanded(
                   //flex: 1,
                   child:OutlineButton(
                       child: Text(tag),
-                      onPressed: () => onPressed(context, tag),
+                      
+                      onPressed: _isSubmitDisable ? null : () => onPressed(context, tag),
                       borderSide: BorderSide(
                         color: Colors.blue, //Color of the border
                         style: BorderStyle.solid, //Style of the border

@@ -77,6 +77,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   bool _isFabShow = false;
 //  List<CameraDescription> cameras;
   bool _locationPermissionGranted = true;
+  bool _disableLocation = false;
   Widget _nearBySelection;
   Widget _searchingMain;
   Widget _pendingWidget;
@@ -90,7 +91,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   final flutterWebviewPlugin = new FlutterWebviewPlugin();
 */
     // use to get current location
-  GeoPoint _currentLocation;
+  GeoPoint _currentLocation = HongKongGeoPoint;
 
   StreamSubscription<Position> _positionStream;
 
@@ -102,7 +103,6 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   @override
   void initState() {
     this.uid = '';
-    _currentLocation = new GeoPoint(22.266455999999998, 114.23257000000001);
     _nearBySelection = new CircularProgressIndicator();
     _searchingMain = new CircularProgressIndicator();
     messageService = new MessageService(widget.user);
@@ -124,7 +124,6 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           _locationPermissionGranted = true;
       } else {
           _locationPermissionGranted = false;
-        //requestLocationPermission();
       }
     });
     // get GPS
@@ -132,6 +131,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     if(_locationPermissionGranted) {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
         if(position != null) {
+          _disableLocation = false;
           print('initState Poisition ${position}');
           _currentLocation = new GeoPoint(position.latitude, position.longitude);
           _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
@@ -174,6 +174,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       print('initPlatformStateLocation: ${location}');
       if(location != null) {
         setState(() {
+            _disableLocation = false;
             _currentLocation = new GeoPoint(location.latitude, location.longitude);
             _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
             _searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);             
@@ -182,14 +183,17 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     }
   }
 
-  GeoPoint getCurrentLocation() {
+  Map getCurrentLocation() {
     print("getCurrentLocation ${_currentLocation}");
-    GeoPoint rv;
+    GeoPoint geoPoint;
     if(_currentLocation != null) {
-      rv = _currentLocation; 
+      geoPoint = _currentLocation; 
     } else {
-      rv = new GeoPoint(22.266455999999998, 114.23257000000001);
+      geoPoint = HongKongGeoPoint;
     }
+    Map rv = new Map();
+    rv['GeoPoint'] = geoPoint;
+    rv['LocationPermissionGranted']  = _locationPermissionGranted;
     return rv;
   }
 
@@ -304,6 +308,16 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       }
     });
   }
+
+  noLocationPermission() {
+    setState(() {
+      _disableLocation = true;
+    });
+    Widget rv = showNearby();
+    setState(() {
+      this._nearBySelection = rv;
+    });
+  }
     // TODO for Real Notification Screen
   Widget showNotification() {
     return new NotificationScreen(user: widget.user);
@@ -319,16 +333,14 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     setState((){
       this._isFabShow = isFabShow;
       this._nearBySelection = rv;
-//      _pendingWidget = rv;
-//      _nearBySelection = new CircularProgressIndicator();
     });
   }   
 
   Widget showNearby() {
     print('show Nearby ${_currentLocation}');
     Widget rv;
-    if(_currentLocation != null) {
-      rv = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);  
+    if(_locationPermissionGranted == true || _disableLocation == true) {
+      rv = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
     } else {
       rv = new CircularProgressIndicator();
     }
@@ -354,17 +366,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           setState(() {
             this._isFabShow = false;
           });
-/*          
-          setState(() {
-            _tabController.index = 0;
-//            this._isFabShow = false;
-          });
-          launch(OUTLAND_SEARCH_HOST);
-//          flutterWebviewPlugin.launch(OUTLAND_SEARCH_HOST, rect: Rect.fromLTWH(0.0, 0.0, MediaQuery.of(context).size.width, 300.0));
-*/
           break;
         default:
-//         _nearBySelection;
           updateLocation();
       }
     });
@@ -374,14 +377,14 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             return new SendTopicScreen(
-                messageLocation: messageLocation, user: widget.user, isBroadcast: (_tabController.index == 0),);
+                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: (_tabController.index == 0),);
           },
         ),
       );
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => updateAnyMarkerChange(context));
 
-    if (_locationPermissionGranted == true) {
+    if (_locationPermissionGranted == true || _disableLocation == true) {
       return new Scaffold(
         appBar: new AppBar(
           title: new Text(_app_name),
@@ -424,7 +427,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           children: <Widget>[
             showNotification(),
             _nearBySelection,
-            _searchingMain,
+            SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences, disableLocation: _disableLocation),
             //new CircularProgressIndicator(),
           ],
         ),
@@ -459,11 +462,20 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
               onPressed: requestLocationPermission,
               child: new Text(PERM_LOCATION_GRANT_BTN_TEXT),
             ),
+            new RaisedButton(
+              padding: const EdgeInsets.all(8.0),
+              textColor: Colors.white,
+              color: Colors.blue,
+              onPressed: noLocationPermission,
+              child: new Text(PERM_LOCATION_NOT_GRANT_BTN_TEXT),
+            ),            
           ],
         )),
       );
     }
   }
+
+  
   void updateAnyMarkerChange(BuildContext context) {
     //print('swap ${_pendingWidget}');
     if(_pendingWidget != null) {

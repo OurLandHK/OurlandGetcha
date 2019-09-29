@@ -30,17 +30,17 @@ final auth = FirebaseAuth.instance;
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class SendTopicScreen extends StatefulWidget {
-  final GeoPoint messageLocation;
+  final Function getCurrentLocation;
   final User user;
   bool isBroadcast = false;
-  SendTopicScreen({Key key, @required this.messageLocation, @required this.user, this.isBroadcast}) : super(key: key);
+  SendTopicScreen({Key key, @required this.getCurrentLocation, @required this.user, this.isBroadcast}) : super(key: key);
 
   @override
-  State createState() => new SendTopicState(messageLocation: this.messageLocation);
+  State createState() => new SendTopicState();
 }
 
 class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixin  {
-  SendTopicState({Key key, this.messageLocation});
+  SendTopicState({Key key});
   String id;
   MessageService messageService;
   UserService userService;
@@ -75,6 +75,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   String _currentLocationSelection;
   bool _isShowName;
   bool _isSubmitDisable;
+  bool _locationPermissionGranted = true;
   int _color;
   Text _buttonText;
 
@@ -107,55 +108,44 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
 
     initPlatformState();
-    if(this.messageLocation == null) {
-      _positionStream = _geolocator.getPositionStream(locationOptions).listen(
-        (Position position) {
-          if(position != null) {
-            print('initState Poisition ${position}');
-            _currentLocation = position;
-            GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-            this.messageLocation = mapCenter;
-          }
-        });
-    } else {
-      print('messageLocation ${this.messageLocation.latitude} , ${this.messageLocation.longitude}');
-    }
+    Map map = widget.getCurrentLocation();
+    this.messageLocation = map['GeoPoint'];
+    _locationPermissionGranted = map['LocationPermissionGranted'];
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
-    if(this.messageLocation == null) {
-      Position location;
-      // Platform messages may fail, so we use a try/catch PlatformException.
+    Position location;
+    // Platform messages may fail, so we use a try/catch PlatformException.
 
-      try {
-        geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
-        location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
-        error = null;
-      } on PlatformException catch (e) {
-        if (e.code == 'PERMISSION_DENIED') {
-          error = 'Permission denied';
-        } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
-          error = 'Permission denied - please ask the user to enable it from the app settings';
-        }
-
-        location = null;
+    try {
+      geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
+      location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
+      error = null;
+    } on PlatformException catch (e) {
+      if (e.code == 'PERMISSION_DENIED') {
+        error = 'Permission denied';
+      } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
+        error = 'Permission denied - please ask the user to enable it from the app settings';
       }
 
-      // If the widget was removed from the tree while the asynchronous platform
-      // message was in flight, we want to discard the reply rather than calling
-      // setState to update our non-existent appearance.
-      //if (!mounted) return;
-
-      setState(() {
-          print('initPlatformStateLocation: ${location}');
-          if(location != null) {
-            _currentLocation = location;
-            GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-            this.messageLocation = mapCenter;
-          }
-      });
+      location = null;
     }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    //if (!mounted) return;
+
+    setState(() {
+        print('initPlatformStateLocation: ${location}');
+        if(location != null) {
+          _locationPermissionGranted = true;
+          _currentLocation = location;
+          GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+          this.messageLocation = mapCenter;
+        }
+    });
   }
 
   void onFocusChange() {
@@ -177,7 +167,15 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     // TODO 
       switch (_currentLocationSelection) {
         case LABEL_NEARBY:
-          this.messageLocation = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+          Map map = widget.getCurrentLocation();
+          this.messageLocation = map['GeoPoint'];
+          _locationPermissionGranted = map['LocationPermissionGranted'];
+          if(!_locationPermissionGranted) {
+            setState(() {
+              _isSubmitDisable = true;
+              _buttonText = Text(PERM_LOCATION_NOT_GRANTED);
+            });
+          }
           break;
         case LABEL_REGION0:
           this.messageLocation = widget.user.homeAddress;
@@ -296,29 +294,35 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   Widget formUI(BuildContext context) {
     String validation(String label, String value) {
       String rv;
-      switch(label) {
-        case LABEL_TOPIC:
-          if(value.isEmpty) {
-            _isSubmitDisable = true;
-            _buttonText = Text(LABEL_MISSING_TOPIC);
-            rv = LABEL_MISSING_TOPIC;
-          } else {
-            _isSubmitDisable = false;
-            _formKey.currentState.save();
-          }
-          break;
-        case LABEL_DETAIL:
-          if(value.isNotEmpty) {
-            if(!_isSubmitDisable) {
-              _buttonText = Text(LABEL_SEND);
+      if(_currentLocationSelection == LABEL_NEARBY && !_locationPermissionGranted) {
+        _isSubmitDisable = true;
+        _buttonText = Text(PERM_LOCATION_NOT_GRANTED);
+        rv = PERM_LOCATION_NOT_GRANTED;
+      } else {
+        switch(label) {
+          case LABEL_TOPIC:
+            if(value.isEmpty) {
+              _isSubmitDisable = true;
+              _buttonText = Text(LABEL_MISSING_TOPIC);
+              rv = LABEL_MISSING_TOPIC;
+            } else {
+              _isSubmitDisable = false;
+              _formKey.currentState.save();
             }
-          } else {
-            _formKey.currentState.save();
-            if(!_isSubmitDisable) {
-              _buttonText = Text(LABEL_MORE_DETAIL);
+            break;
+          case LABEL_DETAIL:
+            if(value.isNotEmpty) {
+              if(!_isSubmitDisable) {
+                _buttonText = Text(LABEL_SEND);
+              }
+            } else {
+              _formKey.currentState.save();
+              if(!_isSubmitDisable) {
+                _buttonText = Text(LABEL_MORE_DETAIL);
+              }
             }
-          }
-          break;        
+            break;        
+        }
       }
       return rv;
     }

@@ -79,7 +79,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
   GeoPoint messageLocation;
 
   String _currentLocationSelection;
-//  bool _locationPermissionGranted = false;
+  bool _locationPermissionGranted = true;
   //List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
   List<SearchingMsg> _searchingMsgs;
   List<DropdownMenuItem<String>> _tagDropDownMenuItems;
@@ -111,7 +111,9 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
     isLoading = false;
     GeoPoint mapCenter = this.fixLocation;
     if(mapCenter == null) {
-      mapCenter = widget.getCurrentLocation();
+      Map map = widget.getCurrentLocation();
+      mapCenter = map['GeoPoint'];
+      _locationPermissionGranted = map['LocationPermissionGranted'];
     } else {
       if(widget.streetAddress != null) {
         _searchingTitle = widget.streetAddress;
@@ -125,31 +127,15 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
     this.messageLocation = mapCenter;
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
-
-  /*
-        // Init UI
-  List<String> dropDownList = [LABEL_NEARBY];
-    if(widget.user != null) {
-      dropDownList = [LABEL_NEARBY, LABEL_REGION0, LABEL_REGION1];
-    }
-    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
-    _currentLocationSelection = _locationDropDownMenuItems[0].value;    
-    _updateCenter = setLocation;
-    bool _tempExpand = true;
-    try {
-      _tempExpand = widget.preferences.getBool('TOPIC_EXPANDED');
-    } catch (Exception) {
-      widget.preferences.setBool('TOPIC_EXPANDED', _tempExpand);
-    } 
-    //this.expanded = _tempExpand;
-    */
   }
   
 
   Future<void> setLocation(GeoPoint location) async {
     GeoPoint _temp = location;
     if(location == null) {
-      _temp = await widget.getCurrentLocation();
+      Map map = await widget.getCurrentLocation();
+      _temp = map['GeoPoint'];
+      //rv['LocationPermissionGranted']
     }
     if(_temp != null && _temp.latitude == this.messageLocation.latitude && _temp.longitude == this.messageLocation.longitude ) {
       _temp  = null;
@@ -230,9 +216,10 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
             print("Office");
             enableSendButton = isAddressWithinTopic(widget.user.officeAddress, topic.searchingMsg);
           }
-          if(!enableSendButton) {
+          if(!enableSendButton && _locationPermissionGranted) {
             print("Current");
-            GeoPoint mapCenter = widget.getCurrentLocation();
+            Map map = widget.getCurrentLocation();
+            GeoPoint mapCenter = map['GeoPoint'];
             enableSendButton = isAddressWithinTopic(mapCenter, topic.searchingMsg);
           }
         }

@@ -74,7 +74,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   GeoPoint messageLocation;
 
   String _currentLocationSelection;
-//  bool _locationPermissionGranted = false;
+  bool _locationPermissionGranted = false;
   List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
 
   String _firstTag = "";
@@ -97,7 +97,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     this._markerList = [];
     this._pendingMarkerList =[];  
     isLoading = false;
-    GeoPoint mapCenter = widget.getCurrentLocation();
+    Map map = widget.getCurrentLocation();
+    GeoPoint mapCenter = map['GeoPoint'];
+    _locationPermissionGranted = map['LocationPermissionGranted'];
     this.messageLocation = mapCenter;
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
@@ -125,7 +127,8 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   Future<void> setLocation(GeoPoint location) async {
     GeoPoint _temp = location;
     if(location == null) {
-      _temp = await widget.getCurrentLocation();
+      Map map = await widget.getCurrentLocation();
+      _temp = map['GeoPoint'];
     }
     if(_temp != null && _temp.latitude == this.messageLocation.latitude && _temp.longitude == this.messageLocation.longitude ) {
       _temp  = null;
@@ -265,9 +268,10 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
             print("Office");
             enableSendButton = isAddressWithinTopic(widget.user.officeAddress, topic);
           }
-          if(!enableSendButton) {
+          if(!enableSendButton && _locationPermissionGranted) {
             print("Current");
-            GeoPoint mapCenter = widget.getCurrentLocation();
+            Map map = widget.getCurrentLocation();
+            GeoPoint mapCenter = map['GeoPoint'];
             enableSendButton = isAddressWithinTopic(mapCenter, topic);
           }
         }
