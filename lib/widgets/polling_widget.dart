@@ -235,7 +235,7 @@ abstract class PollingModel extends State<PollingWidget>
                   onPressed: () => {_onTap(i, displayResult)}
                   )
                 );
-                print("${_upvote[i]}");
+                //print("${_upvote[i]}");
       LinearGradient gradient;
       if(displayResult) {
         gradient = LinearGradient(colors: [widget.darkBackgroundColor , Colors.white],

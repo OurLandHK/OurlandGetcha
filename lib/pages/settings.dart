@@ -168,12 +168,16 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
   }
 
   Widget renderMap() {
-    return ChatMap(
+    if(this._currentLocation == null) {
+      return Container();
+    } else {
+      return ChatMap(
           topLeft: this._currentLocation,
           bottomRight: this._currentLocation,
           height: MAP_HEIGHT,
           markerList: [OurlandMarker(_label, this._currentLocation, 0, _label, "settings")],
           updateCenter: null,);
+   }
   }
 
   Widget renderLocationField() {

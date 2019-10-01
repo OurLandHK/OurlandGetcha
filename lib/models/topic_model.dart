@@ -169,11 +169,9 @@ class Topic {
     } else {
       if(this.created !=null) {
         this._color = this.searchingId.hashCode % TOPIC_COLORS.length;
-        //print("${this.searchingId.hashCode}");
       } else {
         this._color = (this.geoTopLeft.latitude * 1000).round() % TOPIC_COLORS.length;
       }
-      print("${this._color}");
     }
     if(map['isGlobalHide'] != null) {
       this._isGlobalHide = map['isGlobalHide'];

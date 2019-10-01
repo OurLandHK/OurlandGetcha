@@ -58,7 +58,7 @@ class TopicMessage extends StatelessWidget {
       Container messageWidget;
       //print(this.messageId);
       if(this.topic.searchingId != null) {
-        print("searching id ${this.topic.searchingId}");
+        //print("searching id ${this.topic.searchingId}");
         messageWidget = Container(
           child: SearchingWidget(
             searchingId: this.topic.searchingId,

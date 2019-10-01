@@ -177,7 +177,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
             _disableLocation = false;
             _currentLocation = new GeoPoint(location.latitude, location.longitude);
             _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
-            _searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);             
+            //_searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);             
         });
       }
     }

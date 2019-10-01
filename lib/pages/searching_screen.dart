@@ -172,7 +172,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
         _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
       }
     }
-    rv = new SearchingMsgWidget(key: Key(searchingMsg.key), user: widget.user, searchingMsg: searchingMsg, onTap: _onTap, messageLocation: _messageLocation);
+    rv = new SearchingMsgWidget(key: Key(searchingMsg.key), user: widget.user, searchingMsg: searchingMsg, getCurrentLocation:  widget.getCurrentLocation, /*onTap: _onTap, */messageLocation: _messageLocation, locationPermissionGranted: _locationPermissionGranted);
     return rv;
   }
 
