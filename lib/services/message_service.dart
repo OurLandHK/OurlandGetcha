@@ -132,14 +132,18 @@ class MessageService {
   Future<Topic> getLatestTopic() {
     var ourlandReference = _ourlandCollection.document("RecentMessage");
     return ourlandReference.get().then((onValue0) {
-      var topicReference = _topicCollection
-              .document(onValue0['id']);
-      return topicReference.get().then((onValue) {
-        if(onValue.exists) {
-          return Topic.fromMap(onValue.data);
-        } else {
-          return null;
-        }
+      return getSearchMsg(onValue0.data['id']).then((searchingMsg) {
+        var topicReference = _topicCollection
+                .document(searchingMsg.key);
+        return topicReference.get().then((onValue) {
+          if(onValue.exists) {
+            Topic topic = Topic.fromMap(onValue.data);
+            topic.searchingMsg = searchingMsg;
+            return topic;
+          } else {
+            return Topic.fromSearchingMsg(searchingMsg);
+          }
+        });
       });
     });
   }

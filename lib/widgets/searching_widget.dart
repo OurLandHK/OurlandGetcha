@@ -110,7 +110,6 @@ abstract class SearchingModel extends State<SearchingWidget>
 
   Widget buildPreview(BuildContext context) {
     if (_sMsg == null) {
-      print("buildPreview _sMsg == null"); 
       return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
