@@ -94,7 +94,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
     if (newImageFile != null) {
       setState(() {
         imageFile = newImageFile;
-        print("${imageFile.uri.toString()}");
+        //print("${imageFile.uri.toString()}");
       });
     }
   }

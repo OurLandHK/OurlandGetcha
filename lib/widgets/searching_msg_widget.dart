@@ -1,40 +1,98 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/services/message_service.dart';
 //import 'package:rich_link_preview/rich_link_preview.dart';
-import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/topic_model.dart';
-import 'package:ourland_native/widgets/base_profile.dart';
-import 'package:ourland_native/widgets/image_widget.dart';
-import 'package:ourland_native/helper/open_graph_parser.dart';
 import 'package:ourland_native/widgets/searching_widget.dart';
+import 'package:ourland_native/services/user_service.dart';
+import 'package:ourland_native/pages/chat_screen.dart';
+import 'package:geodesy/geodesy.dart';
 
 class SearchingMsgWidget extends StatelessWidget {
   final SearchingMsg searchingMsg;
   final User user;
-  final Function onTap;
+  final Function getCurrentLocation;
   final GeoPoint messageLocation;
+  final bool locationPermissionGranted;
 
   SearchingMsgWidget(
       {Key key,
       @required this.searchingMsg,
       @required this.user,
-      @required this.onTap,
+      @required this.getCurrentLocation,
+      @required this.locationPermissionGranted,
       @required this.messageLocation})
       : super(key: key);
 
   Widget build(BuildContext context) {
+    bool isAddressWithinTopic(GeoPoint address, SearchingMsg searchingMsg1) {
+      Geodesy geodesy = Geodesy();
+      bool rv = false;
+      LatLng l1 = new LatLng(address.latitude, address.longitude);
+      LatLng searchingMsg = new LatLng(searchingMsg1.geolocation.latitude, searchingMsg1.geolocation.longitude);
+      if(geodesy.distanceBetweenTwoGeoPoints(l1, searchingMsg, null) < 2500) {
+        rv = true;
+      } 
+      return rv;
+    }
     if(this.searchingMsg == null) {
+      print("this.searchingMsg == null");
       return Container();
     }
-    String title = this.searchingMsg.text;
+
+    void __onTap(Topic topic, String parentTitle, GeoPoint messageLocation) async {
+      //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
+      GeoPoint _messageLocation = messageLocation;
+  /*
+      if(_messageLocation == null && this.fixLocation != null) {
+        _messageLocation = this.fixLocation;
+      } 
+  */    
+      if(_messageLocation == null && this.messageLocation != null) {
+        _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
+      }
+      bool enableSendButton = false;
+      // Check for previous edit topic
+      if(this.user != null) {
+        UserService userService = new UserService();
+        RecentTopic recentTopic = await userService.getRecentTopic(this.user.uuid, topic.id);
+        if(recentTopic != null) {
+          print("Recent Topic");
+          _messageLocation = recentTopic.messageLocation;
+          enableSendButton = true;
+        } else {
+          if(user.homeAddress != null) {
+            print("Home");
+            enableSendButton = isAddressWithinTopic(user.homeAddress, topic.searchingMsg);
+          }
+          if(!enableSendButton && user.officeAddress != null) {
+            print("Office");
+            enableSendButton = isAddressWithinTopic(user.officeAddress, topic.searchingMsg);
+          }
+          if(!enableSendButton && locationPermissionGranted) {
+            print("Current");
+            Map map = getCurrentLocation();
+            GeoPoint mapCenter = map['GeoPoint'];
+            enableSendButton = isAddressWithinTopic(mapCenter, topic.searchingMsg);
+          }
+        }
+      } 
+      Navigator.of(context).push(
+        new MaterialPageRoute<void>(
+          builder: (BuildContext context) {
+            Key chatKey = new Key(topic.id);
+            return new ChatScreen(key: chatKey, user : user, topic: topic,  parentTitle: parentTitle, enableSendButton: enableSendButton, messageLocation: _messageLocation);
+          },
+        ),
+      );
+    }
+    //String title = this.searchingMsg.text;
     void _onTap() {
       MessageService messageService = new MessageService(this.user);
       messageService.getTopic(this.searchingMsg.key).then((topic) {
@@ -43,7 +101,8 @@ class SearchingMsgWidget extends StatelessWidget {
         } else {
           topic.searchingMsg = this.searchingMsg;
         }
-        return this.onTap(topic, searchingMsg.text, this.messageLocation);
+        //return this.onTap(topic, searchingMsg.text, this.messageLocation);
+        return __onTap(topic, searchingMsg.text, this.messageLocation);
       });
     }
 
