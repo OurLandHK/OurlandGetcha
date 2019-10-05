@@ -254,7 +254,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
 
 
   Widget _buildPolling(BuildContext context, SearchingMsg _sMsg) {
-    if (_sMsg != null && _sMsg.polling != null) {
+    if (_sMsg != null && _sMsg.polling != null && _sMsg.polling.numOfMaxPolling != null) {
       return  PollingWidget(searchingMsg: _sMsg, 
         messageLocation: widget.messageLocation, 
         width: widget.width, 
@@ -267,10 +267,10 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     }
   }
   Widget _buildStreetAddress(BuildContext context, SearchingMsg _sMsg) {
-    if (_sMsg != null) {
-      String text = "";
+    if (_sMsg != null && _sMsg.streetAddress != null && _sMsg.streetAddress.length > 0) {
+      String text = LABEL_REGION;
       if(_sMsg.streetAddress != null) {
-        text = _sMsg.streetAddress;
+        text += _sMsg.streetAddress;
       }
       return Padding(
           padding: EdgeInsets.all(2.0),
@@ -282,6 +282,21 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       return Container();
     }
   }  
+
+  Widget _buildDesc(BuildContext context, SearchingMsg _sMsg) {
+    if (_sMsg != null && _sMsg.desc != null && _sMsg.desc.length > 0) {
+      String text = _sMsg.desc;
+      return Padding(
+          padding: EdgeInsets.all(2.0),
+          child: new Text(text,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 4,
+              style: Theme.of(context).textTheme.body2,
+              textAlign: TextAlign.left,));
+    } else {
+      return Container();
+    }
+  }    
 
   Widget _buildStatus(BuildContext context, SearchingMsg _sMsg) {
     if (_sMsg != null) {
@@ -301,8 +316,8 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
 
   Widget _buildTimingInfo(BuildContext context, SearchingMsg _sMsg) {
+    String text = "";
     if (_sMsg != null) {
-      String text = LABEL_TIME;
       // check any start time
       if(_sMsg.start != null &&_sMsg.start.millisecondsSinceEpoch != 0) {
         text += LABEL_DATE;
@@ -343,7 +358,10 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
           }
         }
       }
-      
+    }
+
+    if(text.length != 0) {
+      text = LABEL_TIME + text;    
       return Padding(
           padding: EdgeInsets.all(2.0),
           child: new Text(text,
@@ -422,7 +440,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         style: Theme.of(context).textTheme.subtitle);
     Widget _ourlandLaunch = Container();
     if(widget.topic.searchingId != null) {
-      _ourlandLaunch = GestureDetector(child: Image.asset('assets/images/app-logo.png', width: 64.0), onTap: () => {launch(OUTLAND_SEARCH_HOST)});
+      _ourlandLaunch = GestureDetector(child: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH, width: 64.0), onTap: () => {launch(OURLAND_SEARCH_HOST)});
     }
     _baseInfo = new Row(children: <Widget>[
       new BaseProfile(user: widget.topic.createdUser), 
@@ -469,9 +487,11 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       SearchingMsg msg = widget.topic.searchingMsg;
       widgetList.add(_buildStatus(context, msg));
       widgetList.add(_buildStreetAddress(context, msg));
-      widgetList.add(_buildPolling(context, msg));
-      widgetList.add(_buildTimingInfo(context, msg));
+      widgetList.add(_buildDesc(context, msg));
       widgetList.add(_buildLink(context, msg));
+      widgetList.add(_buildTimingInfo(context, msg));
+      widgetList.add(_buildPolling(context, msg));
+      
       //msg.distance             
     }
     // Display tool bar

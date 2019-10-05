@@ -96,12 +96,14 @@ class TopicMessage extends StatelessWidget {
       }
     List<Widget> footers = []; 
     // tag
-    
-    for(int i = 0; i< this.topic.tags.length; i++) {
-//      footers.add(Chip(label: Text(this.topic.tags[i], style: Theme.of(context).textTheme.subtitle), backgroundColor: TOPIC_COLORS_DARKER[this.topic.color]));
-      footers.add(Text("#${this.topic.tags[i]}", style: Theme.of(context).textTheme.subtitle));
-
+    String footerText ="";
+    for(int i = 0; i< this.topic.tags.length && i < 3; i++) {
+      footerText += "#"+this.topic.tags[i];
     }
+    if(footerText.length > 0) {
+      footers.add(Text(footerText, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.subtitle));
+    }
+        
         
     // Time
     Container timeWidget = Container(

@@ -198,7 +198,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   renderSubmitButton(context) {
     return RaisedButton(
         onPressed: () => verifyPhoneField(context),
-        child: Text(REG_BUTTON_TEXT),
+        child: Text(PHONE_REG_BUTTON_TEXT),
         textColor: Colors.white,
         elevation: 7.0,
         color: Colors.blue);
@@ -267,7 +267,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 10),
               child: Text(
-                'Sign in with Google',
+                GOOGLE_REG_BUTTON_TEXT,
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.grey,
@@ -329,13 +329,14 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               children: <Widget>[
                 renderAppLogo(),
                 renderSizeBox(),
-                _renderGoogleSignInButton(),     
+                _renderGoogleSignInButton(),
+                renderSizeBox(), 
                 renderSizeBox(),          
                 renderPhoneNumberField(),
                 renderSizeBox(),
-                renderSizeBox(),
                 renderSubmitButton(context),    
-                renderSizeBox(),       
+                renderSizeBox(), 
+                renderSizeBox(),   
                 (widget.firstPage) ? renderAccessAsNobody(context) : Container(),
               ],
             )),
