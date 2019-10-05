@@ -62,7 +62,7 @@ abstract class SearchingModel extends State<SearchingWidget>
         if (this.mounted) {
           setState(() {
             _sMsg = sMsg;
-            _link = OUTLAND_SEARCH_HOST + "/detail/" + widget.searchingId;
+            _link = OURLAND_SEARCH_HOST + "/detail/" + widget.searchingId;
           });
 
           controller = AnimationController(
@@ -95,7 +95,7 @@ abstract class SearchingModel extends State<SearchingWidget>
     } else {
       //setState(() {
       if(_link.length != 0) {
-        _link = OUTLAND_SEARCH_HOST + "/detail/" + this._sMsg.key;
+        _link = OURLAND_SEARCH_HOST + "/detail/" + this._sMsg.key;
         controller = AnimationController(
               vsync: this, duration: Duration(milliseconds: 750));
           position = Tween<Offset>(begin: Offset(0.0, 4.0), end: Offset.zero)
@@ -216,7 +216,7 @@ abstract class SearchingModel extends State<SearchingWidget>
   }
 
   Widget _buildDescription(BuildContext context) {
-    if (_sMsg != null) {
+    if (_sMsg != null && _sMsg.desc.length > 0) {
       String desc = "";
       if(_sMsg.desc != null) {
         desc = _sMsg.desc;

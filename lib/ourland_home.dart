@@ -108,13 +108,13 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     messageService = new MessageService(widget.user);
     /*
     _webView = new WebView(
-                initialUrl: OUTLAND_SEARCH_HOST,
+                initialUrl: OURLAND_SEARCH_HOST,
                 onWebViewCreated: (WebViewController webViewController) {
                   _controller = webViewController;
                 },
                 javascriptMode: JavascriptMode.unrestricted,
               );
-    _webviewPlugin = new WebviewScaffold(url: OUTLAND_SEARCH_HOST, geolocationEnabled: true, appCacheEnabled: true, supportMultipleWindows: true, withJavascript: true, withLocalStorage: true,);
+    _webviewPlugin = new WebviewScaffold(url: OURLAND_SEARCH_HOST, geolocationEnabled: true, appCacheEnabled: true, supportMultipleWindows: true, withJavascript: true, withLocalStorage: true,);
     */
     super.initState();
     PermissionHandler()
@@ -409,7 +409,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
                   ])
               ),
               new Tab(
-                icon: new Image.asset('assets/images/app-logo.png')
+                icon: new Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH)
               ),
             ],
           ),

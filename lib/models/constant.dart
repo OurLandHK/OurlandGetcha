@@ -10,16 +10,19 @@ const String APP_NAME = "我地.壁報";
 const String SMS_CODE_DIALOG_TITLE = "入 SMS Code";
 const String SMS_CODE_DIALOG_BUTTON_TEXT = "核實";
 const String REG_BUTTON_TEXT = "註冊";
+const String GOOGLE_REG_BUTTON_TEXT = "用Google ID 註冊/登入";
+const String PHONE_REG_BUTTON_TEXT = "用電話號碼註冊/登入";
 const String NOBODY_BUTTON_TEXT = "做CDROM";
 const String REG_USERNAME_HINT_TEXT = "輸入用戶名稱";
-const String OUTLAND_SEARCH_HOST = "https://ourlandtest.firebaseapp.com";
-//const String OUTLAND_SEARCH_HOST = "https://ourland.hk";
+const String OURLAND_SEARCH_HOST = "https://ourlandtest.firebaseapp.com";
+//const String OURLAND_SEARCH_HOST = "https://ourland.hk";
 
 const String REG_PHONE_NUMBER_HINT_TEXT = "輸入香港電話號碼: ########";
 const String REG_FAILED_TO_CREATE_USER_TEXT = "註冊唔到";
 const String REG_FAILED_TO_LOGIN_TEXT = "Login唔到";
 const String DEFAULT_AVATAR_IMAGE_PATH = "assets/images/default-avatar.jpg";
-const String APP_LOGO_IMAGE_PATH = "assets/images/app-logo.png";
+const String APP_LOGO_IMAGE_PATH = "assets/images/BigPostLogo.png";
+const String SEARCHING_APP_LOGO_IMAGE_PATH = "assets/images/app-logo.png";
 const String VAL_USERNAME_NULL_TEXT = '請輸入用戶名稱';
 const String VAL_PHONE_NUMBER_NULL_TEXT = '請輸入香港電話號碼:';
 const String VAL_PHONE_NUMBER_INCORRECT_FORMAT_TEXT = '電話號碼要入 ########';
@@ -38,8 +41,9 @@ const String MESSAGE_BROADCAST = "推上香港·主牆";
 const String MESSAGE_LOCAL = "回到地區";
 
 const String LABEL_NEARBY = "附近";
-const String LABEL_REGION0 = "地點1";
-const String LABEL_REGION1 = "地點2";
+const String LABEL_REGION = "地點 ";
+const String LABEL_REGION0 = LABEL_REGION + "1";
+const String LABEL_REGION1 = LABEL_REGION + "2";
 
 const String LABEL_BROADCAST = "香港·主牆";
 const String LABEL_RECENT = "睇過";
