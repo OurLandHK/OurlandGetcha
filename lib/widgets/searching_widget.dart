@@ -216,7 +216,7 @@ abstract class SearchingModel extends State<SearchingWidget>
   }
 
   Widget _buildDescription(BuildContext context) {
-    if (_sMsg != null && _sMsg.desc.length > 0) {
+    if (_sMsg != null && _sMsg.desc != null &&_sMsg.desc.length > 0) {
       String desc = "";
       if(_sMsg.desc != null) {
         desc = _sMsg.desc;
