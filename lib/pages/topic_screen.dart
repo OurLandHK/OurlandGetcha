@@ -48,7 +48,9 @@ class TopicScreen extends StatefulWidget {
     } 
     if(_tempExpand == null) {
       _tempExpand = true;
-      preferences.setBool('TOPIC_EXPANDED', _tempExpand);
+      if(preferences != null) {
+        preferences.setBool('TOPIC_EXPANDED', _tempExpand);
+      }
     }
     _state = new TopicScreenState(fixLocation: this.fixLocation, expanded: _tempExpand);
     return _state;
@@ -116,7 +118,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     try {
       _tempExpand = widget.preferences.getBool('TOPIC_EXPANDED');
     } catch (Exception) {
-      widget.preferences.setBool('TOPIC_EXPANDED', _tempExpand);
+      if(widget.preferences != null) {
+        widget.preferences.setBool('TOPIC_EXPANDED', _tempExpand);
+      }
     } 
     this.expanded = _tempExpand;
   }
@@ -308,7 +312,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
                       setState(() {
                         expanded = !expanded;
                       });
-                      widget.preferences.setBool('TOPIC_EXPANDED', expanded);
+                      if(widget.preferences != null) {
+                        widget.preferences.setBool('TOPIC_EXPANDED', expanded);
+                      }
                     },
                 ),
               ];

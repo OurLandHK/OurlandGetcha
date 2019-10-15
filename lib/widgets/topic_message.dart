@@ -94,14 +94,15 @@ class TopicMessage extends StatelessWidget {
             );
         }
       }
-    List<Widget> footers = []; 
+    List<Widget> footers = [];
+    List<Widget> tags = [];  
     // tag
-    String footerText ="";
-    for(int i = 0; i< this.topic.tags.length && i < 3; i++) {
-      footerText += "#"+this.topic.tags[i];
+    String tagText ="";
+    for(int i = 0; i< this.topic.tags.length; i++) {
+      tagText += "#"+this.topic.tags[i];
     }
-    if(footerText.length > 0) {
-      footers.add(Text(footerText, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.subtitle));
+    if(tagText.length > 0) {
+      tags.add(Text(tagText, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.subtitle));
     }
         
         
@@ -147,6 +148,9 @@ class TopicMessage extends StatelessWidget {
                     style: Theme.of(context).textTheme.body2),
               )],),));
     }
+    topicColumn.add(Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: tags));
     topicColumn.add(Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: footers));

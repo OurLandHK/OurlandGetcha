@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 const GeoPoint HongKongGeoPoint = GeoPoint(22.319118313228618,114.16929289698601);
 
 const String APP_NAME = "我地.壁報";
+const String ABOUT_TEXT = "一塊會主動通知用戶的地區連儂牆街坊可以查詢任何位置附近 1-3 公里內發生的社區事件，篩選自已有興趣的訊息，如公共設施，活動，社區議題落手參與。街坊可以隨時隨地「報料」: 匯報社區問題，仲可以一直跟進事態發展。\n在危急時通知附近用戶求救！";
 const String SMS_CODE_DIALOG_TITLE = "入 SMS Code";
 const String SMS_CODE_DIALOG_BUTTON_TEXT = "核實";
 const String REG_BUTTON_TEXT = "註冊";

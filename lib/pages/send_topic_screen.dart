@@ -107,10 +107,12 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     _locationDropDownMenuItems = getDropDownMenuItems(dropDownList, false);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
 
-    initPlatformState();
+    //initPlatformState();
+    print("send topic 1");
     Map map = widget.getCurrentLocation();
     this.messageLocation = map['GeoPoint'];
     _locationPermissionGranted = map['LocationPermissionGranted'];
+    print("send topic 2");
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

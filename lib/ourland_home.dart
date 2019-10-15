@@ -106,6 +106,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     _nearBySelection = new CircularProgressIndicator();
     _searchingMain = new CircularProgressIndicator();
     messageService = new MessageService(widget.user);
+    _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
     /*
     _webView = new WebView(
                 initialUrl: OURLAND_SEARCH_HOST,
@@ -117,34 +118,35 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     _webviewPlugin = new WebviewScaffold(url: OURLAND_SEARCH_HOST, geolocationEnabled: true, appCacheEnabled: true, supportMultipleWindows: true, withJavascript: true, withLocalStorage: true,);
     */
     super.initState();
-    PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.location)
-        .then((PermissionStatus permission) {
-      if (permission == PermissionStatus.granted) {
-          _locationPermissionGranted = true;
-      } else {
-          _locationPermissionGranted = false;
-      }
-    });
-    // get GPS
-    initPlatformState();
-    if(_locationPermissionGranted) {
-      _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
-        if(position != null) {
-          _disableLocation = false;
-          print('initState Poisition ${position}');
-          _currentLocation = new GeoPoint(position.latitude, position.longitude);
-          _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
-          _searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
+    _geolocator.checkGeolocationPermissionStatus().then((geolocationStatus) {
+      PermissionHandler()
+          .checkPermissionStatus(PermissionGroup.location)
+          .then((PermissionStatus permission) {
+        if (permission == PermissionStatus.granted) {
+            _locationPermissionGranted = true;
+        } else {
+            _locationPermissionGranted = false;
         }
+        if(_locationPermissionGranted) {
+          _positionStream = _geolocator.getPositionStream(locationOptions).listen((Position position) {
+            if(position != null) {
+              _disableLocation = false;
+              print('initState Poisition ${position}');
+              _currentLocation = new GeoPoint(position.latitude, position.longitude);
+              _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
+              _searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences, disableLocation: _disableLocation);
+            }
+          });
+        }
+        print('initState Poisition, updateLocation ${_currentLocation}');       // get GPS
+        initPlatformState();
+
+        // Firebase Messaging
+        firebaseCloudMessaging_Listeners();
+        //return Future<Null>;
       });
-    }
+    });
 
-    // Firebase Messaging
-    firebaseCloudMessaging_Listeners();
-
-    _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
-    print('initState Poisition, updateLocation ${_currentLocation}');
     //updateLocation();
     // checking if location permission is granted
   }
@@ -154,8 +156,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     // Platform messages may fail, so we use a try/catch PlatformException.
     if(_locationPermissionGranted) {
       try {
-        geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
-        location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
+        //geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
+        location = await _geolocator.getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
         error = null;
       } on PlatformException catch (e) {
         if (e.code == 'PERMISSION_DENIED') {
@@ -184,7 +186,6 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   }
 
   Map getCurrentLocation() {
-    print("getCurrentLocation ${_currentLocation}");
     GeoPoint geoPoint;
     if(_currentLocation != null) {
       geoPoint = _currentLocation; 
@@ -298,14 +299,17 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   }
 
   requestLocationPermission() {
-    PermissionHandler().requestPermissions([PermissionGroup.location]).then(
-        (Map<PermissionGroup, PermissionStatus> permissions) {
-      if (permissions[PermissionGroup.location] == PermissionStatus.granted) {
-        setState(() {
-          _locationPermissionGranted = true;
-        });
-        initPlatformState();
-      }
+    return  _geolocator.checkGeolocationPermissionStatus().then((geolocationStatus) {
+      print("Regest for Location" + geolocationStatus.toString());
+      return PermissionHandler().requestPermissions([PermissionGroup.location]).then(
+          (Map<PermissionGroup, PermissionStatus> permissions) {
+        if (permissions[PermissionGroup.location] == PermissionStatus.granted) {
+          setState(() {
+            _locationPermissionGranted = true;
+          });
+          return initPlatformState();
+        }
+      });
     });
   }
 
