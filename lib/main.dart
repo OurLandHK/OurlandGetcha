@@ -54,6 +54,7 @@ final ThemeData kDefaultTheme = new ThemeData(
       );
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   initFirestoreSettings();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {

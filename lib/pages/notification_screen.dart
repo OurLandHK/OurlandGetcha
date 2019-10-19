@@ -67,7 +67,9 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
       tabLength++;
     }
     _tabController = new TabController(vsync: this, initialIndex: 0, length: tabLength);
+    /*
     initPlatformState();
+  
     _positionStream = _geolocator.getPositionStream(locationOptions).listen(
       (Position position) {
         if(position != null) {
@@ -77,6 +79,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
           this.messageLocation = mapCenter;
         }
       });
+    */
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

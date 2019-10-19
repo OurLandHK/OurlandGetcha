@@ -150,7 +150,8 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
       smsCode: smsCode,
     );
     _auth.signInWithCredential(credential)
-        .then((FirebaseUser fbuser) {
+        .then((AuthResult authResult) {
+      FirebaseUser fbuser = authResult.user;
       print("${fbuser}");
       if (fbuser != null) {
         userService.getUser(fbuser.uid).then((user) {
@@ -290,7 +291,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
       idToken: googleSignInAuthentication.idToken,
     );
 
-    final FirebaseUser fbuser = await _auth.signInWithCredential(credential);
+    final FirebaseUser fbuser = (await _auth.signInWithCredential(credential)).user;
 
     assert(!fbuser.isAnonymous);
     assert(await fbuser.getIdToken() != null);

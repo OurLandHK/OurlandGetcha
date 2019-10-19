@@ -96,7 +96,7 @@ class _ChatMapState extends State<ChatMap> {
             markerId: markerId,
             position: GoogleMap.LatLng(widget.markerList[i].location.latitude, widget.markerList[i].location.longitude),
             infoWindow: GoogleMap.InfoWindow(title: widget.markerList[i].label, snippet: '*'),
-            icon: GoogleMap.BitmapDescriptor.fromAsset('assets/images/smallnote.png')
+            //icon: GoogleMap.BitmapDescriptor.fromAsset('assets/images/smallnote.png')
     /*      onTap: () {
             _onMarkerTapped(markerId);
           },*/

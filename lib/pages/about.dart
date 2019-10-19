@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ourland_native/models/constant.dart';
 
 class About extends StatelessWidget {
   @override
@@ -8,7 +9,7 @@ class About extends StatelessWidget {
         title: new Text("About"),
       ),
         body: new Container(
-        child: new Text("About Page"),
+        child: new Text(ABOUT_TEXT),
       )
     );
   }
