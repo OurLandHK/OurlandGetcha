@@ -195,7 +195,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
 
     Widget body = new WillPopScope(
       child: Column(
-        children: <Widget>[              
+        children: <Widget>[            
           new Container( 
             decoration: new BoxDecoration(
               color: Theme.of(context).cardColor),
@@ -225,6 +225,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
       ),
       body: Container(
         color: TOPIC_COLORS[_color],
+        //child: new Container(),
         child: SafeArea(
           top: false,
           bottom: false,
@@ -232,6 +233,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             child: body
           ),
         ),
+
       ),
     ); 
   }
