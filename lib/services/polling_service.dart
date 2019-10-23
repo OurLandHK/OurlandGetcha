@@ -1,14 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firestore_helpers/firestore_helpers.dart';
-import 'package:ourland_native/models/constant.dart';
-import 'package:ourland_native/helper/geo_helper.dart';
+//import 'package:firestore_helpers/firestore_helpers.dart';
 import 'package:ourland_native/models/user_model.dart';
-import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/polling_model.dart';
 
 final CollectionReference _pollingCollection =
