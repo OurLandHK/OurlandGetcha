@@ -18,11 +18,11 @@ dependencies:
   firebase_core: ^0.4.0+9
   firebase_auth: ^0.14.0+5
   google_sign_in: ^4.0.7
-  cloud_firestore: ^0.11.0+2
+  cloud_firestore: ^0.12.9+5
   firebase_database: ^3.0.0
   firebase_storage: ^3.0.0
   firebase_messaging: ^5.1.6
-  firestore_helpers: ^3.2.0+1
+  #firestore_helpers: ^3.2.0+1
   geolocator: ^5.1.4+2
   image_picker: ^0.6.1+8
   image: ^2.1.4
