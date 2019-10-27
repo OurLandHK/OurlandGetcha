@@ -7,7 +7,7 @@
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  [FIRApp configure];
+  //[FIRApp configure];
   [GMSServices provideAPIKey:@"AIzaSyA0f-lTwvIBGJK8Peuw-C0o9k3UWAGda9E"];
   [GeneratedPluginRegistrant registerWithRegistry:self];
   // Override point for customization after application launch.
