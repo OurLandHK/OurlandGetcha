@@ -30,6 +30,7 @@ class _SearchingMainState extends State<SearchingMain>{
   bool _isSubmitDisable;
   String _streetAddress;
   MessageService _messageService;
+  List<String> _tagList = [];
   Geolocator _geolocator = new Geolocator();
   Topic _recentTopic;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -52,6 +53,11 @@ class _SearchingMainState extends State<SearchingMain>{
       //print("${topic.id}");
       setState(() {
         _recentTopic = topic;
+      });
+    });
+    _messageService.getSearchFirstPage().then((searchFirstPage){
+      setState(() {
+        _tagList = searchFirstPage['Tags'].cast<String>();
       });
     });
   }
@@ -138,12 +144,15 @@ class _SearchingMainState extends State<SearchingMain>{
                 .toList();
       return(Row(children: widgets));
     }
+    List<Widget> widgetList = [];
 
-    List<String> firstButtonRow = TagList.sublist(0, (TagList.length/2).round());
-    List<String> secondButtonRow = TagList.sublist((TagList.length/2).round(), TagList.length);
-    List<Widget> widgetList = [
-      renderTagButtons(firstButtonRow),
-      renderTagButtons(secondButtonRow)];
+    if(_tagList != null && _tagList.length > 0) {
+      List<String> firstButtonRow = _tagList.sublist(0, (_tagList.length/2).round());
+      List<String> secondButtonRow = _tagList.sublist((_tagList.length/2).round(), _tagList.length);
+      widgetList = [
+        renderTagButtons(firstButtonRow),
+        renderTagButtons(secondButtonRow)];
+    }
     if(_recentTopic != null) {
       widgetList.add(Text(LABEL_RECENT_SEARCHING));
       widgetList.add(new SearchingMsgWidget(
