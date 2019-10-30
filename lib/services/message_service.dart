@@ -147,6 +147,13 @@ class MessageService {
     });
   }
 
+  Future<Map> getSearchFirstPage() {
+    var ourlandReference = _ourlandCollection.document("SearchFirstPage");
+    return ourlandReference.get().then((onValue0) {
+      return onValue0.data;
+    });
+  }
+
   Stream<QuerySnapshot> getBroadcastSnap() {
     Stream<QuerySnapshot> rv;
     rv = _topicCollection.where("public", isEqualTo: true)

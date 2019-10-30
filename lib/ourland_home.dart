@@ -208,22 +208,22 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        var data = message['data'];
+        var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
         print('on message $message    data $data id $id');
-        _showItemDialog(message);
+        _showItemDialog(data);
       },
       onResume: (Map<String, dynamic> message) async {
-        var data = message['data'];
+        var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
         print('on resume $message    data $data id $id');
-        _navigateToItemDetail(message);
+        _navigateToItemDetail(data);
       },
       onLaunch: (Map<String, dynamic> message) async {
-        var data = message['data'];
+        var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
         print('on launch $message    data $data id $id');
-        _navigateToItemDetail(message);
+        _navigateToItemDetail(data);
       },
     );
   }
@@ -248,8 +248,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     );
   }
 
-  void _showItemDialog(Map<String, dynamic> message) {
-    final String id = message['data']['id'];
+  void _showItemDialog(Map<String, dynamic> data) {
+    final String id = data['id'];
     GeoPoint messageLocation = _currentLocation;
     this.messageService.getTopic(id).then((topic) {
       Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic, enableSendButton: true, messageLocation: messageLocation);
@@ -268,10 +268,10 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     });
   }
 
-  void _navigateToItemDetail(Map<String, dynamic> message) {
+  void _navigateToItemDetail(Map<String, dynamic> data) {
     // Clear away dialogs
     Navigator.popUntil(context, (Route<dynamic> route) => route is PageRoute);
-    final String id = message['data']['id'];
+    final String id = data['id'];
     GeoPoint messageLocation = _currentLocation;
     this.messageService.getTopic(id).then((topic) {
       Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic, enableSendButton: true, messageLocation: messageLocation);
