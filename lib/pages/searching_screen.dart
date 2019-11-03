@@ -178,17 +178,6 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
 
   @override
   Widget build(BuildContext context) {
-    bool isAddressWithinTopic(GeoPoint address, SearchingMsg searchingMsg1) {
-      Geodesy geodesy = Geodesy();
-      bool rv = false;
-      LatLng l1 = new LatLng(address.latitude, address.longitude);
-      LatLng searchingMsg = new LatLng(searchingMsg1.geolocation.latitude, searchingMsg1.geolocation.longitude);
-      if(geodesy.distanceBetweenTwoGeoPoints(l1, searchingMsg, null) < 2500) {
-        rv = true;
-      } 
-      return rv;
-    }
-
     void _onTap(Topic topic, String parentTitle, GeoPoint messageLocation) async {
       //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
       GeoPoint _messageLocation = messageLocation;
@@ -210,17 +199,17 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
         } else {
           if(widget.user.homeAddress != null) {
             print("Home");
-            enableSendButton = isAddressWithinTopic(widget.user.homeAddress, topic.searchingMsg);
+            enableSendButton = topic.searchingMsg.isAddressWithin(widget.user.homeAddress);
           }
           if(!enableSendButton && widget.user.officeAddress != null) {
             print("Office");
-            enableSendButton = isAddressWithinTopic(widget.user.officeAddress, topic.searchingMsg);
+            enableSendButton = topic.searchingMsg.isAddressWithin(widget.user.officeAddress);
           }
           if(!enableSendButton && _locationPermissionGranted) {
             print("Current");
             Map map = widget.getCurrentLocation();
             GeoPoint mapCenter = map['GeoPoint'];
-            enableSendButton = isAddressWithinTopic(mapCenter, topic.searchingMsg);
+            enableSendButton = topic.searchingMsg.isAddressWithin(mapCenter);
           }
         }
       } 
@@ -228,7 +217,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             Key chatKey = new Key(topic.id);
-            return new ChatScreen(key: chatKey, user : widget.user, topic: topic,  parentTitle: parentTitle, enableSendButton: enableSendButton, messageLocation: _messageLocation);
+            return new ChatScreen(key: chatKey, user : widget.user, topic: topic,  parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );

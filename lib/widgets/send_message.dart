@@ -360,7 +360,7 @@ class SendMessageState extends State<SendMessage> with TickerProviderStateMixin 
             ],
           ),
           width: double.infinity,
-          height: 50.0,
+          height: 70.0,
           decoration: new BoxDecoration(
               border: new Border(top: new BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
         )

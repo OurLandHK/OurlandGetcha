@@ -5,6 +5,7 @@ import 'package:ourland_native/helper/geo_helper.dart';
 import 'dart:math';
 import 'dart:convert';
 import 'package:ourland_native/models/constant.dart';
+import 'package:geodesy/geodesy.dart';
 
 class OpenningHours {
   String _open;
@@ -201,6 +202,16 @@ class SearchingMsg {
   String get link => _link;
   Polling get polling => _polling;
 
+  bool isAddressWithin(GeoPoint address) {
+    Geodesy geodesy = Geodesy();
+    bool rv = false;
+    LatLng l1 = new LatLng(address.latitude, address.longitude);
+    LatLng searchingMsg = new LatLng(geolocation.latitude, geolocation.longitude);
+    if(geodesy.distanceBetweenTwoGeoPoints(l1, searchingMsg, null) < 2500) {
+      rv = true;
+    } 
+    return rv;
+  }
 
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();

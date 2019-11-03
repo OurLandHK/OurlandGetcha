@@ -31,16 +31,6 @@ class SearchingMsgWidget extends StatelessWidget {
       : super(key: key);
 
   Widget build(BuildContext context) {
-    bool isAddressWithinTopic(GeoPoint address, SearchingMsg searchingMsg1) {
-      Geodesy geodesy = Geodesy();
-      bool rv = false;
-      LatLng l1 = new LatLng(address.latitude, address.longitude);
-      LatLng searchingMsg = new LatLng(searchingMsg1.geolocation.latitude, searchingMsg1.geolocation.longitude);
-      if(geodesy.distanceBetweenTwoGeoPoints(l1, searchingMsg, null) < 2500) {
-        rv = true;
-      } 
-      return rv;
-    }
     if(this.searchingMsg == null) {
       print("this.searchingMsg == null");
       return Container();
@@ -69,17 +59,17 @@ class SearchingMsgWidget extends StatelessWidget {
         } else {
           if(user.homeAddress != null) {
             print("Home");
-            enableSendButton = isAddressWithinTopic(user.homeAddress, topic.searchingMsg);
+            enableSendButton = topic.searchingMsg.isAddressWithin(user.homeAddress);
           }
           if(!enableSendButton && user.officeAddress != null) {
             print("Office");
-            enableSendButton = isAddressWithinTopic(user.officeAddress, topic.searchingMsg);
+            enableSendButton = topic.searchingMsg.isAddressWithin(user.officeAddress);
           }
           if(!enableSendButton && locationPermissionGranted) {
             print("Current");
             Map map = getCurrentLocation();
             GeoPoint mapCenter = map['GeoPoint'];
-            enableSendButton = isAddressWithinTopic(mapCenter, topic.searchingMsg);
+            enableSendButton = topic.searchingMsg.isAddressWithin(mapCenter);
           }
         }
       } 
@@ -87,7 +77,7 @@ class SearchingMsgWidget extends StatelessWidget {
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             Key chatKey = new Key(topic.id);
-            return new ChatScreen(key: chatKey, user : user, topic: topic,  parentTitle: parentTitle, enableSendButton: enableSendButton, messageLocation: _messageLocation);
+            return new ChatScreen(key: chatKey, user : user, topic: topic,  parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );

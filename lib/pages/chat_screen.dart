@@ -29,9 +29,9 @@ class ChatScreen extends StatelessWidget {
   final String parentTitle;
   final Topic topic;
   final GeoPoint messageLocation;
-  final bool enableSendButton;
+//  final bool enableSendButton;
   final User user;
-  ChatScreen({Key key, @required this.user, @required this.topic, @required this.parentTitle, @required this.enableSendButton, this.messageLocation}) : super(key: key);
+  ChatScreen({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,6 @@ class ChatScreen extends StatelessWidget {
               user: this.user,
               topic: this.topic,
               parentTitle: this.parentTitle,
-              enableSendButton: this.enableSendButton,
               messageLocation: this.messageLocation,
             ),
           ),
@@ -66,9 +65,8 @@ class ChatScreenBody extends StatefulWidget {
   final Topic topic;
   SearchingMsg _searchingMsg;
   final User user;
-  final bool enableSendButton;
 
-  ChatScreenBody({Key key, @required this.user, @required this.topic, @required this.parentTitle, @required this.enableSendButton, this.messageLocation}) : super(key: key);
+  ChatScreenBody({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
 
   @override
   State createState() => new ChatScreenBodyState(messageLocation: this.messageLocation);
@@ -80,6 +78,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   Map<String, User> _userList;
   UserService _userService;
   Chat_Mode _chatMode;
+  bool _enableSendButton = false;
   var listMessage;
 
   String groupChatId;
@@ -118,7 +117,13 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     if(this._chatMode == Chat_Mode.COMMENT_MODE) {
       _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController, updateUser: updateUser, getUserName: getUserName, getColor: getColor));
       if(widget.user != null) {
-        if(this.messageLocation != null && widget.enableSendButton) {
+        if(this.messageLocation != null)
+        {
+          print("tmwc blue scu ${this.messageLocation.latitude} and ${_enableSendButton.toString()}");
+        } else {
+          print("message: location null");
+        }
+        if(this.messageLocation != null && _enableSendButton) {
           _widgetList.add(SendMessage(topic: widget.topic, messageService: this.messageService, listScrollController: this.listScrollController, messageLocation: this.messageLocation));
         } else {
           //_widgetList.add(LinearProgressIndicator());
@@ -154,8 +159,37 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   }
 
   initPlatformState() async {
+    bool _isSendButtonOn = false;
+    GeoPoint _messageLocation;
+    if(widget.user != null) {
+      UserService userService = new UserService();
+      RecentTopic recentTopic = await userService.getRecentTopic(widget.user.uuid, widget.topic.id);
+      if(recentTopic != null) {
+        _messageLocation = recentTopic.messageLocation;
+        _isSendButtonOn = true;
+        print("Chat Screen Recent Topic ${_isSendButtonOn}");
+      } else {
+        if(widget.user.homeAddress != null) {
+          _isSendButtonOn = widget.topic.isAddressWithin(widget.user.homeAddress);
+          print("Chat Screen Home ${_isSendButtonOn}");
+          _messageLocation = widget.user.homeAddress;
+        }
+        if(!_isSendButtonOn && widget.user.officeAddress != null) {
+          _isSendButtonOn = widget.topic.isAddressWithin(widget.user.officeAddress);
+          print("Chat Screen  Office ${_isSendButtonOn}");
+          _messageLocation = widget.user.officeAddress;
+        }/*
+        if(!_isSendButtonOn && _locationPermissionGranted) {
+          print("Current");
+          Map map = widget.getCurrentLocation();
+          GeoPoint mapCenter = map['GeoPoint'];
+          _isSendButtonOn  = widget.topic.isAddressWithin(mapCenter);
+        }
+        */
+      }
+    } 
+    Position location;
     if(widget.topic.geoTopLeft == null) {
-      Position location;
       // Platform messages may fail, so we use a try/catch PlatformException.
       try {
         geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
@@ -176,15 +210,23 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
       // setState to update our non-existent appearance.
       //if (!mounted) return;
 
-      setState(() {
-          print('initPlatformStateLocation: ${location}');
-          if(location != null) {
-            _currentLocation = location;
-            GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-            this.messageLocation = mapCenter;
-          }
-      });
     }
+    setState(() {
+      if(_isSendButtonOn) {
+        this._enableSendButton = _isSendButtonOn;
+      }
+      //print('initPlatformStateLocation: ${location}');
+      if(location != null) {
+        _currentLocation = location;
+        GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
+        this.messageLocation = mapCenter;
+        if(!_isSendButtonOn) {
+          this._enableSendButton = widget.topic.isAddressWithin(this.messageLocation);
+        }
+      } else {
+        this.messageLocation = _messageLocation;
+      }
+    });
   }
 
   @override
@@ -197,11 +239,14 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     _chatMode = Chat_Mode.MAP_MODE;
  
     isLoading = false;
+    
 
     //readLocal();
     initPlatformState();
+    // Check for previous edit topic
     chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
-    if(widget.topic.geoTopLeft == null) {
+    if(widget.topic.geoTopLeft == null) 
+    {
       _positionStream = _geolocator.getPositionStream(locationOptions).listen(
         (Position position) {
           if(position != null) {

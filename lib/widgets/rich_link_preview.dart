@@ -64,7 +64,7 @@ abstract class RichLinkPreviewModel extends State<RichLinkPreview>
   void getOGData() async {
     OpenGraphParser.getOpenGraphData(_link).then((Map data) {
       if (data != null) {
-        if (this.mounted) {
+        if (this.mounted && data['title'] != null) {
           setState(() {
             _ogData = data;
           });
@@ -203,8 +203,7 @@ abstract class RichLinkPreviewModel extends State<RichLinkPreview>
   Widget _buildPreviewRow(BuildContext context) {
     if (_ogData['image'] != null) {
       if(_vertical) {
-        return Container(
-          
+        return Container(    
           width: _width,
           child: Column(
           children: <Widget>[
