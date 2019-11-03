@@ -64,15 +64,6 @@ abstract class SearchingModel extends State<SearchingWidget>
             _sMsg = sMsg;
             _link = OURLAND_SEARCH_HOST + "/detail/" + widget.searchingId;
           });
-/*
-          controller = AnimationController(
-              vsync: this, duration: Duration(milliseconds: 750));
-          position = Tween<Offset>(begin: Offset(0.0, 4.0), end: Offset.zero)
-              .animate(
-                  CurvedAnimation(parent: controller, curve: Curves.bounceInOut));
-
-          controller.forward();
-          */
         }
       } else {
         setState(() {

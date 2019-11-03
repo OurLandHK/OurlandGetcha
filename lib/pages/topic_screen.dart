@@ -227,26 +227,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         });
       }   
 
-    
-    bool isAddressWithinTopic(GeoPoint address, Topic topic) {
-      Geodesy geodesy = Geodesy();
-      bool rv = false;
-      LatLng l1 = new LatLng(address.latitude, address.longitude);
-      LatLng topLeft = new LatLng(topic.geoTopLeft.latitude, topic.geoTopLeft.longitude);
-      LatLng bottomRight = new LatLng(topic.geoBottomRight.latitude, topic.geoBottomRight.longitude);
-      print("${topic.geoTopLeft.latitude}, ${topic.geoTopLeft.longitude}");
-      print("${address.latitude}, ${address.longitude}");
-      print("${topic.geoBottomRight.latitude}, ${topic.geoBottomRight.longitude}");
-      if(geodesy.isGeoPointInBoudingBox(l1, topLeft, bottomRight)) {
-        rv = true;
-      } else if(geodesy.isGeoPointInBoudingBox(l1, bottomRight, topLeft)){
-        rv = true;
-      }
-      return rv;
-    }
 
     void _onTap(Topic topic, String parentTitle, GeoPoint messageLocation) async {
-      //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
+      
       GeoPoint _messageLocation = messageLocation;
       if(_messageLocation == null && this.fixLocation != null) {
         _messageLocation = this.fixLocation;
@@ -254,37 +237,11 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       if(_messageLocation == null && this.messageLocation != null) {
         _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
       }
-      bool enableSendButton = false;
-      // Check for previous edit topic
-      if(widget.user != null) {
-        UserService userService = new UserService();
-        RecentTopic recentTopic = await userService.getRecentTopic(widget.user.uuid, topic.id);
-        if(recentTopic != null) {
-          print("Recent Topic");
-          _messageLocation = recentTopic.messageLocation;
-          enableSendButton = true;
-        } else {
-          if(widget.user.homeAddress != null) {
-            print("Home");
-            enableSendButton = isAddressWithinTopic(widget.user.homeAddress, topic);
-          }
-          if(!enableSendButton && widget.user.officeAddress != null) {
-            print("Office");
-            enableSendButton = isAddressWithinTopic(widget.user.officeAddress, topic);
-          }
-          if(!enableSendButton && _locationPermissionGranted) {
-            print("Current");
-            Map map = widget.getCurrentLocation();
-            GeoPoint mapCenter = map['GeoPoint'];
-            enableSendButton = isAddressWithinTopic(mapCenter, topic);
-          }
-        }
-      } 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             Key chatKey = new Key(topic.id);
-            return new ChatScreen(key: chatKey, user : widget.user, topic: topic, parentTitle: parentTitle, enableSendButton: enableSendButton, messageLocation: _messageLocation);
+            return new ChatScreen(key: chatKey, user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );

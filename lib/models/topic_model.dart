@@ -62,6 +62,15 @@ class Topic {
   GeoPoint get geoCenter => (this._geocenter != null)? this._geocenter: GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
   
 
+  bool isAddressWithin(GeoPoint address) {
+    bool rv = false;
+    if(GeoHelper.isGeoPointInBoudingBox(address, geoTopLeft, geoBottomRight)) {
+      rv = true;
+    } else if(GeoHelper.isGeoPointInBoudingBox(address, geoBottomRight, geoTopLeft)){
+      rv = true;
+    }
+    return rv;
+  }
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
     if (_id != null) {

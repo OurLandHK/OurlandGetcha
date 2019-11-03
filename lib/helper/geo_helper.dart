@@ -52,4 +52,13 @@ class GeoHelper {
   static GeoPoint boxCenter(GeoPoint topLeft, GeoPoint bottomRight) {
     return GeoPoint((topLeft.latitude + bottomRight.latitude) / 2, (topLeft.longitude + bottomRight.longitude) / 2);
   }
+
+  static bool isGeoPointInBoudingBox(GeoPoint l, GeoPoint topLeft, GeoPoint bottomRight) {
+    return topLeft.latitude >= l.latitude &&
+            l.latitude >= bottomRight.latitude &&
+            topLeft.longitude <= l.longitude &&
+            l.longitude <= bottomRight.longitude
+        ? true
+        : false;
+  }
 }

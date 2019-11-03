@@ -250,9 +250,9 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
   void _showItemDialog(Map<String, dynamic> data) {
     final String id = data['id'];
-    GeoPoint messageLocation = _currentLocation;
+    //GeoPoint messageLocation = _currentLocation;
     this.messageService.getTopic(id).then((topic) {
-      Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic, enableSendButton: true, messageLocation: messageLocation);
+      Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
       final Item item = new Item(page: page, topic: topic.topic, topicID: id);
         showDialog<bool>(
         context: context,
@@ -272,9 +272,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     // Clear away dialogs
     Navigator.popUntil(context, (Route<dynamic> route) => route is PageRoute);
     final String id = data['id'];
-    GeoPoint messageLocation = _currentLocation;
     this.messageService.getTopic(id).then((topic) {
-      Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic, enableSendButton: true, messageLocation: messageLocation);
+      Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
       final Item item = new Item(page: page, topic: topic.topic, topicID: id);
       if (!item.route.isCurrent) {
         Navigator.push(context, item.route);

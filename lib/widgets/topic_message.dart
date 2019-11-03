@@ -8,26 +8,43 @@ import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:intl/intl.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
+import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:ourland_native/widgets/image_widget.dart';
 //import 'package:open_graph_parser/open_graph_parser.dart';
 import 'package:ourland_native/helper/open_graph_parser.dart';
 import 'package:ourland_native/widgets/searching_widget.dart';
+import 'package:ourland_native/services/message_service.dart';
 
-class TopicMessage extends StatelessWidget {
-  final Topic topic;
-  final User user;
-  final Function onTap;
-  final GeoPoint messageLocation;
-
-  TopicMessage(
-      {Key key,
-      @required this.topic,
+class TopicMessage extends StatefulWidget {
+  TopicMessage({
       @required this.user,
+      @required this.topic,
       @required this.onTap,
-      @required this.messageLocation})
-      : super(key: key);
+      @required this.messageLocation});
+  final User user;
+  final Topic topic;
+  final GeoPoint messageLocation;
+  final Function onTap;
+  _TopicMessageState state;
+
+  @override
+  _TopicMessageState createState() { 
+    state = new _TopicMessageState(messageLocation: messageLocation, topic: topic);
+    return state;
+  }
+}
+
+
+class _TopicMessageState extends State<TopicMessage> with SingleTickerProviderStateMixin {
+  final Topic topic;
+  final GeoPoint messageLocation;
+  MessageService _messageService;
+
+  _TopicMessageState({
+      @required this.topic,
+      @required this.messageLocation});
 
   bool isLink() {
     if(this.topic != null) {
@@ -37,6 +54,32 @@ class TopicMessage extends StatelessWidget {
       return false;
     }
   }
+
+  void getSearchingData() async {
+    _messageService.getSearchMsg(this.topic.searchingId).then((SearchingMsg sMsg) {
+      if (sMsg != null) {
+        if (this.mounted) {
+          setState(() {
+            this.topic.searchingMsg = sMsg;
+          });
+        }
+      } 
+    });
+  }
+
+  @override
+  void initState() {
+    _messageService = new MessageService(widget.user);
+    _fetchData();  
+    super.initState();
+  }
+
+  void _fetchData() {
+    if(this.topic.searchingId != null && this.topic.searchingId.length > 0 && this.topic.searchingMsg == null) {
+      getSearchingData();
+    }
+  }
+
   Widget build(BuildContext context) {
     if(this.topic == null) {
       return Container();
@@ -45,11 +88,13 @@ class TopicMessage extends StatelessWidget {
     void _onTap() {
       if(isLink()) {
         OpenGraphParser.getOpenGraphData(this.topic.topic).then((Map data) {
-          topicTitle = data['title'];
-          this.onTap(this.topic, data['title'], this.messageLocation);
+          if(data['title'] != null) {
+            topicTitle = data['title'];
+          }
+          widget.onTap(this.topic, topicTitle , this.messageLocation);
         });
       } else {
-        this.onTap(this.topic, this.topic.topic, this.messageLocation);
+        widget.onTap(this.topic, topicTitle, this.messageLocation);
       }
     }
 
@@ -66,7 +111,7 @@ class TopicMessage extends StatelessWidget {
             messageLocation: this.messageLocation,
             vertical: true,
             launchFromLink: false,
-            user: user,
+            user: widget.user,
             backgroundColor: TOPIC_COLORS[topic.color],
             textColor: Colors.black,
           )
