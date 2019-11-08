@@ -143,7 +143,7 @@ class _TopicMessageState extends State<TopicMessage> with SingleTickerProviderSt
     List<Widget> tags = [];  
     // tag
     String tagText ="";
-    for(int i = 0; i< this.topic.tags.length; i++) {
+    for(int i = 0; i< this.topic.tags.length  && i < 3; i++) {
       tagText += "#"+this.topic.tags[i];
     }
     if(tagText.length > 0) {
