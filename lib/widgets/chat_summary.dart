@@ -440,7 +440,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         style: Theme.of(context).textTheme.subtitle);
     Widget _ourlandLaunch = Container();
     if(widget.topic.searchingId != null) {
-      _ourlandLaunch = GestureDetector(child: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH, width: 64.0), onTap: () => {launch(OURLAND_SEARCH_HOST)});
+      _ourlandLaunch = GestureDetector(child: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH, width: 64.0), onTap: () => {launch(OURLAND_SEARCH_HOST + "/detail/" + widget.topic.searchingId)});
     }
     _baseInfo = new Row(children: <Widget>[
       new BaseProfile(user: widget.topic.createdUser), 

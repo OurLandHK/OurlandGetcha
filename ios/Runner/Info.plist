@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -25,18 +25,24 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.7572079733-7uji7cabr4c97jbj1cgts9hfe9qf1kor</string>
+						<string>com.googleusercontent.apps.7572079733-7uji7cabr4c97jbj1cgts9hfe9qf1kor</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>You should never see this, please contact us</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>You should never see this, please contact us</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Used to demonstrate image picker plugin</string>
+	<key>NSContactsUsageDescription</key>
+	<string>You should never see this, please contact us</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs access to location when open and in the background.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -45,8 +51,12 @@
 	<string>This app needs access to location when open and in the background.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Used to capture audio for image picker plugin</string>
+	<key>NSMotionUsageDescription</key>
+	<string>You should never see this, please contact us</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Used to demonstrate image picker plugin</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>You should never see this, please contact us</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
