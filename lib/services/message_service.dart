@@ -244,16 +244,16 @@ class MessageService {
         indexData['lastUpdate'] = sendMessageTime;
         // for Hide and show
         switch(type) {
-          case 4: 
+          case 4: // Hide 
             indexData['isGlobalHide'] = true;
             break;
-          case 5:
+          case 5: // Show
             indexData['isGlobalHide'] = false;
             break;
-          case 6: 
+          case 6:  // Broadcast 
             indexData['public'] = true;
             break;
-          case 7:
+          case 7: // Location 
             indexData['public'] = false;
             break;               
         }
@@ -275,13 +275,6 @@ class MessageService {
           return indexReference.setData(indexData).then((var test) {
             return chatReference.setData(chatData);
           });
-          /*
-          print("ID exist ${sendMessageTimeString}.");
-          Firestore.instance.runTransaction((transaction) async {
-            await transaction.set(indexReference, indexData);
-            await transaction.set(chatReference, chatData);
-          });         
-          */
         } catch (exception) {
           print(exception);
         } 

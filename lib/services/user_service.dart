@@ -66,6 +66,25 @@ class UserService {
     });
   }
 
+  Future<void> addBlockTopic(String userID, String topicID, String reason) async {
+    DateTime now = new DateTime.now();
+    Map<String, dynamic> data = new Map<String, dynamic>();
+    data['lastUpdate'] = now;
+    data['reason'] = reason;
+    userCollection.document(userID).collection('blockTopic').document(topicID).setData(data);
+  }
+
+  Future<Map> getBlockTopic(String userID, String topicID) async {
+    return userCollection.document(userID).collection('blockTopic').document(topicID).get().then((onValue) {
+ //     print("getRecentTopic $userID, $topicID, ${onValue}");
+      if (onValue.exists) {
+        return onValue.data;
+      } else {
+        return null;
+      }
+    });
+  }
+
   Future<User> addRecentTopic(String userID, String topicID, GeoPoint messageLocation) async {
     return _addRecentTopic(userID, topicID, messageLocation, true).then((onValue) {
       return onValue;
