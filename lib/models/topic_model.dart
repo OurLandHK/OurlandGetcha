@@ -27,6 +27,8 @@ class Topic {
   GeoPoint _geotopleft;
   GeoPoint _geocenter;
   double distance;
+  int _blockLevel;
+  String _blockReason;   // null = unmask, false = mask, true = blocked (can't be unmask)
 
   Topic(this._isPublic, this._createdUser, this._geobottomright, this._geotopleft, this._geocenter,
     this._imageUrl, this._isShowName, this._tags,
@@ -57,8 +59,10 @@ class Topic {
   User get lastUpdateUser => _lastUpdateUser;
   bool get isPublic => _isPublic;
   bool get isGlobalHide => _isGlobalHide;
+  int get blockLevel => _blockLevel;
   int get color => _color;
   String get searchingId => _searchingId;
+  String get blockReason => _blockReason;
   GeoPoint get geoCenter => (this._geocenter != null)? this._geocenter: GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
   
 
@@ -71,6 +75,12 @@ class Topic {
     }
     return rv;
   }
+
+  void block(int blockLevel, String blockReason) {
+    this._blockLevel = blockLevel;
+    this._blockReason = blockReason;
+  }
+  
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
     if (_id != null) {
@@ -140,6 +150,14 @@ class Topic {
       map['isGlobalHide'] = this._isGlobalHide;
     }
 
+    if(this._blockLevel != null) {
+      map['blockLevel'] = this._blockLevel;
+    }
+
+    if(this._blockReason != null) {
+      map['blockReason'] = this._blockReason;
+    }
+
     return map;
   }
 
@@ -172,6 +190,14 @@ class Topic {
     } else {
       this._geocenter = null;
     }
+
+    if(map['blockLevel'] != null) {
+      this._blockLevel = map['blockLevel'];
+    } 
+
+    if(map['blockReason'] != null) {
+      this._blockReason = map['blockReason'];
+    } 
 
     if(map['color'] != null) {
       this._color = map['color'];

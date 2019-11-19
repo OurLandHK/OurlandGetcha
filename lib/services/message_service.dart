@@ -8,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:ourland_native/firestore_helpers/firestore_helpers.dart';
 import 'package:ourland_native/firestore_helpers/geo_helpers.dart';
 import 'package:ourland_native/helper/geo_helper.dart';
+import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/searching_msg_model.dart';
@@ -218,7 +219,7 @@ class MessageService {
   Future sendChildMessage(Topic topic, GeoPoint position, String content, File imageFile, int type) async {
       var sendMessageTime = DateTime.now();
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
-      String imageUrl;
+      String imageUrl; 
       if(imageFile != null) {
         imageUrl = await uploadImage(imageFile);
       }
@@ -233,6 +234,19 @@ class MessageService {
           print("ID not exist ${parentID}.");
         }
         var basicUserMap = _user.toBasicMap();
+        if(position == null) {
+          position = topic.geoCenter;
+        }
+        switch(type) {
+          case 8: //request for hide
+            topic.block(0, content);
+            content = BlockLevels[0] + ": " + content;
+            break;
+          case 9: // confirm to hide
+            topic.block(1, content);
+            content = BlockLevels[1] + ": " + content;
+            break;
+        }
         GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
 
         Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(topic.geoTopLeft, topic.geoBottomRight, dest, 1000);
@@ -244,18 +258,18 @@ class MessageService {
         indexData['lastUpdate'] = sendMessageTime;
         // for Hide and show
         switch(type) {
-          case 4: 
+          case 4: // Hide 
             indexData['isGlobalHide'] = true;
             break;
-          case 5:
+          case 5: // Show
             indexData['isGlobalHide'] = false;
             break;
-          case 6: 
+          case 6:  // Broadcast 
             indexData['public'] = true;
             break;
-          case 7:
+          case 7: // Location 
             indexData['public'] = false;
-            break;               
+            break;
         }
 
 
@@ -275,13 +289,6 @@ class MessageService {
           return indexReference.setData(indexData).then((var test) {
             return chatReference.setData(chatData);
           });
-          /*
-          print("ID exist ${sendMessageTimeString}.");
-          Firestore.instance.runTransaction((transaction) async {
-            await transaction.set(indexReference, indexData);
-            await transaction.set(chatReference, chatData);
-          });         
-          */
         } catch (exception) {
           print(exception);
         } 

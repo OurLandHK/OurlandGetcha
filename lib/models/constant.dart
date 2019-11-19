@@ -58,6 +58,10 @@ const String MENU_ITEM_NOT_FOUND_ERR = "冇貨";
 
 const String MENU_ITEM_ABOUT = "關於";
 const String MENU_ITEM_LOGOUT = "變CD-ROM";
+const String CHAT_MENU_ITEM_REPORT = "我要做撕紙🐶";
+const String REPORT_APPROVED = "真・撕紙🐶";
+const String REPORT_COVERD= "我幫你遮咗佢";
+const String REPORT_DESC = "啲Memo係冇咁易撕㗎！不過如果你唔想見到佢，俾個原因我哋就可以幫你遮咗佢。如果有好多人都遮咗，咁Admin會好大機會變成真・撕紙🐶㗎喇！";
 
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
@@ -114,6 +118,7 @@ const String LABEL_VOTE = "我要投票";
 const String LABEL_KM = "km";
 const String LABEL_VOTE_MAX = "最多可投票數：";
 const String LABEL_VOTE_RANGE ="投票範圍：";
+const String LABEL_LAST_UPDATE ="最後更新: ";
 
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;
@@ -146,6 +151,24 @@ const List<String> TagList = [
   "社區匯報",
   "環保",
   "社區規劃",
+];
+
+const List<String> BlockLevels = [
+  "有人想撕 - 自行負責觀看風險",
+  "撕下了 - 不能觀看",
+];
+
+const List<String> BlockReasons = [
+  "裸露",
+  "暴力",
+  "騷擾",
+  "傷害生命",
+  "不實消息",
+  "內容農場",
+  "賣違禁品",
+  "仇恨言論",
+  "恐怖主義",
+  "其他",
 ];
 
 const List<Color> TOPIC_COLORS_DARKER = [

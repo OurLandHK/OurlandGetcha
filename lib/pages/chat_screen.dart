@@ -14,6 +14,7 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/widgets/chat_list.dart';
+import 'package:ourland_native/widgets/chat_popup_menu.dart';
 import 'package:ourland_native/widgets/chat_summary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/services/user_service.dart';
@@ -43,6 +44,12 @@ class ChatScreen extends StatelessWidget {
               this.parentTitle,
               style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             ),
+            actions: this.user != null ? <Widget>[
+              new Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              ),
+              new ChatPopupMenu(this.topic, this.user)
+            ] : null,
             centerTitle: true,
             elevation: 0.7,
           ),

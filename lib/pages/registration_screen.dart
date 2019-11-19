@@ -133,7 +133,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
                         }
                       });
                     } else {
-                      Navigator.of(context).pop();
+                      //Navigator.of(context).pop();
                       signIn(context);
                     }
                   });

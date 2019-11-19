@@ -467,7 +467,11 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         widgetList.add(_titleLink);
       }    
     }
-    widgetList.add(_baseInfo);
+    widgetList.add(Container(
+      child:_baseInfo,
+      width: double.infinity,
+      height: 80.0,
+      ));
     // dsiaply Image if the Topic has it's image
     if(widget.chatMode == Chat_Mode.MAP_MODE) {
       if(_summaryImageWidget != null) {
