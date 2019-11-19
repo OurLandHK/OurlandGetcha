@@ -76,7 +76,6 @@ class UserService {
 
   Future<Map> getBlockTopic(String userID, String topicID) async {
     return userCollection.document(userID).collection('blockTopic').document(topicID).get().then((onValue) {
- //     print("getRecentTopic $userID, $topicID, ${onValue}");
       if (onValue.exists) {
         return onValue.data;
       } else {

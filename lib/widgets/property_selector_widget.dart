@@ -10,7 +10,7 @@ class Property {
   DateTime _lastUpdate;
 
   Property(this._field, this._value) {
-    _lastUpdate = DateTime.now();
+    _lastUpdate = null;
   }
 
   int get value => this._value;
@@ -22,8 +22,10 @@ class Property {
     _lastUpdate = DateTime.now();
   }
 
-  Property.fromMap(Map<String, dynamic> map) {
-    this._lastUpdate = DateTime.fromMicrosecondsSinceEpoch(map['lastUpdate'].microsecondsSinceEpoch);
+  Property.fromMap(Map map) {
+    if(map['lastUpdate'] != null) {
+      this._lastUpdate = DateTime.fromMicrosecondsSinceEpoch(map['lastUpdate'].microsecondsSinceEpoch);
+    }
     this._value = map['value'];
     this._field = map['field'];
   }
@@ -82,8 +84,10 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
   @override
   void initState() {
     _currentPropertiesMap = new Map();
+    //print("Current Properties ${widget.currentProperties.length}");
     for(int i = 0; i< widget.currentProperties.length; i++) {
       String field = widget.currentProperties[i].propertyField;
+      print("field ${field} ${widget.currentProperties[i].value}");
       _currentPropertiesMap[field] =  widget.currentProperties[i];
     }
     for(int i = 0; i< widget.defaultFields.length; i++) {
@@ -117,11 +121,6 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
       Color boxColor = Theme.of(context).dialogBackgroundColor;
       String resultText = "";
       String fieldText = field;
-      if(widget.showLastUpdate) {
-        fieldText += " Last Update:" + DateFormat('dd MMM kk:mm').format(
-              new DateTime.fromMicrosecondsSinceEpoch(
-                property._lastUpdate.microsecondsSinceEpoch));
-      }
       Widget textWidget = Text(fieldText);
       int value = property.value;
       if(selectedFields.contains(field)) {
@@ -129,8 +128,13 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
           borderSize = 2;
           boxColor = Theme.of(context).accentColor;
       }
+      if(widget.showLastUpdate && property._lastUpdate != null) {
+        resultText += LABEL_LAST_UPDATE + DateFormat('dd MMM kk:mm').format(
+              new DateTime.fromMicrosecondsSinceEpoch(
+                property._lastUpdate.microsecondsSinceEpoch));
+      }
       if(displayResult) {
-        resultText = value.toString();
+        resultText += "   " + value.toString();
       }
       textWidget = Row(children: [
         textWidget,

@@ -10,12 +10,12 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/models/constant.dart';
-import 'package:ourland_native/widgets/base_profile.dart';
 import 'package:ourland_native/widgets/image_widget.dart';
 //import 'package:open_graph_parser/open_graph_parser.dart';
 import 'package:ourland_native/helper/open_graph_parser.dart';
 import 'package:ourland_native/widgets/searching_widget.dart';
 import 'package:ourland_native/services/message_service.dart';
+import 'package:ourland_native/services/User_service.dart';
 
 class TopicMessage extends StatefulWidget {
   TopicMessage({
@@ -39,8 +39,10 @@ class TopicMessage extends StatefulWidget {
 
 class _TopicMessageState extends State<TopicMessage> with SingleTickerProviderStateMixin {
   final Topic topic;
+  bool _show = false;
   final GeoPoint messageLocation;
   MessageService _messageService;
+  UserService _userService;
 
   _TopicMessageState({
       @required this.topic,
@@ -70,13 +72,31 @@ class _TopicMessageState extends State<TopicMessage> with SingleTickerProviderSt
   @override
   void initState() {
     _messageService = new MessageService(widget.user);
-    _fetchData();  
+    _userService = new UserService();
+    if(this.topic !=  null) {
+      _fetchData();  
+    }
     super.initState();
   }
 
   void _fetchData() {
     if(this.topic.searchingId != null && this.topic.searchingId.length > 0 && this.topic.searchingMsg == null) {
       getSearchingData();
+    }
+    if(topic.blockLevel != null) {  
+      if(widget.user != null  && topic.blockLevel != 1) {
+        _userService.getBlockTopic(widget.user.uuid, this.topic.id).then((userReport) {
+          if(userReport == null ) {
+            setState(() {
+              this._show = true;
+            });
+          } 
+        });
+      } 
+    } else {
+      setState(() {
+        this._show = true;
+      });
     }
   }
 
@@ -86,22 +106,24 @@ class _TopicMessageState extends State<TopicMessage> with SingleTickerProviderSt
     }
     String topicTitle = this.topic.topic;
     void _onTap() {
-      if(isLink()) {
-        OpenGraphParser.getOpenGraphData(this.topic.topic).then((Map data) {
-          if(data['title'] != null) {
-            topicTitle = data['title'];
-          }
-          widget.onTap(this.topic, topicTitle , this.messageLocation);
-        });
-      } else {
-        widget.onTap(this.topic, topicTitle, this.messageLocation);
+      if(topic.blockLevel == null ||topic.blockLevel != 1) {
+        if(isLink()) {
+          OpenGraphParser.getOpenGraphData(this.topic.topic).then((Map data) {
+            if(data['title'] != null) {
+              topicTitle = data['title'];
+            }
+            widget.onTap(this.topic, topicTitle , this.messageLocation);
+          });
+        } else {
+          widget.onTap(this.topic, topicTitle, this.messageLocation);
+        }
       }
     }
 
     Widget rv = new Container();
     if(this.topic != null) {
-      List<Widget> topicColumn;
-      if(topic.blockLevel == null) {
+      List<Widget> topicColumn =[];
+      if(this.topic.blockLevel == null || this._show) {
         Container messageWidget;
         //print(this.messageId);
         if(this.topic.searchingId != null) {

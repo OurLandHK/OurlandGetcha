@@ -118,6 +118,7 @@ const String LABEL_VOTE = "我要投票";
 const String LABEL_KM = "km";
 const String LABEL_VOTE_MAX = "最多可投票數：";
 const String LABEL_VOTE_RANGE ="投票範圍：";
+const String LABEL_LAST_UPDATE ="最後更新: ";
 
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;
