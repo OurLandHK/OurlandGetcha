@@ -40,21 +40,21 @@
 	<key>NSCalendarsUsageDescription</key>
 	<string>You should never see this, please contact us</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Used to demonstrate image picker plugin</string>
+	<string>如果你要上傳我現在影既相，就要俾我用</string>
 	<key>NSContactsUsageDescription</key>
 	<string>You should never see this, please contact us</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open and in the background.</string>
+	<string>俾個GPS我用，方便我找附近既好野俾你OK？</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to location when in the background.</string>
+	<string>俾個GPS我用，方便我在通知你附近既好野OK？</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open and in the background.</string>
+	<string>俾個GPS我用，方便我在通知你附近既好野OK</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Used to capture audio for image picker plugin</string>
+	<string>如果你想拍Video上傳，就要俾我用</string>
 	<key>NSMotionUsageDescription</key>
 	<string>You should never see this, please contact us</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Used to demonstrate image picker plugin</string>
+	<string>如果你要上傳拍好的相，就要俾我用</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>You should never see this, please contact us</string>
 	<key>UIBackgroundModes</key>
