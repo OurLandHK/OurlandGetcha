@@ -228,7 +228,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     );
   }
 
-    Widget _buildDialog(BuildContext context, Item item) {
+  Widget _buildDialog(BuildContext context, Item item) {
     return AlertDialog(
       content: Text(item.topic + LABEL_UPDATE_TOPIC),
       actions: <Widget>[
@@ -254,7 +254,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     this.messageService.getTopic(id).then((topic) {
       Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
       final Item item = new Item(page: page, topic: topic.topic, topicID: id);
-        showDialog<bool>(
+      showDialog<bool>(
         context: context,
         builder: (_) => _buildDialog(context, item),
       ).then((bool shouldNavigate) {

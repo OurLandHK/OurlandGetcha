@@ -7,6 +7,7 @@ import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/ourland_home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ourland_native/pages/userlist_screen.dart';
 
 // ----------------------------------------
 // SETTING SCREEN LANDING SCREEN
@@ -20,6 +21,7 @@ class SettingsScreen extends StatelessWidget {
   List<String> _settingsItems = [
     MENU_ITEM_SETTINGS_CHANGE_HOME_LOCATION,
     MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION,
+    TITLE_BLOCK,
 /*    MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE, */
   ];
 
@@ -48,6 +50,15 @@ class SettingsScreen extends StatelessWidget {
           builder: (BuildContext context) {
             // TODO: update it when the screen is available
             return new Container();
+          },
+        ),
+      );
+    } else if (item == TITLE_BLOCK) {
+      Navigator.of(context).push(
+        new MaterialPageRoute<void>(
+          builder: (BuildContext context) {
+            // TODO: update it when the screen is available
+            return new UserlistScreen(currentUser: this.user, userIdList: this.user.blockUsers, title: TITLE_BLOCK);
           },
         ),
       );
@@ -152,8 +163,10 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
     Map<String, GeoPoint> newLocation = new Map<String, GeoPoint>();
     if (locationType == LABEL_REGION0) {
       newLocation['homeAddress'] = this._currentLocation;
+      this.user.setHomeAddress(this._currentLocation);
     } else {
       newLocation['officeAddress'] = this._currentLocation;
+      this.user.setOfficeAddress(this._currentLocation);
     }
 
     userService.updateUser(this.user.uuid, newLocation).then((void v) {

@@ -163,10 +163,9 @@ class UserService {
   }
 
   Future<User> getUser(String uuid) async {
-    var userReference = userCollection.document(uuid);
-    return userReference.get().then((onValue) {
-      if (onValue.exists) {
-        User user = User.fromMap(onValue.data);
+    return getUserMap(uuid).then((userMap) {
+      if(userMap != null) {
+        User user = User.fromMap(userMap);
         return user;
       } else {
         return null;

@@ -67,52 +67,6 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
       tabLength++;
     }
     _tabController = new TabController(vsync: this, initialIndex: 0, length: tabLength);
-    /*
-    initPlatformState();
-  
-    _positionStream = _geolocator.getPositionStream(locationOptions).listen(
-      (Position position) {
-        if(position != null) {
-          print('initState Poisition ${position}');
-          _currentLocation = position;
-          GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-          this.messageLocation = mapCenter;
-        }
-      });
-    */
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  initPlatformState() async {
-      Position location;
-      // Platform messages may fail, so we use a try/catch PlatformException.
-
-      try {
-        geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
-        location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
-      } on PlatformException catch (e) {
-        if (e.code == 'PERMISSION_DENIED') {
-          error = 'Permission denied';
-        } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
-          error = 'Permission denied - please ask the user to enable it from the app settings';
-        }
-
-        location = null;
-      }
-
-      // If the widget was removed from the tree while the asynchronous platform
-      // message was in flight, we want to discard the reply rather than calling
-      // setState to update our non-existent appearance.
-      //if (!mounted) return;
-
-      setState(() {
-          print('initPlatformStateLocation: ${location}');
-          if(location != null) {
-            _currentLocation = location;
-            GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-            this.messageLocation = mapCenter;
-          }
-      });
   }
 
   void onFocusChange() {
@@ -290,7 +244,9 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
       List<Widget> _gridItems = [];
       for (DocumentSnapshot snapshot in querySnapshot) {
         Topic topic = Topic.fromMap(snapshot.data);
-        _gridItems.add(buildItem(topic, _onTap, context));
+        if(widget.user == null || !widget.user.blockUsers.contains(topic.createdUser.uuid)) {
+          _gridItems.add(buildItem(topic, _onTap, context));
+        }
       }
       return _gridItems;
     } 

@@ -443,7 +443,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       _ourlandLaunch = GestureDetector(child: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH, width: 64.0), onTap: () => {launch(OURLAND_SEARCH_HOST + "/detail/" + widget.topic.searchingId)});
     }
     _baseInfo = new Row(children: <Widget>[
-      new BaseProfile(user: widget.topic.createdUser), 
+      new BaseProfile(user: widget.topic.createdUser, currentUser: widget.user), 
       visibilityStatus,
       broadcastStatus,
       new Column(children: <Widget>[
