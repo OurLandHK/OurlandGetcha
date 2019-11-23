@@ -12,14 +12,16 @@ class User {
   DateTime _updatedAt;
   bool _sendBroadcastRight;
   bool _globalHideRight;
+  List<String> _blockUsers;
 
   User(this._uuid, this._username, this._avatarUrl, this._homeAddress,
       this._officeAddress, this._createdAt, this._updatedAt) {
         this._sendBroadcastRight = false;
         this._globalHideRight = false;
         this._fcmToken = '';
+        this._blockUsers = [];
       }
-
+/*
   User.map(dynamic obj) {
     this._uuid = obj['uuid'];
     this._username = obj['_username'];
@@ -29,20 +31,38 @@ class User {
     this._updatedAt = obj['updatedAt'];
     try {
       this._sendBroadcastRight = obj['sendBroadcastRight'];
+      if(this._sendBroadcastRight == null) {
+        this._sendBroadcastRight = false;
+      }
     } catch (exception) {
       this._sendBroadcastRight = false;
     }
     try {
       this._globalHideRight= obj['globalHideRight'];
+      if(this._globalHideRight == null) {
+        this._globalHideRight = false;
+      }
     } catch (exception) {
       this._globalHideRight = false;
     }    
     try {
       this._fcmToken = obj['fcm'];
+      if(this._fcmToken == null) {
+        this._fcmToken = "";
+      }
     } catch (exception) {
       this._fcmToken = "";
     }
+    try {
+      this._blockUsers = obj['blockUsers'];
+      if(this._blockUsers == null) {
+        this._blockUsers = [];
+      }
+    } catch (exception) {
+      this._blockUsers = [];
+    }
   }
+*/
 
   String get uuid => _uuid;
   String get username => _username;
@@ -54,7 +74,27 @@ class User {
   String get fcmToken => _fcmToken;
   bool get sendBroadcastRight => _sendBroadcastRight;
   bool get globalHideRight => _globalHideRight;
+  List<String> get blockUsers => _blockUsers;
 
+  void setHomeAddress(GeoPoint geoPoint) {
+    this._homeAddress = geoPoint;
+  }
+
+  void setOfficeAddress(GeoPoint geoPoint) {
+    this._officeAddress = geoPoint;
+  }
+
+  void addBlockUser(String uuid) {
+    if(!this._blockUsers.contains(uuid)) {
+      _blockUsers.add(uuid);
+    }
+  }
+
+  void removeBlockUser(String uuid) {
+    if(this._blockUsers.contains(uuid)) {
+      _blockUsers.remove(uuid);
+    }
+  }
 
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
@@ -96,6 +136,10 @@ class User {
 
     if(_fcmToken != '') {
      map['fcmToken'] = _fcmToken; 
+    }
+
+    if(_blockUsers.length > 0 ) {
+      map['blockUsers'] = _blockUsers;
     }
 
     return map;
@@ -184,6 +228,16 @@ class User {
       }
     } catch (exception) {
       this._fcmToken = '';
+    }
+    try {
+      List<dynamic> tmp = map['blockUsers'];
+      if(tmp == null) {
+        this._blockUsers = [];
+      } else {
+        this._blockUsers = tmp.cast<String>().toList();
+      }
+    } catch (exception) {
+      this._blockUsers = [];
     }
   }
 }

@@ -278,7 +278,9 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
     List<Widget> buildGrid(List<SearchingMsg> documents, Function _onTap, BuildContext context) {
       List<Widget> _gridItems = [];
       for (SearchingMsg searchingMsg in documents) {
-        _gridItems.add(buildItem(searchingMsg.key, searchingMsg, _onTap, context));
+        if(widget.user == null || !widget.user.blockUsers.contains(searchingMsg.uid)) {
+          _gridItems.add(buildItem(searchingMsg.key, searchingMsg, _onTap, context));
+        }
       }
       return _gridItems;
     }  
@@ -290,11 +292,8 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
       if(widget.user != null && widget.user.globalHideRight) {
         canViewHide = true;
       }
-      //print("StreamBuilder ${this.messageLocation.latitude}");
-//      return new StreamBuilder<List<SearchingMsg>>(
         return new StreamBuilder<List<Map>>(
         stream: this.messageService.getSearchingMsgSnap(this.messageLocation, 2500, widget.tag),
-//          builder: (BuildContext context, AsyncSnapshot<List<SearchingMsg>> snapshot) {
             builder: (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
           if (!snapshot.hasData) {
             //print("StreamBuilder No Data ${snapshot.data}");

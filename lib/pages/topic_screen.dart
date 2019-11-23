@@ -387,7 +387,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   List<Widget> buildGrid(List<Topic> documents, Function _onTap, BuildContext context) {
     List<Widget> _gridItems = [];
     for (Topic topic in documents) {
-      _gridItems.add(buildItem(topic.id, topic, _onTap, context));
+      if(widget.user == null || !widget.user.blockUsers.contains(topic.createdUser.uuid)) {
+        _gridItems.add(buildItem(topic.id, topic, _onTap, context));
+      }
     }
     return _gridItems;
   }  

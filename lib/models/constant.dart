@@ -119,6 +119,10 @@ const String LABEL_KM = "km";
 const String LABEL_VOTE_MAX = "最多可投票數：";
 const String LABEL_VOTE_RANGE ="投票範圍：";
 const String LABEL_LAST_UPDATE ="最後更新: ";
+const String LABEL_BLOCK ="我唔要見到佢";
+const String LABEL_UNBLOCK ="我要見番佢";
+const String LABEL_ZERO_BLOCK = "好人一生平安，你一個人都冇Block！";
+const String TITLE_BLOCK ="我唔要見到佢清單";
 
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;
