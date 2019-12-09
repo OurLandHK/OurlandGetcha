@@ -58,7 +58,7 @@ class _TopicMessageState extends State<TopicMessage> with SingleTickerProviderSt
   }
 
   void getSearchingData() async {
-    _messageService.getSearchMsg(this.topic.searchingId).then((SearchingMsg sMsg) {
+    _messageService.getSearchMsg(this.topic.searchingId).then((SearchingMsg sMsg) {  
       if (sMsg != null) {
         if (this.mounted) {
           setState(() {

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,6 +36,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   String phoneNumber;
   String smsCode;
   String verificationId;
+  bool _agreeEULA = false;
 
   @override
   void initState() {
@@ -149,30 +152,36 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
       verificationId: verificationId,
       smsCode: smsCode,
     );
-    _auth.signInWithCredential(credential)
-        .then((AuthResult authResult) {
-      FirebaseUser fbuser = authResult.user;
-      print("${fbuser}");
-      if (fbuser != null) {
-        userService.getUser(fbuser.uid).then((user) {
-          if (user != null) {
-            Navigator.of(context).pop();
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
-          } else {
-            Navigator.of(context).push(new MaterialPageRoute(
-                builder: (context) => RegistrationScreen(fbuser, widget.preferences)));
-          }
-        });
-      } else {
+    try{
+      _auth.signInWithCredential(credential)
+          .then((AuthResult authResult) {
+        FirebaseUser fbuser = authResult.user;
+        print("${fbuser}");
+        if (fbuser != null) {
+          userService.getUser(fbuser.uid).then((user) {
+            if (user != null) {
+              Navigator.of(context).pop();
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
+            } else {
+              Navigator.of(context).push(new MaterialPageRoute(
+                  builder: (context) => RegistrationScreen(fbuser, widget.preferences)));
+            }
+          });
+        } else {
+          _scaffoldKey.currentState.showSnackBar(
+              new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
+        }
+      }).catchError((e) {
+        print(e);
         _scaffoldKey.currentState.showSnackBar(
             new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
-      }
-    }).catchError((e) {
-      print(e);
-      _scaffoldKey.currentState.showSnackBar(
-          new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
-    });
+      });
+    } catch (error) {
+      print(error);
+        _scaffoldKey.currentState.showSnackBar(
+            new SnackBar(content: new Text(REG_FAILED_TO_LOGIN_TEXT)));
+    };
   }
 
   renderAppLogo() {
@@ -196,13 +205,59 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         keyboardType: TextInputType.phone);
   }
 
+    void showEULA_Dialog() {
+    showDialog<bool>(
+      context: context,
+      builder: (_) => _buildEULA_Dialog(context),
+    ).then((bool shouldNavigate) {
+      /*
+      if (shouldNavigate == true) {
+        Navigator.popUntil(context, (Route<dynamic> route) => route is PageRoute);
+        if (!item.route.isCurrent) {
+          Navigator.push(context, item.route);
+        }      
+      }
+      */
+    });
+  }
+
+  Widget _buildEULA_Dialog(BuildContext context) {
+    return AlertDialog(
+      title: Text(LABEL_EULA),
+      content: Container(
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[Expanded(
+            flex: 1,
+            child: SingleChildScrollView(
+              child: Text(EULA),
+            )
+      )])),
+      actions: <Widget>[
+        FlatButton(
+          child: const Text(LABEL_CLOSE),
+          onPressed: () {
+            Navigator.pop(context, true);
+          },
+        ),
+      ],
+    );
+  }
+
   renderSubmitButton(context) {
-    return RaisedButton(
-        onPressed: () => verifyPhoneField(context),
-        child: Text(PHONE_REG_BUTTON_TEXT),
-        textColor: Colors.white,
-        elevation: 7.0,
-        color: Colors.blue);
+    return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children : [
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+              Checkbox(onChanged: (bool value) {setState(() {this._agreeEULA = value;});}, value: this._agreeEULA), 
+              GestureDetector(onTap: showEULA_Dialog, child: Text(LABEL_EULA, style: TextStyle(color: Colors.blue)))]),
+            RaisedButton(
+            onPressed: _agreeEULA ? () => verifyPhoneField(context):null,
+            child: Text(PHONE_REG_BUTTON_TEXT),
+            textColor: Colors.white,
+            elevation: 7.0,
+            color: Colors.blue)]);
   }
 
   renderAccessAsNobody(content) {
@@ -330,7 +385,7 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
               children: <Widget>[
                 renderAppLogo(),
                 renderSizeBox(),
-                _renderGoogleSignInButton(),
+                defaultTargetPlatform == TargetPlatform.iOS ? Container() : _renderGoogleSignInButton(),
                 renderSizeBox(), 
                 renderSizeBox(),          
                 renderPhoneNumberField(),
@@ -416,11 +471,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   renderSubmitButton(context) {
     return RaisedButton(
-        onPressed: () => validateInput(context),
-        child: Text(REG_BUTTON_TEXT),
-        textColor: Colors.white,
-        elevation: 7.0,
-        color: Colors.blue);
+          onPressed: () => validateInput(context),
+          child: Text(REG_BUTTON_TEXT),
+          textColor: Colors.white,
+          elevation: 7.0,
+          color: Colors.blue);
   }
 
   validateInput(context) {

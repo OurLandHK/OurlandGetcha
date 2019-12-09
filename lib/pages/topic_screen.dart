@@ -80,6 +80,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
 
   String _firstTag = "";
+  List<Widget> _children =[];
 
 //  Geolocator _geolocator = new Geolocator();
   LocationOptions locationOptions = new LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
@@ -258,10 +259,14 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
                 )),
                 Expanded(flex: 1, child: Text(LABEL_HAS, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
                 Expanded(flex: 2, child: DropdownButton(
-                  value: _firstTag,
-                  items: _tagDropDownMenuItems,
-                  style: Theme.of(context).textTheme.subhead,
-                  onChanged: (String value) {setState(() {_firstTag = value;});},
+                    value: _firstTag,
+                    items: _tagDropDownMenuItems,
+                    style: Theme.of(context).textTheme.subhead,
+                    onChanged: (String value) {setState(() {
+                      _children =[];
+                      _firstTag = value;
+                    });
+                  },
                 )),
                 IconButton(
                   icon: Icon(Icons.expand_more),
@@ -353,25 +358,25 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       canViewHide = true;
     }
     return new StreamBuilder<List<Topic>>(
-      stream: this.messageService.getTopicSnap(this.messageLocation, 2500, _firstTag, canViewHide),
+      stream: this.messageService.getTopicSnap(this.messageLocation, 1300, _firstTag, canViewHide),
       builder: (BuildContext context, AsyncSnapshot<List<Topic>> snapshot) {
         if (!snapshot.hasData) {
           return new Center(child: new CircularProgressIndicator());
         } else {
           if(snapshot.data.length > 0) {
-            List<Widget> children =  buildGrid(snapshot.data, _onTap, context);
-            return new StaggeredGridView.count(
+            _children =  buildGrid(snapshot.data, _onTap, context);
+            return StaggeredGridView.count(
               physics: new BouncingScrollPhysics(),
               crossAxisCount: 4,
-              children: children, 
-              staggeredTiles: staggeredTileBuilder(children),
+              children: _children, 
+              staggeredTiles: staggeredTileBuilder(_children),
             );
           } else {
             return new Container(child: Text(LABEL_CHOICE_OTHER_TAG,
             style: Theme.of(context).textTheme.headline));
           }
           //staggeredTiles: generateRandomTiles(snapshot.data.length),
-        };
+        }
       },
     );
   }

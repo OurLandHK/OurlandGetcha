@@ -169,6 +169,13 @@ class Topic {
     this._isShowName = map['isShowGeo'];
     this._geobottomright = map['geobottomright'];
     this._geotopleft = map['geotopleft'];
+    if(this._geobottomright.latitude == this._geotopleft.latitude && 
+        this._geobottomright.longitude == this._geotopleft.longitude) {
+      var destBox = GeoHelper.findBoxGeo(this._geobottomright, 1000.0);
+      this._geobottomright = destBox['bottomRight'];
+      this._geotopleft = destBox['topLeft'];
+    }
+
     this._createdUser = User.fromBasicMap(map['createdUser']);
     if(map['lastUpdateUser'] != null) {
       this._lastUpdateUser =  User.fromBasicMap(map['lastUpdateUser']);
@@ -202,7 +209,7 @@ class Topic {
     if(map['color'] != null) {
       this._color = map['color'];
     } else {
-      if(this.created !=null) {
+      if(this.searchingId !=null) {
         this._color = this.searchingId.hashCode % TOPIC_COLORS.length;
       } else {
         this._color = (this.geoTopLeft.latitude * 1000).round() % TOPIC_COLORS.length;
