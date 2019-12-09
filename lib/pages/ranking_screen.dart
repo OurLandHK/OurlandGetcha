@@ -12,17 +12,18 @@ import 'package:ourland_native/widgets/property_selector_widget.dart';
 // SETTING SCREEN LANDING SCREEN
 // ----------------------------------------
 
-class ReportScreen extends StatefulWidget  {
+class RankingScreen extends StatefulWidget  {
   final User user;
   final Topic topic;
-  ReportScreen({@required this.topic, @required this.user});
+  final List<String> defaultProperties;
+  RankingScreen({@required this.topic, @required this.user, @required this.defaultProperties});
 
   @override
-  _ReportScreenState createState() => new _ReportScreenState();
+  _RankingScreenState createState() => new _RankingScreenState();
 }
 
-class _ReportScreenState extends State<ReportScreen> {
-  _ReportScreenState(
+class _RankingScreenState extends State<RankingScreen> {
+  _RankingScreenState(
       {Key key}) {
         _selectedField = "";
       }
@@ -64,7 +65,7 @@ class _ReportScreenState extends State<ReportScreen> {
         setState(() {
           this._properties = properties;
           this._alreadyReport = alreadyReport;
-          _optionWidget = PropertySelectorWidget(BlockReasons, properties, 1, selectField, true, false, false);
+          _optionWidget = PropertySelectorWidget(widget.defaultProperties, properties, 1, selectField, true, true, false);
         });
       });
     });
@@ -82,7 +83,7 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Widget renderOption() {
-    return PropertySelectorWidget(BlockReasons, this._properties, 1, selectField, true, false, false);
+    return PropertySelectorWidget(widget.defaultProperties, this._properties, 1, selectField, true, true, false);
   }
 
 
@@ -101,25 +102,12 @@ class _ReportScreenState extends State<ReportScreen> {
         });
       });
     }
-    void onApprove() {
-      _messageService.sendChildMessage(widget.topic, null, _selectedField, null, 9).then((var temp) {
-        Navigator.of(context).pop();
-      });
-    }
     List<Widget> widgets = [RaisedButton(
         onPressed: _selectedField != "" && !_alreadyReport ? () => onSubmit() : null,
-        child: Text(CHAT_MENU_ITEM_REPORT),
+        child: Text(CHAT_MENU_ITEM_RANK),
         textColor: Colors.white,
         elevation: 7.0,
         color: Colors.blue)];
-    if(widget.user != null && widget.user.globalHideRight) {
-      widgets.add(RaisedButton(
-        onPressed: _selectedField != "" ? () => onApprove() : null,
-        child: Text(REPORT_APPROVED),
-        textColor: Colors.white,
-        elevation: 7.0,
-        color: Colors.blue));
-    }
     return Scaffold(
       key: _scaffoldKey,
       appBar: new AppBar(
@@ -128,7 +116,7 @@ class _ReportScreenState extends State<ReportScreen> {
       body: new Center(
         child: Container(
             child: Column(children: <Widget>[
-          Text(REPORT_DESC, maxLines: 3),
+          Text(RANK_DESC, maxLines: 3),
           //renderOption(),
           _optionWidget,
           Row(mainAxisAlignment: MainAxisAlignment.center, children: widgets)

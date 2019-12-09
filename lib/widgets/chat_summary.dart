@@ -17,7 +17,9 @@ import 'package:ourland_native/widgets/polling_widget.dart';
 import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
+import 'package:ourland_native/pages/ranking_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:ourland_native/widgets/property_selector_widget.dart';
 import 'package:intl/intl.dart';
 
   enum Chat_Mode {
@@ -164,13 +166,12 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   }
 
   List<T> map<T>(List list, Function handler) {
-  List<T> result = [];
-  for (var i = 0; i < list.length; i++) {
-    result.add(handler(i, list[i]));
+    List<T> result = [];
+    for (var i = 0; i < list.length; i++) {
+      result.add(handler(i, list[i]));
+    }
+    return result;
   }
-
-  return result;
-}
   Future<User> updateBookmark(bool newState) async  {
     return _userService.updateRecentTopic(widget.user.uuid, widget.topic.id, widget.messageLocation, newState).then((User temp){
       setState(() {
@@ -265,6 +266,46 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     } else {
       return Container();
     }
+  }
+  void showRanking(BuildContext context, List<String> defaultProperties) {
+    Navigator.of(context).push(
+          new MaterialPageRoute<void>(
+            builder: (BuildContext context) {
+              return new RankingScreen(topic: widget.topic, user: widget.user, defaultProperties: defaultProperties);
+            },
+        )
+    );
+  }
+  void updateRank(String rank) {
+
+  }
+  Widget _buildProperties(BuildContext context, SearchingMsg _sMsg) {
+    Widget rv = Container();
+    if (_sMsg != null) {
+      List<String> defaultProperties = ["有罷工","捐錢","味道","員工"];
+      List<Property> properties = [
+        Property(defaultProperties[0], 4),
+        Property(defaultProperties[2], 3)
+      ];
+      properties[0].updateDownValue(2);
+      properties[1].updateDownValue(8);
+      rv = PropertySelectorWidget([], properties, 1, null, true, true, true);
+      if(widget.user != null) {
+        rv = GestureDetector(child: rv, onTap: () => {showRanking(context, defaultProperties)});
+      }
+      List<String> dropDownList = ["All", "180 Days"];
+      List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
+      _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
+      String _currentChoice = dropDownList[0];
+      Widget dropdown = DropdownButton(
+                  value: _currentChoice,
+                  items: _locationDropDownMenuItems,
+                  onChanged: updateRank,
+                  style: Theme.of(context).textTheme.subhead
+                );
+      rv = Column(children: [dropdown, rv]);
+    }
+    return rv; 
   }
   Widget _buildStreetAddress(BuildContext context, SearchingMsg _sMsg) {
     if (_sMsg != null && _sMsg.streetAddress != null && _sMsg.streetAddress.length > 0) {
@@ -491,6 +532,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       SearchingMsg msg = widget.topic.searchingMsg;
       widgetList.add(_buildStatus(context, msg));
       widgetList.add(_buildStreetAddress(context, msg));
+      widgetList.add(_buildProperties(context, msg));
       widgetList.add(_buildDesc(context, msg));
       widgetList.add(_buildLink(context, msg));
       widgetList.add(_buildTimingInfo(context, msg));

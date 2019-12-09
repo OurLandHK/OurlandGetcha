@@ -63,6 +63,9 @@ const String REPORT_APPROVED = "真・撕紙🐶";
 const String REPORT_COVERD= "我幫你遮咗佢";
 const String REPORT_DESC = "啲Memo係冇咁易撕㗎！不過如果你唔想見到佢，俾個原因我哋就可以幫你遮咗佢。如果有好多人都遮咗，咁Admin會好大機會變成真・撕紙🐶㗎喇！";
 
+const String RANK_DESC = "冇咁易轉風向㗎！每人每星期帶一次";
+const String CHAT_MENU_ITEM_RANK = "我要帶風向";
+
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
