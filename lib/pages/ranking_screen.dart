@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/models/constant.dart';
-import 'package:ourland_native/services/report_service.dart';
+import 'package:ourland_native/services/ranking_service.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/models/user_model.dart';
@@ -25,22 +25,22 @@ class RankingScreen extends StatefulWidget  {
 class _RankingScreenState extends State<RankingScreen> {
   _RankingScreenState(
       {Key key}) {
-        _selectedField = "";
       }
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-  ReportService _reportService;
+  RankingService _rankingService;
   UserService _userService;
   MessageService _messageService;
   List<Property> _properties = [];
-  String _selectedField;
+  List<String> _upFields = [];
+  List<String> _downFields = [];
   bool _alreadyReport = true;
   Widget _optionWidget = Container();
 
   @override
   void initState() {
     super.initState();
-    _reportService = new ReportService(widget.user);
+    _rankingService = new RankingService(widget.user);
     _messageService = new MessageService(widget.user);
     _userService = new UserService();
     getReportValue();
@@ -50,60 +50,65 @@ class _RankingScreenState extends State<RankingScreen> {
     List<Property> properties = [];
     bool alreadyReport = true;
     // get the report value per topic
-    _reportService.getSummary(widget.topic.id).then((reports) {
+    _rankingService.getRanking(widget.topic.id).then((reports) {
       print(reports);
       if(reports != null) {
         reports.forEach((field, property) {
           print(field);
-          properties.add(Property.fromMap(property));
+          if(field != 'recent') {
+            properties.add(Property.fromMap(property));
+          }
         });
       }
-      _reportService.getUserReport(widget.topic.id, widget.user.uuid).then((userReport) {
+      String uuid = "";
+      if(widget.user != null) {
+        uuid = widget.user.uuid;
+      }
+      _rankingService.getUserRanking(widget.topic.id, uuid).then((userReport) {   
         if(userReport == null) {
           alreadyReport = false;
         }
         setState(() {
           this._properties = properties;
           this._alreadyReport = alreadyReport;
-          _optionWidget = PropertySelectorWidget(widget.defaultProperties, properties, 1, selectField, true, true, false);
+          _optionWidget = PropertySelectorWidget(widget.defaultProperties, properties, 1, selectField, true, true, (widget.user == null), (widget.user != null));
         });
       });
     });
   }
 
-  void selectField(List<String> selectField) {
+  void selectField(List<String> selectField, bool isUp) {
     setState(() {
-      if(selectField.length > 0) {
-        _selectedField = selectField[0];
+      if(isUp) {
+        _upFields = selectField;
+        print("upfield: ${_upFields.toString()}");
       } else {
-        _selectedField = "";
+        _downFields = selectField;
+        print("downfield: ${_downFields.toString()}");
       }
     });
-    //print("Report: ${_selectedField}");
-  }
-
-  Widget renderOption() {
-    return PropertySelectorWidget(widget.defaultProperties, this._properties, 1, selectField, true, true, false);
   }
 
 
   @override
   Widget build(BuildContext context) {
     void onSubmit() {
-      _messageService.sendChildMessage(widget.topic, null, _selectedField, null, 8).then((var temp) {
-        _reportService.sendUserReportResult(widget.topic.id, _selectedField).then((void v) {
-          /*
-          _scaffoldKey.currentState.showSnackBar(
-              new SnackBar(content: new Text(UPDATE_LOCATION_SUCCESS)));
-          */
-          _userService.addBlockTopic(widget.user.uuid, widget.topic.id, _selectedField).then((void v) {
+      // Construct ranking
+      String rankingText = LABEL_RANKING_UPDATE_MESSAGE;
+      if(_upFields.length > 0) {
+        rankingText += "+ " + _upFields.toString() + " ";
+      }
+      if(_downFields.length > 0) {
+        rankingText += "- " + _downFields.toString();
+      }      
+      _messageService.sendChildMessage(widget.topic, null, rankingText, null, 10).then((var temp) {
+        _rankingService.sendUserRankingResult(widget.topic.id, _upFields, _downFields).then((void v) {
             Navigator.of(context).pop();
-          });
         });
       });
     }
     List<Widget> widgets = [RaisedButton(
-        onPressed: _selectedField != "" && !_alreadyReport ? () => onSubmit() : null,
+        onPressed: ((_upFields.length + _downFields.length) > 0) && !this._alreadyReport ? () => onSubmit() : null,
         child: Text(CHAT_MENU_ITEM_RANK),
         textColor: Colors.white,
         elevation: 7.0,
@@ -119,7 +124,7 @@ class _RankingScreenState extends State<RankingScreen> {
           Text(RANK_DESC, maxLines: 3),
           //renderOption(),
           _optionWidget,
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: widgets)
+          (widget.user == null) ? Container() : Row(mainAxisAlignment: MainAxisAlignment.center, children: widgets)
         ])),
       ),
     );

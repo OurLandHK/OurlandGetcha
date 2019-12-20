@@ -102,6 +102,8 @@ const String LABEL_RECENT_SEARCHING = "最新正料";
 const String HINT_SEARCH_LOCATION = "輸入指定地方找正料";
 const String HINT_SEARCH_NEARBY_LOCATION = "找附近或輸入指定地方的正料";
 
+const String HINT_CUSTOM_PROPERTY = "自定特點";
+
 const String NO_PLACE_CALLED = "找不到 -》";
 
 const String TOPIC_ROOT_ID = "";
@@ -113,6 +115,7 @@ const String LABEL_END_TIME = "完結: ";
 const String LABEL_OPENNING_HOUR = "開放時間: ";
 const String LABEL_EVERYDAY = "每日: ";
 const List<String> LABEL_WEEKLY = ["日: ","一: ","二: ","三: ","四: ","五: ","六: "];
+const List<String> LABEL_RANKING_RANGE = ["全部", "近180日"];
 
 const String LABEL_CLOSED = "關閉";
 const String LABEL_DURATION = "為期";
@@ -125,7 +128,9 @@ const String LABEL_LAST_UPDATE ="最後更新: ";
 const String LABEL_BLOCK ="我唔要見到佢";
 const String LABEL_UNBLOCK ="我要見番佢";
 const String LABEL_ZERO_BLOCK = "好人一生平安，你一個人都冇Block！";
+
 const String TITLE_BLOCK ="我唔要見到佢清單";
+const String LABEL_RANKING_UPDATE_MESSAGE = "更新評價: ";
 
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;

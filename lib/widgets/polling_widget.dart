@@ -230,7 +230,7 @@ abstract class PollingModel extends State<PollingWidget>
                   width: optionWidth,
                   child: FlatButton(
                   child: textWidget, 
-                  onPressed: () => {_onTap(i, displayResult)}
+                  onPressed: widget.user != null ? () => {_onTap(i, displayResult)}:null
                   )
                 );
                 //print("${_upvote[i]}");
@@ -252,10 +252,14 @@ abstract class PollingModel extends State<PollingWidget>
         );
       listOfWidget.add(optionBox);
     }
-    if(!displayResult) {
+    if(!displayResult && widget.user != null) {
       listOfWidget.add(FlatButton(child: Text(LABEL_VOTE), onPressed: vote));
     } else {
-      listOfWidget.add(FlatButton(child: Text(LABEL_VOTED + _userResult.lastUpdate.toString())));
+      String lastUpdate = "";
+      if(_userResult != null) {
+        lastUpdate = _userResult.lastUpdate.toString();
+      }
+      listOfWidget.add(FlatButton(child: Text(LABEL_VOTED + lastUpdate)));
     }
     return Column (children: listOfWidget);
     

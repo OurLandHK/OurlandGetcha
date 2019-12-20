@@ -64,13 +64,13 @@ class _ReportScreenState extends State<ReportScreen> {
         setState(() {
           this._properties = properties;
           this._alreadyReport = alreadyReport;
-          _optionWidget = PropertySelectorWidget(BlockReasons, properties, 1, selectField, true, false, false);
+          _optionWidget = PropertySelectorWidget(BlockReasons, properties, 1, selectField, true, false, false, false);
         });
       });
     });
   }
 
-  void selectField(List<String> selectField) {
+  void selectField(List<String> selectField, bool isUp) {
     setState(() {
       if(selectField.length > 0) {
         _selectedField = selectField[0];
@@ -79,10 +79,6 @@ class _ReportScreenState extends State<ReportScreen> {
       }
     });
     //print("Report: ${_selectedField}");
-  }
-
-  Widget renderOption() {
-    return PropertySelectorWidget(BlockReasons, this._properties, 1, selectField, true, false, false);
   }
 
 
@@ -129,7 +125,6 @@ class _ReportScreenState extends State<ReportScreen> {
         child: Container(
             child: Column(children: <Widget>[
           Text(REPORT_DESC, maxLines: 3),
-          //renderOption(),
           _optionWidget,
           Row(mainAxisAlignment: MainAxisAlignment.center, children: widgets)
         ])),

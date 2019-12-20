@@ -376,7 +376,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
                 ),
           const SizedBox(height: 12.0),
           TextFormField(
-            textCapitalization: TextCapitalization.words,
+            //textCapitalization: TextCapitalization.words,
             decoration: const InputDecoration(
               border: UnderlineInputBorder(),
               filled: true,

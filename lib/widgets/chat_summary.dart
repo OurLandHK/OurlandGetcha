@@ -20,6 +20,7 @@ import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/pages/ranking_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ourland_native/widgets/property_selector_widget.dart';
+import 'package:ourland_native/services/ranking_service.dart';
 import 'package:intl/intl.dart';
 
   enum Chat_Mode {
@@ -69,6 +70,13 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   bool _isBookmark = false;
   MessageService messageService;
   ValueNotifier<Stream> chatStream;
+  List<Property> _properties = [];
+  List<Property> _pendingProperties = [];
+  List<Property> _allProperties = [];
+  List<Property> _recentProperties = [];
+  Widget _rankWidget = Container();
+  RankingService _rankingService;
+  String _currentChoice = "180 Days";
 
   _ChatSummaryState() {
     _progressBarActive = true;
@@ -89,6 +97,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
+    _rankingService = new RankingService(widget.user);
     messageList = new List<String>();
     print("initState()");
     messageService = new MessageService(widget.user);
@@ -117,7 +126,41 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         _galleryImageUrlList[entry.caption] = entry.publicImageURL;
       }
     }
+    if(widget.topic.searchingMsg != null) {
+      getReportValue();
+    }
     buildMessageSummaryWidget();
+    
+  }
+
+  void getReportValue() {
+    List<Property> allProperties = [];
+    List<Property> recentProperties = [];
+    // get the report value per topic
+    _rankingService.getRanking(widget.topic.id).then((reports) {
+      //print(reports);
+      if(reports != null) {
+        reports.forEach((field, property) {
+          //print(field);
+          if(field != 'recent') {
+            allProperties.add(Property.fromMap(property));
+          } else {
+            property.forEach((recentField, recentProperty) {
+              if(recentField != 'firstUpdate') {
+                recentProperties.add(Property.fromMap(recentProperty));
+              }
+            });
+          }
+        });
+      }
+      setState(() {
+        this._pendingProperties = recentProperties;        
+        this._properties = recentProperties;
+        this._allProperties = allProperties;
+        this._recentProperties = recentProperties;
+        this._rankWidget = PropertySelectorWidget([], this._properties, 1, null, true, true, true, false);
+      });
+    });
   }
 
   void addChat(Chat chat, int i) {
@@ -255,7 +298,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
 
 
   Widget _buildPolling(BuildContext context, SearchingMsg _sMsg) {
-    if (_sMsg != null && _sMsg.polling != null && _sMsg.polling.numOfMaxPolling != null) {
+    if (_sMsg != null && _sMsg.polling != null && _sMsg.polling.numOfMaxPolling != null && _sMsg.polling.numOfMaxPolling != 0) {
       return  PollingWidget(searchingMsg: _sMsg, 
         messageLocation: widget.messageLocation, 
         width: widget.width, 
@@ -276,27 +319,32 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         )
     );
   }
-  void updateRank(String rank) {
 
+  void updateRank(String field) {
+    List<Property> properties;
+    if(field == LABEL_RANKING_RANGE[0]) {
+      properties = this._allProperties;
+    } else {
+      properties = this._recentProperties;
+    }
+    //print("update Rank ${field} ${properties[0].downValue}");
+    setState(() {
+      //this._properties = properties;
+      this._pendingProperties = properties;
+      this._currentChoice = field;
+      this._rankWidget = Container();
+    });
   }
+
   Widget _buildProperties(BuildContext context, SearchingMsg _sMsg) {
     Widget rv = Container();
     if (_sMsg != null) {
       List<String> defaultProperties = ["有罷工","捐錢","味道","員工"];
-      List<Property> properties = [
-        Property(defaultProperties[0], 4),
-        Property(defaultProperties[2], 3)
-      ];
-      properties[0].updateDownValue(2);
-      properties[1].updateDownValue(8);
-      rv = PropertySelectorWidget([], properties, 1, null, true, true, true);
-      if(widget.user != null) {
-        rv = GestureDetector(child: rv, onTap: () => {showRanking(context, defaultProperties)});
-      }
-      List<String> dropDownList = ["All", "180 Days"];
+      //this._rankWidget = new PropertySelectorWidget([], this._properties, 1, null, true, true, true, false);
+      rv = GestureDetector(child: this._rankWidget, onTap: () => {showRanking(context, defaultProperties)});
+      List<String> dropDownList = LABEL_RANKING_RANGE;
       List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
       _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
-      String _currentChoice = dropDownList[0];
       Widget dropdown = DropdownButton(
                   value: _currentChoice,
                   items: _locationDropDownMenuItems,
@@ -390,7 +438,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         text += "\n";
       } else {
         // check any weekly openninbg hour
-        print("Open ${_sMsg.weekdaysOpennings.length}");
+        //print("Open ${_sMsg.weekdaysOpennings.length}");
         if(_sMsg.weekdaysOpennings != null) {
           for(int i = 0; i < _sMsg.weekdaysOpennings.length; i++) {
             text += LABEL_WEEKLY[i];
@@ -433,10 +481,12 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     } else {
       return Container();
     }
-  }     
+  }
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance
+      .addPostFrameCallback((_) => _swapValuable(context));
     Widget _renderToolBar() {
             // Display tool bar
       Color bookmarkColor = primaryColor;
@@ -510,10 +560,6 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
           ):Container(),
             ]);  
     }
-
-
-    WidgetsBinding.instance
-      .addPostFrameCallback((_) => _swapMap(context));    
     // _cratedDate
     Icon visibilityIcon = Icon(Icons.visibility);
     Icon hideIconButton = Icon(Icons.visibility_off);
@@ -530,6 +576,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     Material visibilityStatus = Material(child: new Container(
         margin: new EdgeInsets.symmetric(horizontal: 8.0),
         child: new IconButton(
+          iconSize: 18,
           icon: visibilityIcon,
           color: primaryColor,
           onPressed: (widget.user != null && widget.user.globalHideRight == true) ?
@@ -541,6 +588,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     Material broadcastStatus = Material(child: new Container(
         margin: new EdgeInsets.symmetric(horizontal: 8.0),
         child: new IconButton(
+          iconSize: 18,
           icon: broadcastIcon,
           color: primaryColor,
           onPressed: (widget.user != null && widget.user.sendBroadcastRight == true) ?
@@ -558,14 +606,20 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     if(widget.topic.searchingId != null) {
       _ourlandLaunch = GestureDetector(child: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH, width: 64.0), onTap: () => {launch(OURLAND_SEARCH_HOST + "/detail/" + widget.topic.searchingId)});
     }
-    _baseInfo = new Row(children: <Widget>[
+    String tagList = "";
+    widget.topic.tags.forEach((tag) {
+      tagList += "#" + tag + " ";
+    });
+    _baseInfo = Column(children: [Row(children: [
       new BaseProfile(user: widget.topic.createdUser, currentUser: widget.user), 
       visibilityStatus,
       broadcastStatus,
       new Column(children: <Widget>[
         _createdDate,
         new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowName.toString(), style: Theme.of(context).textTheme.subtitle),
-      ]),_ourlandLaunch]); // need to show hash tag
+      ]),_ourlandLaunch]),
+      Text(tagList),
+    ]); // need to show hash tag
     
 
 
@@ -692,7 +746,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
         }
         break;     
       case Chat_Mode.MAP_MODE:
-        print("build Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
+        //print("build Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
         if(this._markerList.length == this._pendingMarkerList.length) {
           widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._markerList, updateCenter: null,));
         } else {
@@ -709,8 +763,9 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       //summaryPostit;
       new Container(child: Column(children: finalWidgetList), color: TOPIC_COLORS[widget.topic.color],);
   }
-   void _swapMap(BuildContext context) {
-    print("_swapMap Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
+
+  void _swapValuable(BuildContext context) {
+    //print("_swapMap Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
     if(this._markerList.length != this._pendingMarkerList.length) {
       List<OurlandMarker> tempList = new List<OurlandMarker>();
       for(String key in this._pendingMarkerList.keys) {
@@ -719,7 +774,13 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       setState(() {
         this._markerList = tempList;
       });      
+    } 
+    if(this._properties != this._pendingProperties) {
+      print("update Rank ${this._pendingProperties[0].downValue}");
+      setState(() {
+        this._properties = this._pendingProperties;
+        this._rankWidget = PropertySelectorWidget([], this._pendingProperties, 1, null, true, true, true, false);
+      });
     }
-  } 
-  
+  }   
 }

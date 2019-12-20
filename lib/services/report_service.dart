@@ -53,7 +53,13 @@ class ReportService {
         Map<String, dynamic> summaryData;
         if(indexDataSnap.exists) {
           summaryData = indexDataSnap.data;
-          summaryData[field]['value']++;
+          if(summaryData[field] != null) {
+            summaryData[field]['value']++;
+          } else {
+            summaryData[field] = new Map<String, dynamic>();
+            summaryData[field]['value'] = 1;
+            summaryData[field]['field'] = field;            
+          }         
         } else {
           summaryData = new Map<String, dynamic>();
           summaryData[field] = new Map<String, dynamic>();

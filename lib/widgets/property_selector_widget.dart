@@ -34,6 +34,9 @@ class Property {
       this._lastUpdate = DateTime.fromMicrosecondsSinceEpoch(map['lastUpdate'].microsecondsSinceEpoch);
     }
     this._value = map['value'];
+    if(this._value == null) {
+      this._value = 0;
+    }
     if(map['downValue'] != null ) {
       this._downValue = map['downValue'];
     }
@@ -61,7 +64,8 @@ class PropertySelectorWidget extends StatefulWidget {
       @required this.currentSelectProperties,
       this.showLastUpdate,
       this.updownProperty,
-      this.readOnly);
+      this.readOnly,
+      this.allowCustom);
 
 
   final List<String> defaultFields;
@@ -71,6 +75,7 @@ class PropertySelectorWidget extends StatefulWidget {
   bool showLastUpdate = false;
   bool readOnly = true;
   bool updownProperty = false;
+  bool allowCustom = false;
 
   @override
   PropertySelectorView createState() => PropertySelectorView();
@@ -92,6 +97,7 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
     with TickerProviderStateMixin {
   List<String> selectedFields = [];
   List<String> selectedDownFields = [];
+  String customField = "";
   Map<String, Property> _currentPropertiesMap;
   PropertySelectorModel() {
   }
@@ -102,7 +108,7 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
     //print("Current Properties ${widget.currentProperties.length}");
     for(int i = 0; i< widget.currentProperties.length; i++) {
       String field = widget.currentProperties[i].propertyField;
-      print("field ${field} ${widget.currentProperties[i].value}");
+      //print("field ${field} ${widget.currentProperties[i].value}");
       _currentPropertiesMap[field] =  widget.currentProperties[i];
     }
     for(int i = 0; i< widget.defaultFields.length; i++) {
@@ -124,7 +130,9 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
         }
       }      
     });
-    widget.currentSelectProperties(selectedFields);
+    if(widget.currentSelectProperties !=  null) {
+      widget.currentSelectProperties(selectedFields, true);
+    }
   }
 
   void _onTapDown(field) {
@@ -137,26 +145,51 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
         }
       }      
     });
-    widget.currentSelectProperties(selectedDownFields);
+    if(widget.currentSelectProperties !=  null) {
+      widget.currentSelectProperties(selectedDownFields, false);
+    }
   }
-
-  Widget buildOptions(BuildContext context, bool displayResult) {
-    List<Widget> listOfWidget = [];
-    double optionWidth = MediaQuery.of(context).size.width;
-    _currentPropertiesMap.forEach((field, property) {
+  Widget buildOption(BuildContext context, String field, Property property, bool displayResult) {
       double borderSize = 1.2;
+      double optionWidth = MediaQuery.of(context).size.width;
       Color boxColor = Theme.of(context).dialogBackgroundColor;
       Color leftButtonColor = Theme.of(context).dialogBackgroundColor;
       Color rightButtonColor = Theme.of(context).dialogBackgroundColor;
       String resultText = "";
       String fieldText = field;
-      Widget textWidget = Text(fieldText);
-      int value = property.value;
-      int downValue = property.downValue;
       double optionBoxWidth = optionWidth;
-      String lastUpdateText = LABEL_LAST_UPDATE + DateFormat('dd MMM kk:mm').format(
-                new DateTime.fromMicrosecondsSinceEpoch(
-                  property._lastUpdate.microsecondsSinceEpoch));
+      if(widget.updownProperty) {
+        if(!widget.readOnly) {
+          optionBoxWidth -= 120;
+        }
+      }
+      Widget textWidget;
+      if(property != null) {
+        textWidget = Text(fieldText);
+      } else {
+        textWidget = SizedBox(
+            width: optionBoxWidth - 40,
+            child: TextField(   
+          //  textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              border: UnderlineInputBorder(),
+              filled: true,
+              hintText: HINT_CUSTOM_PROPERTY,
+            ),
+            textAlign: TextAlign.center,
+            onChanged: (String value) {
+              setState(() {this.customField = value;});},
+        // validator: _validateName,
+          )
+        );
+      }
+      int value = 0;
+      int downValue = 0;
+      if(property != null) {
+        value = property.value;
+        downValue = property.downValue;        
+      }
+
       LinearGradient gradient;
       if(selectedFields.contains(field)) {
         value++;
@@ -165,12 +198,10 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
         rightButtonColor = Colors.yellow;
       }
       if(widget.updownProperty) {
-        if(!widget.readOnly) {
-          optionBoxWidth -= 120;
-        }
         if(downValue == null) {
           downValue = 0;
         }
+        print("${field} ${downValue}");
         if(selectedDownFields.contains(field)) {
           downValue++;
           borderSize = 2;
@@ -182,7 +213,10 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
               stops: [value / totalVote, value / totalVote],
               tileMode: TileMode.clamp);
         }
-        if(widget.showLastUpdate && property._lastUpdate != null) {
+        if(widget.showLastUpdate && property != null && property._lastUpdate != null) {
+          String lastUpdateText = LABEL_LAST_UPDATE + DateFormat('dd MMM kk:mm').format(
+          new DateTime.fromMicrosecondsSinceEpoch(
+            property._lastUpdate.microsecondsSinceEpoch));
           resultText += lastUpdateText;
           textWidget = Column(children: [
             textWidget,
@@ -191,29 +225,36 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
         }
         String valueText = "";
         String valueDownText = "";
-        if(displayResult) {
+        if(displayResult && property != null) {
           valueText = " " + value.toString();
           valueDownText = " " + downValue.toString() + " ";
         }        
-        textWidget = Row(children: [
-          Text(valueText),
-          Flexible(flex: 2,child: Container()),
-          textWidget,
-          Flexible(flex: 2,child: Container()),
-          Text(valueDownText),
-        ]);           
+        if(property != null) {
+          textWidget = Row(children: [
+            Text(valueText),
+            Flexible(flex: 2,child: Container()),
+            textWidget,
+            Flexible(flex: 2,child: Container()),
+            Text(valueDownText),
+          ]);           
+        }
       } else {
-        if(widget.showLastUpdate && property._lastUpdate != null) {
+        if(widget.showLastUpdate && property != null && property._lastUpdate != null) {
+          String lastUpdateText = LABEL_LAST_UPDATE + DateFormat('dd MMM kk:mm').format(
+          new DateTime.fromMicrosecondsSinceEpoch(
+            property._lastUpdate.microsecondsSinceEpoch));
           resultText += lastUpdateText;
         }
         if(displayResult) {
           resultText += "   " + value.toString();
         }
-        textWidget = Row(children: [
-          textWidget,
-          Flexible(flex: 2,child: Container()),
-          Text(resultText),
-        ]);
+        if(property != null) {
+          textWidget = Row(children: [
+            textWidget,
+            Flexible(flex: 2,child: Container()),
+            Text(resultText),
+          ]);
+        }
       }
       Widget optionBox = SizedBox(
           width: optionBoxWidth,
@@ -222,23 +263,13 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
               gradient: gradient,
               color: boxColor,
             ),
-            child: FlatButton(
+            child: widget.readOnly || property == null ? textWidget :
+            FlatButton(
               child: textWidget, 
-              onPressed: widget.readOnly ? null : () => {_onTap(field)}
+              onPressed:  () => {_onTap(field)}
             )
           )
         );
-
-      /*
-                //print("${_upvote[i]}");
-      optionBox = Container(
-                      decoration: new BoxDecoration(
-                        gradient: gradient,
-                        color: boxColor,
-                      ),
-                      child: optionBox
-        );
-      */
       if(widget.updownProperty && !widget.readOnly) {
         optionBox = Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
           SizedBox(
@@ -247,16 +278,6 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
               color: leftButtonColor,
               onPressed: (widget.readOnly) ? null : () => {_onTapDown(field)},
               child: Text("-",textAlign: TextAlign.center,))),
-          
-          /*
-          SizedBox(
-            width: 25,
-            child: IconButton(
-            icon: Icon(Icons.arrow_left),
-            //color: Colors.blue,
-            onPressed: (widget.readOnly) ? null : () => {_onTapDown(field)}
-            )),
-          */
           Container(),
           optionBox,
           Container(),
@@ -266,19 +287,20 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
               color: rightButtonColor,
               onPressed: (widget.readOnly) ? null : () => {_onTap(field)},
               child: Text("+",textAlign: TextAlign.center)))
-            /*
-          SizedBox(
-            width: 25,
-            child: IconButton(
-            icon: Icon(Icons.arrow_right),
-            //color: Colors.yellow,
-            onPressed: (widget.readOnly) ? null : () => {_onTap(field)}
-            )
-          )*/
         ]);
       }
+      return optionBox;
+  }
+
+  Widget buildOptions(BuildContext context, bool displayResult) {
+    List<Widget> listOfWidget = [];
+    _currentPropertiesMap.forEach((field, property) {
+      Widget optionBox = buildOption(context, field, property, displayResult);
       listOfWidget.add(optionBox);
     });
+    if(widget.allowCustom) {
+      listOfWidget.add(buildOption(context, customField, null, displayResult));
+    }
 
     return Column (children: listOfWidget);    
   }
