@@ -383,6 +383,8 @@ class SearchingMsg {
 
     if(map['polling'] != null) {
       _polling = Polling.fromMap(map['polling']);
+    } else {
+      _polling = null;
     }
     //List<dynamic> get polling => _polling;
   }

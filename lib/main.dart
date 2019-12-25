@@ -66,7 +66,7 @@ void main() {
 
 void initFirestoreSettings() async {
   Firestore firestore = Firestore();
-  await firestore.settings(timestampsInSnapshotsEnabled: true);
+  await firestore.settings(persistenceEnabled: true);
 }
 
 class OurlandApp extends StatelessWidget {

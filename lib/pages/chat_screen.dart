@@ -243,7 +243,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
     _userList = {};
-    _chatMode = Chat_Mode.MAP_MODE;
+    _chatMode = Chat_Mode.INFO_MODE;
  
     isLoading = false;
     

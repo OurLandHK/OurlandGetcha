@@ -63,6 +63,9 @@ const String REPORT_APPROVED = "真・撕紙🐶";
 const String REPORT_COVERD= "我幫你遮咗佢";
 const String REPORT_DESC = "啲Memo係冇咁易撕㗎！不過如果你唔想見到佢，俾個原因我哋就可以幫你遮咗佢。如果有好多人都遮咗，咁Admin會好大機會變成真・撕紙🐶㗎喇！";
 
+const String RANK_DESC = "冇咁易轉風向㗎！每人每星期帶一次";
+const String CHAT_MENU_ITEM_RANK = "我要帶風向";
+
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
@@ -76,6 +79,7 @@ const String LABEL_SHOW = "開來見我";
 const String LABEL_CLOSE = "拜拜";
 const String HINT_TOPIC = "入D搶眼 Memo 標題";
 const String LABEL_DETAIL = "詳情";
+const String RANKING_LABEL_DETAIL = "詳細評價";
 const String HINT_DEATIL = "入D 詳情 如 時，地，人？";
 const String HELPER_DETAIL = "可用 Hash Tag";
 const String LABEL_MUST_SHOW_NAME = "要其他人實名回答";
@@ -99,6 +103,8 @@ const String LABEL_RECENT_SEARCHING = "最新正料";
 const String HINT_SEARCH_LOCATION = "輸入指定地方找正料";
 const String HINT_SEARCH_NEARBY_LOCATION = "找附近或輸入指定地方的正料";
 
+const String HINT_CUSTOM_PROPERTY = "自定特點";
+
 const String NO_PLACE_CALLED = "找不到 -》";
 
 const String TOPIC_ROOT_ID = "";
@@ -110,6 +116,7 @@ const String LABEL_END_TIME = "完結: ";
 const String LABEL_OPENNING_HOUR = "開放時間: ";
 const String LABEL_EVERYDAY = "每日: ";
 const List<String> LABEL_WEEKLY = ["日: ","一: ","二: ","三: ","四: ","五: ","六: "];
+const List<String> LABEL_RANKING_RANGE = ["所有", "近120日"];
 
 const String LABEL_CLOSED = "關閉";
 const String LABEL_DURATION = "為期";
@@ -122,7 +129,12 @@ const String LABEL_LAST_UPDATE ="最後更新: ";
 const String LABEL_BLOCK ="我唔要見到佢";
 const String LABEL_UNBLOCK ="我要見番佢";
 const String LABEL_ZERO_BLOCK = "好人一生平安，你一個人都冇Block！";
+
+const String LABEL_NO_ONE_RANKNG = "仲未有人評價，你仲唔做第一個？";
+const String LABEL_RANKING ="評價: ";
+
 const String TITLE_BLOCK ="我唔要見到佢清單";
+const String LABEL_RANKING_UPDATE_MESSAGE = "更新評價: ";
 
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;

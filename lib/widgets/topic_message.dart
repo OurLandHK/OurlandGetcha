@@ -15,7 +15,7 @@ import 'package:ourland_native/widgets/image_widget.dart';
 import 'package:ourland_native/helper/open_graph_parser.dart';
 import 'package:ourland_native/widgets/searching_widget.dart';
 import 'package:ourland_native/services/message_service.dart';
-import 'package:ourland_native/services/User_service.dart';
+import 'package:ourland_native/services/user_service.dart';
 
 class TopicMessage extends StatefulWidget {
   TopicMessage({

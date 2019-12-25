@@ -96,10 +96,14 @@ class MessageService {
         serverSideOrdering: [OrderConstraint('lastUpdate', true)],
         locationAccessor: (item) => item.geoCenter,
           // The distancemapper is applied after the mapper
-          distanceMapper: (item, dist) {
-              item.distance = dist;
-              return item;
-          });     
+        distanceMapper: (item, dist) {
+            item.distance = dist;
+            return item;
+        },
+        clientSidefilters: [(item) {
+          return item.lastUpdate.compareTo(DateTime.now().subtract(Duration(days: 100))) > 0;
+        }],
+      );     
     }  
     return rv;
   }

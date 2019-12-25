@@ -23,7 +23,11 @@ class Polling {
     } else {
       _type = 0;
     }
-    _numOfMaxPolling = map['numOfMaxPolling']; // default is 1
+    if(map['numOfMaxPolling'] == null) {
+      _numOfMaxPolling = 0;
+    } else {
+      _numOfMaxPolling = map['numOfMaxPolling']; // default is 1
+    }
     _pollingOptionValues = [];
     for(int i = 0; i < map['pollingOptionValues'].length; i++) {
       _pollingOptionValues.add(map['pollingOptionValues'][i]);
