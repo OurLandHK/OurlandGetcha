@@ -24,6 +24,7 @@ import 'package:ourland_native/services/ranking_service.dart';
 import 'package:intl/intl.dart';
 
   enum Chat_Mode {
+    INFO_MODE,
     MAP_MODE,
     USER_MODE,
     MEDIA_MODE,
@@ -76,7 +77,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   List<Property> _recentProperties = [];
   Widget _rankWidget = Container();
   RankingService _rankingService;
-  String _currentChoice = "180 Days";
+  String _currentChoice = LABEL_RANKING_RANGE[1];
 
   _ChatSummaryState() {
     _progressBarActive = true;
@@ -340,18 +341,22 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     Widget rv = Container();
     if (_sMsg != null) {
       List<String> defaultProperties = ["有罷工","捐錢","味道","員工"];
-      //this._rankWidget = new PropertySelectorWidget([], this._properties, 1, null, true, true, true, false);
-      rv = GestureDetector(child: this._rankWidget, onTap: () => {showRanking(context, defaultProperties)});
-      List<String> dropDownList = LABEL_RANKING_RANGE;
-      List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
-      _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
-      Widget dropdown = DropdownButton(
-                  value: _currentChoice,
-                  items: _locationDropDownMenuItems,
-                  onChanged: updateRank,
-                  style: Theme.of(context).textTheme.subhead
-                );
-      rv = Column(children: [dropdown, rv]);
+      if(this._properties.length != 0) {
+        //this._rankWidget = new PropertySelectorWidget([], this._properties, 1, null, true, true, true, false);
+        rv = GestureDetector(child: this._rankWidget, onTap: () => {showRanking(context, defaultProperties)});
+        List<String> dropDownList = LABEL_RANKING_RANGE;
+        List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
+        _locationDropDownMenuItems = getDropDownMenuItems(dropDownList ,false);
+        Widget dropdown = DropdownButton(
+                    value: _currentChoice,
+                    items: _locationDropDownMenuItems,
+                    onChanged: updateRank,
+                    style: Theme.of(context).textTheme.subhead
+                  );
+        rv = Column(mainAxisAlignment: MainAxisAlignment.center, children: [Row(mainAxisAlignment: MainAxisAlignment.center, children:[ Text(LABEL_RANKING), dropdown]), rv]);
+      } else {
+        rv = OutlineButton(child: Text(LABEL_NO_ONE_RANKNG),onPressed:() => {showRanking(context, defaultProperties)});
+      }
     }
     return rv; 
   }
@@ -500,6 +505,19 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
               child: new IconButton(
                 icon: new Icon(Icons.info),
                 onPressed: (() {   
+                  widget.toggleComment(Chat_Mode.INFO_MODE);
+                }),
+                color: widget.chatMode == Chat_Mode.INFO_MODE ? primaryColor:greyColor,
+              ),
+            ),
+            color: TOPIC_COLORS[widget.topic.color],
+          ),        
+          Material(
+            child: new Container(
+              margin: new EdgeInsets.symmetric(horizontal: 8.0),
+              child: new IconButton(
+                icon: new Icon(Icons.map),
+                onPressed: (() {   
                   widget.toggleComment(Chat_Mode.MAP_MODE);
                 }),
                 color: widget.chatMode == Chat_Mode.MAP_MODE ? primaryColor:greyColor,
@@ -631,10 +649,10 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     widgetList.add(Container(
       child:_baseInfo,
       width: double.infinity,
-      height: 80.0,
+      height: 100.0,
       ));
     // dsiaply Image if the Topic has it's image
-    if(widget.chatMode == Chat_Mode.MAP_MODE) {
+    if(widget.chatMode == Chat_Mode.INFO_MODE) {
       if(_summaryImageWidget != null) {
         {
           widgetList.add(_summaryImageWidget);
@@ -652,12 +670,13 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       SearchingMsg msg = widget.topic.searchingMsg;
       widgetList.add(_buildStatus(context, msg));
       widgetList.add(_buildStreetAddress(context, msg));
-      widgetList.add(_buildProperties(context, msg));
-      widgetList.add(_buildDesc(context, msg));
-      widgetList.add(_buildLink(context, msg));
-      widgetList.add(_buildTimingInfo(context, msg));
-      widgetList.add(_buildPolling(context, msg));
-      
+      if(widget.chatMode == Chat_Mode.INFO_MODE) {
+        widgetList.add(_buildProperties(context, msg));
+        widgetList.add(_buildDesc(context, msg));
+        widgetList.add(_buildLink(context, msg));
+        widgetList.add(_buildTimingInfo(context, msg));
+        widgetList.add(_buildPolling(context, msg));
+      }      
       //msg.distance             
     }
 
@@ -776,7 +795,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       });      
     } 
     if(this._properties != this._pendingProperties) {
-      print("update Rank ${this._pendingProperties[0].downValue}");
+      //print("update Rank ${this._pendingProperties[0].downValue}");
       setState(() {
         this._properties = this._pendingProperties;
         this._rankWidget = PropertySelectorWidget([], this._pendingProperties, 1, null, true, true, true, false);

@@ -36,6 +36,7 @@ class _RankingScreenState extends State<RankingScreen> {
   List<String> _downFields = [];
   bool _alreadyReport = true;
   Widget _optionWidget = Container();
+  String _desc = "";
 
   @override
   void initState() {
@@ -64,14 +65,18 @@ class _RankingScreenState extends State<RankingScreen> {
       if(widget.user != null) {
         uuid = widget.user.uuid;
       }
-      _rankingService.getUserRanking(widget.topic.id, uuid).then((userReport) {   
+      _rankingService.getLatestUserRanking(widget.topic.id, uuid).then((userReport) {   
         if(userReport == null) {
           alreadyReport = false;
+        } else {
+          if(userReport['lastUpdate'].toDate().millisecondsSinceEpoch < DateTime.now().subtract(Duration(days: 7)).millisecondsSinceEpoch) {
+            alreadyReport = false;
+          }
         }
         setState(() {
           this._properties = properties;
           this._alreadyReport = alreadyReport;
-          _optionWidget = PropertySelectorWidget(widget.defaultProperties, properties, 1, selectField, true, true, (widget.user == null), (widget.user != null));
+          _optionWidget = PropertySelectorWidget(widget.defaultProperties, properties, 1, selectField, true, true, alreadyReport || (widget.user == null), !alreadyReport &&(widget.user != null));
         });
       });
     });
@@ -100,7 +105,10 @@ class _RankingScreenState extends State<RankingScreen> {
       }
       if(_downFields.length > 0) {
         rankingText += "- " + _downFields.toString();
-      }      
+      }
+      if(_desc.length > 0) {
+        rankingText += "\n" + this._desc;
+      }
       _messageService.sendChildMessage(widget.topic, null, rankingText, null, 10).then((var temp) {
         _rankingService.sendUserRankingResult(widget.topic.id, _upFields, _downFields).then((void v) {
             Navigator.of(context).pop();
@@ -124,6 +132,14 @@ class _RankingScreenState extends State<RankingScreen> {
           Text(RANK_DESC, maxLines: 3),
           //renderOption(),
           _optionWidget,
+          this._alreadyReport ? Container() : TextField(
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: RANKING_LABEL_DETAIL,
+            ),
+            maxLines: 3,
+            onChanged:  (String value) {this._desc = value;},
+          ),
           (widget.user == null) ? Container() : Row(mainAxisAlignment: MainAxisAlignment.center, children: widgets)
         ])),
       ),

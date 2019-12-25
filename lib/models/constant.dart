@@ -79,6 +79,7 @@ const String LABEL_SHOW = "開來見我";
 const String LABEL_CLOSE = "拜拜";
 const String HINT_TOPIC = "入D搶眼 Memo 標題";
 const String LABEL_DETAIL = "詳情";
+const String RANKING_LABEL_DETAIL = "詳細評價";
 const String HINT_DEATIL = "入D 詳情 如 時，地，人？";
 const String HELPER_DETAIL = "可用 Hash Tag";
 const String LABEL_MUST_SHOW_NAME = "要其他人實名回答";
@@ -115,7 +116,7 @@ const String LABEL_END_TIME = "完結: ";
 const String LABEL_OPENNING_HOUR = "開放時間: ";
 const String LABEL_EVERYDAY = "每日: ";
 const List<String> LABEL_WEEKLY = ["日: ","一: ","二: ","三: ","四: ","五: ","六: "];
-const List<String> LABEL_RANKING_RANGE = ["全部", "近180日"];
+const List<String> LABEL_RANKING_RANGE = ["所有", "近120日"];
 
 const String LABEL_CLOSED = "關閉";
 const String LABEL_DURATION = "為期";
@@ -128,6 +129,9 @@ const String LABEL_LAST_UPDATE ="最後更新: ";
 const String LABEL_BLOCK ="我唔要見到佢";
 const String LABEL_UNBLOCK ="我要見番佢";
 const String LABEL_ZERO_BLOCK = "好人一生平安，你一個人都冇Block！";
+
+const String LABEL_NO_ONE_RANKNG = "仲未有人評價，你仲唔做第一個？";
+const String LABEL_RANKING ="評價: ";
 
 const String TITLE_BLOCK ="我唔要見到佢清單";
 const String LABEL_RANKING_UPDATE_MESSAGE = "更新評價: ";

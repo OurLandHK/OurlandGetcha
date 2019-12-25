@@ -28,15 +28,25 @@ class RankingService {
     });
   }
 
-  Future<Map> getUserRanking(String rankingID, String _userID) async {
+  Future<Map> getLatestUserRanking(String rankingID, String _userID) async {
     if(_userID == null || _userID.length == 0) {
       return null;
     }
     var resultReference = _rankingCollection
-            .document(rankingID).collection('rankResult').document(_userID);
-    return resultReference.get().then((onValue) {
-      if(onValue.exists) {
-        return onValue.data;
+            .document(rankingID).collection("userReport").where('userId', isEqualTo: _userID);
+    return resultReference.getDocuments().then((onValue) {
+      if(onValue.documents.length > 0) {
+        Map rv;
+        onValue.documents.forEach((userReport) {
+          if(rv == null) {
+            rv = userReport.data;
+          } else {
+            if(userReport.data['lastUpdate'].toDate().millisecondsSinceEpoch > rv['lastUpdate'].toDate().millisecondsSinceEpoch) {
+              rv = userReport.data;
+            }
+          }
+        });
+        return rv;
       } else {
         return null;
       }
@@ -52,9 +62,9 @@ class RankingService {
         summaryData = indexDataSnap.data;
         Map recentMap = new Map();
         if(summaryData['recent'] == null || 
-          summaryData['recent']['firstUpdate'] != null && (sendMessageTime.millisecondsSinceEpoch - summaryData['recent']['firstUpdate'].millisecondsSinceEpoch) > Duration(days: 180).inMilliseconds)
+          summaryData['recent']['firstUpdate'] != null && (sendMessageTime.millisecondsSinceEpoch - summaryData['recent']['firstUpdate'].millisecondsSinceEpoch) > Duration(days: 120).inMilliseconds)
         {
-          return summaryReference.collection("userReport").where('lastUpdate', isGreaterThan: sendMessageTime.subtract(Duration (days: 180))).getDocuments().then((onValue){
+          return summaryReference.collection("userReport").where('lastUpdate', isGreaterThan: sendMessageTime.subtract(Duration (days: 120))).getDocuments().then((onValue){
             
             DateTime firstUpdate = DateTime.now();
             onValue.documents.forEach((document) {
