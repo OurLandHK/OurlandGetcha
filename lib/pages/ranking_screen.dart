@@ -61,7 +61,7 @@ class _RankingScreenState extends State<RankingScreen> {
           }
         });
       }
-      String uuid = "";
+      String uuid = "NoBody";
       if(widget.user != null) {
         uuid = widget.user.uuid;
       }
@@ -132,7 +132,7 @@ class _RankingScreenState extends State<RankingScreen> {
           Text(RANK_DESC, maxLines: 3),
           //renderOption(),
           _optionWidget,
-          this._alreadyReport ? Container() : TextField(
+          this._alreadyReport || (widget.user == null)? Container() : TextField(
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               labelText: RANKING_LABEL_DETAIL,

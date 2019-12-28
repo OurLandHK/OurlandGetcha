@@ -57,7 +57,7 @@ class ChatSummary extends StatefulWidget {
   }
 }
 
-class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStateMixin {
+class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin {
   
   List<String> messageList;
   Map<String, String> _galleryImageUrlList;
@@ -76,6 +76,8 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   List<Property> _allProperties = [];
   List<Property> _recentProperties = [];
   Widget _rankWidget = Container();
+  TabBar _tabBar;
+  TabController _tabController;
   RankingService _rankingService;
   String _currentChoice = LABEL_RANKING_RANGE[1];
 
@@ -103,6 +105,53 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     print("initState()");
     messageService = new MessageService(widget.user);
     chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
+      _tabController = new TabController(vsync: this, initialIndex: 0, length: 5);
+      _tabController.addListener(() {
+        switch(_tabController.index) {
+          case 0:
+            widget.toggleComment(Chat_Mode.INFO_MODE);
+            break;
+          case 1:
+            widget.toggleComment(Chat_Mode.MAP_MODE);
+            break;
+          case 2:
+            widget.toggleComment(Chat_Mode.USER_MODE);
+            break;
+          case 3:
+            widget.toggleComment(Chat_Mode.MEDIA_MODE);
+            break;
+          default:
+            widget.toggleComment(Chat_Mode.COMMENT_MODE);
+        }
+      });
+      _tabBar = TabBar(
+          //color: TOPIC_COLORS[widget.topic.color],
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          tabs: <Widget>[
+            //  new Tab(icon: new Icon(Icons.camera_alt)),
+            new Tab(
+              child: 
+                  Icon(Icons.info, color: Colors.black),
+            ),
+            new Tab(
+              child: 
+                  Icon(Icons.map, color: Colors.black),
+            ),
+            new Tab(
+              child: 
+                  Icon(Icons.people, color: Colors.black),
+            ),      
+            new Tab(
+              child: 
+                  Icon(Icons.photo_album, color: Colors.black),
+            ),
+            new Tab(
+              child: 
+                  Icon(Icons.comment, color: Colors.black),
+            ),                                  // Button send message  
+          ]
+        );      
     if(widget.imageUrl != null && widget.imageUrl.length != 0) {
       if(isBeginWithLink(widget.topic.topic)) {
         _summaryImageWidget = new ImageWidget(width: (widget.width * 0.9), height: null, imageUrl: widget.imageUrl, link: widget.topic.topic);
@@ -492,91 +541,12 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     WidgetsBinding.instance
       .addPostFrameCallback((_) => _swapValuable(context));
-    Widget _renderToolBar() {
-            // Display tool bar
-      Color bookmarkColor = primaryColor;
+    Widget _renderToolBar() { 
+      return _tabBar;
+    }
+    Color bookmarkColor = primaryColor;
       if(this._isBookmark) {
         bookmarkColor = Colors.red;
-      }
-      return Row(children: <Widget>[
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 8.0),
-              child: new IconButton(
-                icon: new Icon(Icons.info),
-                onPressed: (() {   
-                  widget.toggleComment(Chat_Mode.INFO_MODE);
-                }),
-                color: widget.chatMode == Chat_Mode.INFO_MODE ? primaryColor:greyColor,
-              ),
-            ),
-            color: TOPIC_COLORS[widget.topic.color],
-          ),        
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 8.0),
-              child: new IconButton(
-                icon: new Icon(Icons.map),
-                onPressed: (() {   
-                  widget.toggleComment(Chat_Mode.MAP_MODE);
-                }),
-                color: widget.chatMode == Chat_Mode.MAP_MODE ? primaryColor:greyColor,
-              ),
-            ),
-            color: TOPIC_COLORS[widget.topic.color],
-          ),
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 8.0),
-              child: new IconButton(
-                icon: new Icon(Icons.people),
-                onPressed: (() {   
-                  widget.toggleComment(Chat_Mode.USER_MODE);
-                }),
-                color: widget.chatMode == Chat_Mode.USER_MODE ? primaryColor:greyColor,
-              ),
-            ),
-            color: TOPIC_COLORS[widget.topic.color],
-          ),              
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 8.0),
-              child: new IconButton(
-                icon: new Icon(Icons.photo_album),
-                onPressed: (() {   
-                  widget.toggleComment(Chat_Mode.MEDIA_MODE);
-                }),
-                color: widget.chatMode == Chat_Mode.MEDIA_MODE ? primaryColor:greyColor,
-              ),
-            ),
-            color: TOPIC_COLORS[widget.topic.color],
-          ),                        // Button send message
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 8.0),
-              child: new IconButton(
-                icon: new Icon(Icons.comment),
-                onPressed: (() {   
-                  widget.toggleComment(Chat_Mode.COMMENT_MODE);
-                }),
-                color: widget.chatMode == Chat_Mode.COMMENT_MODE ? primaryColor:greyColor,
-              ),
-            ),
-            color: TOPIC_COLORS[widget.topic.color],
-          ),
-          Expanded(child: Container()),         // Button mark interest to receive notification
-          (widget.user != null) ? Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 8.0),
-              child: new IconButton(
-                icon: new Icon(Icons.bookmark),
-                  onPressed: () => updateBookmark(!_isBookmark),
-                color: bookmarkColor,
-              ),
-            ),
-            color: TOPIC_COLORS[widget.topic.color],
-          ):Container(),
-            ]);  
     }
     // _cratedDate
     Icon visibilityIcon = Icon(Icons.visibility);
@@ -628,6 +598,17 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     widget.topic.tags.forEach((tag) {
       tagList += "#" + tag + " ";
     });
+    Widget bookmarkWidget = (widget.user != null) ? Material(
+            child: new Container(
+              margin: new EdgeInsets.symmetric(horizontal: 8.0),
+              child: new IconButton(
+                icon: new Icon(Icons.favorite),
+                  onPressed: () => updateBookmark(!_isBookmark),
+                color: bookmarkColor,
+              ),
+            ),
+            color: TOPIC_COLORS[widget.topic.color],
+          ):Container(),
     _baseInfo = Column(children: [Row(children: [
       new BaseProfile(user: widget.topic.createdUser, currentUser: widget.user), 
       visibilityStatus,
@@ -635,7 +616,7 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       new Column(children: <Widget>[
         _createdDate,
         new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowName.toString(), style: Theme.of(context).textTheme.subtitle),
-      ]),_ourlandLaunch]),
+      ]),_ourlandLaunch,Expanded(child: Container()), bookmarkWidget]),
       Text(tagList),
     ]); // need to show hash tag
     
@@ -645,22 +626,23 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
     List<Widget> finalWidgetList = [];
     // Display tool bar
     Widget _toolBar = _renderToolBar();
-    widgetList.add(_toolBar);
     widgetList.add(Container(
       child:_baseInfo,
       width: double.infinity,
       height: 100.0,
       ));
+
     // dsiaply Image if the Topic has it's image
-    if(widget.chatMode == Chat_Mode.INFO_MODE) {
-      if(_summaryImageWidget != null) {
-        {
-          widgetList.add(_summaryImageWidget);
-        }
-      }
-    }
     // Display the Content for the Topic and Handle the content detail for Searching Message different
     if(widget.topic.searchingMsg == null) {
+      widgetList.add(_toolBar); 
+      if(widget.chatMode == Chat_Mode.INFO_MODE) {
+        if(_summaryImageWidget != null) {
+          {
+            widgetList.add(_summaryImageWidget);
+          }
+        }
+      }
       if(widget.topic.content != null && widget.topic.content.length != 0) {
           Widget _contentText = new Container(child: Text(widget.topic.content,
               style: Theme.of(context).textTheme.body2));
@@ -670,7 +652,13 @@ class _ChatSummaryState extends State<ChatSummary> with SingleTickerProviderStat
       SearchingMsg msg = widget.topic.searchingMsg;
       widgetList.add(_buildStatus(context, msg));
       widgetList.add(_buildStreetAddress(context, msg));
+      widgetList.add(_toolBar);      
       if(widget.chatMode == Chat_Mode.INFO_MODE) {
+        if(_summaryImageWidget != null) {
+        {
+            widgetList.add(_summaryImageWidget);
+          }
+        }
         widgetList.add(_buildProperties(context, msg));
         widgetList.add(_buildDesc(context, msg));
         widgetList.add(_buildLink(context, msg));
