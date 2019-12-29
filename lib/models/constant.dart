@@ -42,9 +42,10 @@ const String MESSAGE_BROADCAST = "推上香港·主牆";
 const String MESSAGE_LOCAL = "回到地區";
 
 const String LABEL_NEARBY = "附近";
-const String LABEL_REGION = "地點 ";
+const String LABEL_REGION = "地點: ";
 const String LABEL_REGION0 = LABEL_REGION + "1";
 const String LABEL_REGION1 = LABEL_REGION + "2";
+const LABEL_SEARCHING_STATUS = "現況: ";
 
 const String LABEL_BROADCAST = "香港·主牆";
 const String LABEL_RECENT = "睇過";
@@ -118,6 +119,7 @@ const String LABEL_EVERYDAY = "每日: ";
 const List<String> LABEL_WEEKLY = ["日: ","一: ","二: ","三: ","四: ","五: ","六: "];
 const List<String> LABEL_RANKING_RANGE = ["所有", "近120日"];
 
+
 const String LABEL_CLOSED = "關閉";
 const String LABEL_DURATION = "為期";
 const String LABEL_VOTED = "閣下已投票 ";
@@ -129,12 +131,15 @@ const String LABEL_LAST_UPDATE ="最後更新: ";
 const String LABEL_BLOCK ="我唔要見到佢";
 const String LABEL_UNBLOCK ="我要見番佢";
 const String LABEL_ZERO_BLOCK = "好人一生平安，你一個人都冇Block！";
+const String LABEL_SHOW_RANDOM_NAME = "全隨機留名";
 
 const String LABEL_NO_ONE_RANKNG = "仲未有人評價，你仲唔做第一個？";
 const String LABEL_RANKING ="評價: ";
 
 const String TITLE_BLOCK ="我唔要見到佢清單";
 const String LABEL_RANKING_UPDATE_MESSAGE = "更新評價: ";
+
+const String LABEL_GO_TO_OURLAND_SEARCH_LINK = "前住我地.市正了解詳情";
 
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;

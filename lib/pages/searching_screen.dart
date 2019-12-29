@@ -193,7 +193,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
         UserService userService = new UserService();
         RecentTopic recentTopic = await userService.getRecentTopic(widget.user.uuid, topic.id);
         if(recentTopic != null) {
-          print("Recent Topic");
+          //print("Recent Topic");
           _messageLocation = recentTopic.messageLocation;
           enableSendButton = true;
         } else {

@@ -252,7 +252,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     if (newImageFile != null) {
       setState(() {
         imageFile = newImageFile;
-        print("${imageFile.uri.toString()}");
+        //print("${imageFile.uri.toString()}");
       });
     }
   }

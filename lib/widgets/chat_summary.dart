@@ -314,14 +314,14 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
     if(widget.user != null) {
     _userService.getRecentTopic(widget.user.uuid, widget.topic.id).then((recentTopic) {
       if(recentTopic != null) {
-        print("recentTopic ${recentTopic.interest}");
+        //print("recentTopic ${recentTopic.interest}");
         if(_isBookmark != recentTopic.interest) {
           setState(() {
             _isBookmark = recentTopic.interest;
           });
         }
       } else {
-        print("recentTopic is null");
+        //print("recentTopic is null");
       }
       _buildMessageSummaryWidget();
     });
@@ -449,7 +449,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
       }
       return Padding(
           padding: EdgeInsets.all(2.0),
-          child: new Text(text,
+          child: new Text(LABEL_SEARCHING_STATUS + text,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.body2,
               textAlign: TextAlign.left,));
@@ -550,49 +550,47 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
     }
     // _cratedDate
     Icon visibilityIcon = Icon(Icons.visibility);
-    Icon hideIconButton = Icon(Icons.visibility_off);
+    //Icon hideIconButton = Icon(Icons.visibility_off);
     if(widget.topic.isGlobalHide) {
       visibilityIcon = Icon(Icons.visibility_off);
-      hideIconButton = Icon(Icons.visibility);
+      //hideIconButton = Icon(Icons.visibility);
     }
     Icon broadcastIcon = Icon(Icons.location_on);
-    Icon broadcastIconButton = Icon(Icons.location_city);
+    //Icon broadcastIconButton = Icon(Icons.location_city);
     if(widget.topic.isPublic) {
       broadcastIcon = Icon(Icons.location_city);
-      broadcastIconButton = Icon(Icons.location_on);
+      //broadcastIconButton = Icon(Icons.location_on);
     }
-    Material visibilityStatus = Material(child: new Container(
+    Widget visibilityStatus = (widget.user != null && widget.user.globalHideRight == true) ? Material(child: new Container(
         margin: new EdgeInsets.symmetric(horizontal: 8.0),
         child: new IconButton(
           iconSize: 18,
           icon: visibilityIcon,
           color: primaryColor,
-          onPressed: (widget.user != null && widget.user.globalHideRight == true) ?
-            (() => updateVisible(widget.topic.isGlobalHide)):
-            null          
+          onPressed: () => updateVisible(widget.topic.isGlobalHide)
         ),
       ),
-      color: TOPIC_COLORS[widget.topic.color]);
-    Material broadcastStatus = Material(child: new Container(
+      color: TOPIC_COLORS[widget.topic.color]) : Container();
+    Widget broadcastStatus = (widget.user != null && widget.user.sendBroadcastRight == true) ? Material(child: new Container(
         margin: new EdgeInsets.symmetric(horizontal: 8.0),
         child: new IconButton(
           iconSize: 18,
           icon: broadcastIcon,
           color: primaryColor,
-          onPressed: (widget.user != null && widget.user.sendBroadcastRight == true) ?
-            (() => updateBroadcast(widget.topic.isPublic)):
-            null
+          onPressed: () => updateBroadcast(widget.topic.isPublic)
         ),
       ),
-      color: TOPIC_COLORS[widget.topic.color]);  
-    Text _createdDate = Text(
-        DateFormat('dd MMM kk:mm').format(
+      color: TOPIC_COLORS[widget.topic.color]) : Container();  
+    Text _lastUpdate = Text(LABEL_LAST_UPDATE +
+        DateFormat('yyyy MMM dd').format(
             new DateTime.fromMicrosecondsSinceEpoch(
-                widget.topic.created.microsecondsSinceEpoch)),
+                widget.topic.lastUpdatqe.microsecondsSinceEpoch)),
         style: Theme.of(context).textTheme.subtitle);
     Widget _ourlandLaunch = Container();
     if(widget.topic.searchingId != null) {
-      _ourlandLaunch = GestureDetector(child: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH, width: 64.0), onTap: () => {launch(OURLAND_SEARCH_HOST + "/detail/" + widget.topic.searchingId)});
+      TextStyle _style = Theme.of(context).textTheme.body2.apply(color: Colors.blue, decoration: TextDecoration.underline);
+      //_ourlandLaunch = GestureDetector(child: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH, width: 64.0), onTap: () => {launch(OURLAND_SEARCH_HOST + "/detail/" + widget.topic.searchingId)});
+      _ourlandLaunch = GestureDetector(child: Text(LABEL_GO_TO_OURLAND_SEARCH_LINK, style: _style), onTap: () => {launch(OURLAND_SEARCH_HOST + "/detail/" + widget.topic.searchingId)});
     }
     String tagList = "";
     widget.topic.tags.forEach((tag) {
@@ -609,15 +607,24 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
             ),
             color: TOPIC_COLORS[widget.topic.color],
           ):Container(),
-    _baseInfo = Column(children: [Row(children: [
+    _baseInfo = Column(crossAxisAlignment: CrossAxisAlignment.start,
+      children: [Row(children: [
       new BaseProfile(user: widget.topic.createdUser, currentUser: widget.user), 
+      SizedBox(width: 20),
+      new Column(crossAxisAlignment: CrossAxisAlignment.start,  
+        children: <Widget>[
+          _lastUpdate,
+          Text(LABEL_SHOW_RANDOM_NAME + ": " + (!widget.topic.isShowName).toString(), style: Theme.of(context).textTheme.subtitle),
+          //Text(tagList, style: Theme.of(context).textTheme.subtitle),
+          widget.topic.isPublic ? Text(LABEL_BROADCAST, style: Theme.of(context).textTheme.subtitle) : Container(),
+          widget.topic.isGlobalHide ? Text(MESSAGE_HIDE, style: Theme.of(context).textTheme.subtitle) : Container()
+        ]),
+      Expanded(child: Container()),       
       visibilityStatus,
       broadcastStatus,
-      new Column(children: <Widget>[
-        _createdDate,
-        new Text(LABEL_MUST_SHOW_NAME_SIMPLE + ": " +widget.topic.isShowName.toString(), style: Theme.of(context).textTheme.subtitle),
-      ]),_ourlandLaunch,Expanded(child: Container()), bookmarkWidget]),
-      Text(tagList),
+      bookmarkWidget]),
+      Text(tagList, style: Theme.of(context).textTheme.body2),
+      _ourlandLaunch
     ]); // need to show hash tag
     
 
@@ -629,7 +636,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
     widgetList.add(Container(
       child:_baseInfo,
       width: double.infinity,
-      height: 100.0,
+      //height: 100.0,
       ));
 
     // dsiaply Image if the Topic has it's image

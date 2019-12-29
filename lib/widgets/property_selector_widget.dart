@@ -201,7 +201,7 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
         if(downValue == null) {
           downValue = 0;
         }
-        print("${field} ${downValue}");
+        //print("${field} ${downValue}");
         if(selectedDownFields.contains(field)) {
           downValue++;
           borderSize = 2;

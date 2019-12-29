@@ -53,16 +53,16 @@ class SearchingMsgWidget extends StatelessWidget {
         UserService userService = new UserService();
         RecentTopic recentTopic = await userService.getRecentTopic(this.user.uuid, topic.id);
         if(recentTopic != null) {
-          print("Recent Topic");
+          //print("Recent Topic");
           _messageLocation = recentTopic.messageLocation;
           enableSendButton = true;
         } else {
           if(user.homeAddress != null) {
-            print("Home");
+            //print("Home");
             enableSendButton = topic.searchingMsg.isAddressWithin(user.homeAddress);
           }
           if(!enableSendButton && user.officeAddress != null) {
-            print("Office");
+            //print("Office");
             enableSendButton = topic.searchingMsg.isAddressWithin(user.officeAddress);
           }
           if(!enableSendButton && locationPermissionGranted) {
