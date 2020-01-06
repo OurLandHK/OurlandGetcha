@@ -9,7 +9,8 @@ import 'package:flutter/foundation.dart';
 //import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,7 +22,7 @@ import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
-import 'package:ourland_native/models/topic_model.dart';
+import 'package:ourland_native/models/searching_msg_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/color_picker.dart';
 
@@ -29,18 +30,20 @@ import 'package:ourland_native/widgets/color_picker.dart';
 final auth = FirebaseAuth.instance;
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-class SendTopicScreen extends StatefulWidget {
+class SendMessageScreen extends StatefulWidget {
   final Function getCurrentLocation;
   final User user;
-  bool isBroadcast = false;
-  SendTopicScreen({Key key, @required this.getCurrentLocation, @required this.user, this.isBroadcast}) : super(key: key);
+  SearchingMsg searchingMsg;
+  SendMessageScreen({Key key, @required this.getCurrentLocation, @required this.user, this.searchingMsg}) : super(key: key);
 
   @override
-  State createState() => new SendTopicState();
+  State createState() => new SendMessageState();
 }
 
-class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixin  {
-  SendTopicState({Key key});
+class SendMessageState extends State<SendMessageScreen> with TickerProviderStateMixin  {
+  SendMessageState({Key key}) {
+
+  }
   String id;
   MessageService messageService;
   UserService userService;
@@ -49,10 +52,8 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   SharedPreferences prefs;
 
   // use to get current location
-  Position _currentLocation;
-  GeoPoint messageLocation;
+  GeoPoint _messageLocation;
 
-  StreamSubscription<Position> _positionStream;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Geolocator _geolocator = new Geolocator();
@@ -73,27 +74,39 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   String _firstTag;
   int _type;
   String _currentLocationSelection;
-  bool _isShowName;
+  String _location;
+  String _label ;
+  ChatMap map;
   bool _isSubmitDisable;
-  bool _locationPermissionGranted = true;
+  bool _pendingIsSubmitDisable;
+  String _pendingButtonText; 
+  Widget _sendButton;
+  Widget _pendingButton;
   int _color;
-  Text _buttonText;
-  final FocusNode _showNameFocus = FocusNode();  
+  String _buttonText;
+
+  final FocusNode _locationFocus = FocusNode();  
   final FocusNode _titleFocus = FocusNode();  
   final FocusNode _descFocus = FocusNode();
+  
 
   @override
   void initState() {
     super.initState();
+    if(widget.searchingMsg == null) {
+      _label = LABEL_REGION;
+    } else {
+      _label = widget.searchingMsg.text;
+    }
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
     userService = new UserService();
     _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION, false);
     _firstTag = _tagDropDownMenuItems[0].value;
     
-    _newTopicLabel = widget.isBroadcast ? LABEL_NEW_BROADCAST_TOPIC : LABEL_NEW_TOPIC;
-    _buttonText = new Text(LABEL_MISSING_TOPIC);
-    _isShowName = false;
+    _newTopicLabel = LABEL_NEW_TOPIC;
+    _buttonText = LOCATION_NOT_VALIDATE;
+    _sendButton = RaisedButton(child: Text(_buttonText), onPressed: null);
     Random rng = new Random();
     _color = rng.nextInt(TOPIC_COLORS.length);
     _desc = "";
@@ -110,49 +123,12 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     _locationDropDownMenuItems = getDropDownMenuItems(dropDownList, false);
     _currentLocationSelection = _locationDropDownMenuItems[0].value;
 
-    //initPlatformState();
-    print("send topic 1");
-    Map map = widget.getCurrentLocation();
-    this.messageLocation = map['GeoPoint'];
-    _locationPermissionGranted = map['LocationPermissionGranted'];
-    print("send topic 2");
+    //Map map = widget.getCurrentLocation();
+    //this._messageLocation = map['GeoPoint'];
+    //_locationPermissionGranted = map['LocationPermissionGranted'];
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  initPlatformState() async {
-    Position location;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-
-    try {
-      geolocationStatus = await _geolocator.checkGeolocationPermissionStatus();
-      location = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
-      error = null;
-    } on PlatformException catch (e) {
-      if (e.code == 'PERMISSION_DENIED') {
-        error = 'Permission denied';
-      } else if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
-        error = 'Permission denied - please ask the user to enable it from the app settings';
-      }
-
-      location = null;
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    //if (!mounted) return;
-
-    setState(() {
-        print('initPlatformStateLocation: ${location}');
-        if(location != null) {
-          _locationPermissionGranted = true;
-          _currentLocation = location;
-          GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
-          this.messageLocation = mapCenter;
-        }
-    });
-  }
-
+ 
   void onFocusChange() {
     if (focusNode.hasFocus) {
       // Hide sticker when keyboard appear
@@ -166,44 +142,109 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     return Future.value(false);
   }
 
-  void updateLocation(String locationSelection) {
+  Widget renderMap() {
+    if(this._messageLocation == null) {
+      return SizedBox(height: MAP_HEIGHT);
+    } else {
+      return ChatMap(
+          topLeft: this._messageLocation,
+          bottomRight: this._messageLocation,
+          height: MAP_HEIGHT,
+          markerList: [OurlandMarker(_label, this._messageLocation, 0, _label, "settings")],
+          updateCenter: null,);
+   }
+  }
+
+  Widget renderLocationField() {
+    return Row(children: [SizedBox(width: 12.0), Expanded(child: 
+      TextField(
+        focusNode: _locationFocus,
+        decoration: InputDecoration(
+            hintText: LABEL_REGION0),
+        keyboardType: TextInputType.text,
+        onChanged: (value) {
+          setState(() {
+            _location = value;
+            _messageLocation = null;
+          });},
+        onSubmitted: onSubmitted)), 
+        Material(child: Container(
+          decoration: BoxDecoration(
+                border: Border.all(width: 0.5, color: Colors.grey),
+                /*
+                boxShadow: [
+                  new BoxShadow(
+                    color: Colors.grey,
+                    offset: new Offset(0.0, 2.5),
+                    blurRadius: 4.0,
+                    spreadRadius: 0.0
+                  )
+                ],
+                */  //borderRadius: BorderRadius.circular(6.0)
+              ),
+            child: IconButton(icon: Icon(Icons.location_searching), onPressed: onPressed))),
+        SizedBox(width: 12.0)]);
+  }
+
+  void onSubmitted(String dummy) {
+    fieldFocusChange(context, _locationFocus, _titleFocus);
+    onPressed();
+  }
+
+  void refreshMarker(String label) {
     setState(() {
-      _currentLocationSelection = locationSelection;          
-    // TODO 
-      switch (_currentLocationSelection) {
-        case LABEL_NEARBY:
-          Map map = widget.getCurrentLocation();
-          this.messageLocation = map['GeoPoint'];
-          _locationPermissionGranted = map['LocationPermissionGranted'];
-          if(!_locationPermissionGranted) {
-            setState(() {
-              _isSubmitDisable = true;
-              _buttonText = Text(PERM_LOCATION_NOT_GRANTED);
-            });
-          }
-          break;
-        case LABEL_REGION0:
-          this.messageLocation = widget.user.homeAddress;
-          break;
-        case LABEL_REGION1:
-          this.messageLocation = widget.user.officeAddress;
-          break;
-      }
+      _label = label;
     });
+
+    /*
+    this.map.clearMarkers();
+    this.map.addMarker(this._currentLocation, label, "settings");
+    */
+  }
+
+  void onPressed()  {
+    if(_location != null && _location.length > 1) {
+      _geolocator.placemarkFromAddress(_location).then(
+          (List<Placemark> placemark) {
+        Position pos = placemark[0].position;
+        String markerLabel = placemark[0].name;
+        setState(() {
+          this._messageLocation= new GeoPoint(pos.latitude, pos.longitude);
+        });
+        //updateMap();
+        refreshMarker(markerLabel);
+      }, onError: (e) {
+        // PlatformException thrown by the Geolocation if the address cannot be translate
+        // DO NOTHING
+      });
+    }
+  }
+  void _swapValuable(BuildContext context) {
+    if(_pendingButton != null) {
+      print("Swap Button");
+      if(_sendButton.runtimeType == RaisedButton) {
+        setState(() {          
+          _sendButton = Container();  
+        });
+      } else {
+        setState(() {          
+          _sendButton = _pendingButton;
+          _pendingButton = null;   
+        });
+      }
+    }
+    //scheduleMicrotask(() => _swapValuable(context));
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: [], updateCenter: null);
+    scheduleMicrotask(() => _swapValuable(context));
 
     Widget body = new WillPopScope(
       child: Column(
-        children: <Widget>[            
-          new Container( 
-            decoration: new BoxDecoration(
-              color: Theme.of(context).cardColor),
-            child: map,
-          ),
+        children: <Widget>[    
+          renderMap(),
+          renderLocationField(),        
           new Form(
              key: _formKey,
              autovalidate: true,
@@ -297,70 +338,88 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   }
 
   void removeImage() {setState((){imageFile = null;});}
-
+  void sendMessage() {
+    if (_formKey.currentState.validate()) {
+//    If all data are correct then save data to out variables
+      _formKey.currentState.save();
+      List<String> tags = [this._firstTag];
+      // TODO pass this_desc to extract the hash tag
+      // Find the geo box
+      var destBox = GeoHelper.findBoxGeo(this._messageLocation, 1000.0);
+      /*
+      Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
+            null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
+      messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
+      userService.addRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
+      */
+      onBackPress();
+    }
+  }
   Widget formUI(BuildContext context) {
     String validation(String label, String value) {
       String rv;
-      if(_currentLocationSelection == LABEL_NEARBY && !_locationPermissionGranted) {
-        _isSubmitDisable = true;
-        _buttonText = Text(PERM_LOCATION_NOT_GRANTED);
-        rv = PERM_LOCATION_NOT_GRANTED;
+      bool _updateButton = false;
+      _pendingIsSubmitDisable = _isSubmitDisable;
+      _pendingButtonText = _buttonText;
+      if(this._messageLocation == null) {
+        _pendingIsSubmitDisable = true;
+        _pendingButtonText = LOCATION_NOT_VALIDATE;         
+        rv = LOCATION_NOT_VALIDATE;
       } else {
         switch(label) {
           case LABEL_TOPIC:
             if(value.isEmpty) {
-              _isSubmitDisable = true;
-              _buttonText = Text(LABEL_MISSING_TOPIC);
+              _pendingIsSubmitDisable = true;
+              _pendingButtonText = LABEL_MISSING_TOPIC;
               rv = LABEL_MISSING_TOPIC;
             } else {
-              _isSubmitDisable = false;
+              _pendingIsSubmitDisable = false;
+              if(this._desc.length == 0) {
+                _pendingButtonText = LABEL_MORE_DETAIL;
+              }
               _formKey.currentState.save();
             }
             break;
           case LABEL_DETAIL:
-            if(value.isNotEmpty) {
-              if(!_isSubmitDisable) {
-                _buttonText = Text(LABEL_SEND);
-              }
-            } else {
-              _formKey.currentState.save();
-              if(!_isSubmitDisable) {
-                _buttonText = Text(LABEL_MORE_DETAIL);
+            if(this._parentTitle.length != 0) {
+              if(value.isNotEmpty) {
+                if(!_isSubmitDisable) {
+                  _pendingIsSubmitDisable = false;
+                  _pendingButtonText = LABEL_SEND;
+                }
+              } else {
+                _formKey.currentState.save();
+                if(!_isSubmitDisable) {
+                  _pendingIsSubmitDisable = false;
+                  _pendingButtonText = LABEL_MORE_DETAIL;
+                }
               }
             }
             break;        
         }
       }
+      print(label + " " + value + " " + _isSubmitDisable.toString() + " " + _pendingIsSubmitDisable.toString()
+      + " " + _buttonText  + " " + _pendingButtonText);
+      if(_isSubmitDisable != _pendingIsSubmitDisable || _buttonText != _pendingButtonText) {
+        _isSubmitDisable = _pendingIsSubmitDisable;
+        _buttonText = _pendingButtonText;  
+        _pendingButton = RaisedButton(
+              child: Text(_buttonText),
+              onPressed: (this._messageLocation == null || this._parentTitle.length == 0) ? null : sendMessage,
+            );
+        
+      }
       return rv;
     }
-    void sendMessage() {
-      if (_formKey.currentState.validate()) {
-  //    If all data are correct then save data to out variables
-        _formKey.currentState.save();
-        List<String> tags = [this._firstTag];
-        // TODO pass this_desc to extract the hash tag
-        // Find the geo box
-        var destBox = GeoHelper.findBoxGeo(this.messageLocation, 1000.0);
-        Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
-              null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
-        messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
-        userService.addRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
-        onBackPress();
-      }
-    };
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          /* // This should be row to display hash tag detect in desc
           Row(
             children: <Widget> [
-              Expanded(child: new Text(LABEL_IN)),
-              Expanded(child: new DropdownButton(
-                value: _currentLocationSelection,
-                items: _locationDropDownMenuItems,
-                onChanged: updateLocation,
-              )),
               Expanded(child: new Text(LABEL_HAS)),
               Expanded(child: new DropdownButton(
                 value: _firstTag,
@@ -369,14 +428,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
               )),
             ]
           ),
-                ColorPicker(
-                  selectedIndex: _color,
-                  onTap: (index) {
-                    setState(() {
-                      _color = index;
-                    });
-                  },
-                ),
+          */
           const SizedBox(height: 12.0),
           TextFormField(
             focusNode: _titleFocus,
@@ -388,15 +440,15 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             decoration: const InputDecoration(
               border: UnderlineInputBorder(),
               filled: true,
-              icon: Icon(Icons.note),
+              icon: Icon(Icons.person),
               hintText: HINT_TOPIC,
               labelText: LABEL_TOPIC,
             ),
             validator: (value) {
-              validation(LABEL_TOPIC, value);
+              return validation(LABEL_TOPIC, value);
             },
+            onChanged: (String value) {this._parentTitle = value;},
             onSaved: (String value) {this._parentTitle = value;},
-        // validator: _validateName,
           ),
           const SizedBox(height: 12.0),
           topicImageUI(context), 
@@ -404,7 +456,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           TextFormField(
             focusNode: _descFocus,
             onFieldSubmitted: (term) {
-              fieldFocusChange(context, _descFocus, _showNameFocus);
+              fieldFocusChange(context, _titleFocus, _descFocus);
             },
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
@@ -415,26 +467,12 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             ),
             maxLines: 3,
             validator: (value) {
-              validation(LABEL_DETAIL, value);
+              return validation(LABEL_DETAIL, value);
             },
+            onChanged: (String value) {this._desc = value;},
             onSaved: (String value) {this._desc = value;},
           ),
-          Row(
-            children: <Widget> [
-                Checkbox(
-                  focusNode: _showNameFocus,
-                  value: _isShowName,
-                  onChanged: (bool value) {
-                      _isShowName = value;
-                  }
-                ),
-                Text(LABEL_MUST_SHOW_NAME)
-            ]
-          ),
-          RaisedButton(
-            child: _buttonText,
-            onPressed: _isSubmitDisable ? null : sendMessage,
-          )
+          _sendButton
         ],
       )
     );

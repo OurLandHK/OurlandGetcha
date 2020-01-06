@@ -217,7 +217,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             Key chatKey = new Key(topic.id);
-            return new ChatScreen(key: chatKey, user : widget.user, topic: topic,  parentTitle: parentTitle, messageLocation: _messageLocation);
+            return ChatScreen(/*key: chatKey,*/ user : widget.user, topic: topic,  parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );

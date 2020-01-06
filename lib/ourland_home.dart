@@ -11,6 +11,7 @@ import 'package:ourland_native/widgets/popup_menu.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/send_topic_screen.dart';
+import 'package:ourland_native/pages/send_message_screen.dart';
 import 'package:ourland_native/pages/notification_screen.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/services/message_service.dart';
@@ -363,6 +364,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           break; 
         case 2:
           setState(() {
+            //this._isFabShow = true;
             this._isFabShow = false;
           });
           break;
@@ -375,8 +377,13 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
+            if(_tabController.index == 2) {
+              return new SendMessageScreen(
+                getCurrentLocation: getCurrentLocation, user: widget.user, searchingMsg: null);
+            } else {
             return new SendTopicScreen(
                 getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: (_tabController.index == 0),);
+            }
           },
         ),
       );

@@ -584,7 +584,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
     Text _lastUpdate = Text(LABEL_LAST_UPDATE +
         DateFormat('yyyy MMM dd').format(
             new DateTime.fromMicrosecondsSinceEpoch(
-                widget.topic.lastUpdatqe.microsecondsSinceEpoch)),
+                widget.topic.lastUpdate.microsecondsSinceEpoch)),
         style: Theme.of(context).textTheme.subtitle);
     Widget _ourlandLaunch = Container();
     if(widget.topic.searchingId != null) {
