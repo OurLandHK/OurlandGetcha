@@ -53,7 +53,7 @@ class _GoogleMapWidgetState extends State<GoogleMapWidget> {
     }
 
     void updateLatLng() {
-      print("updateLatLng ${longitude} ${latitude}");
+      //print("updateLatLng ${longitude} ${latitude}");
       widget.upCenter(longitude, latitude);
     }
 

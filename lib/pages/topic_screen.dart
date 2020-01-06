@@ -242,7 +242,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             Key chatKey = new Key(topic.id);
-            return new ChatScreen(key: chatKey, user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+            return ChatScreen(/*key: chatKey,*/ user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );

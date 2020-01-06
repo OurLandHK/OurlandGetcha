@@ -94,6 +94,7 @@ const String LABEL_CARE ="關心";
 const String PERM_LOCATION_NOT_GRANTED = "唔該俾我用 GPS";
 const String PERM_LOCATION_GRANT_BTN_TEXT = "俾";
 const String PERM_LOCATION_NOT_GRANT_BTN_TEXT = "唔俾";
+const String LOCATION_NOT_VALIDATE = '地點未入';
 
 const String NEW_HOME_LOCATION = "入新地點1";
 const String NEW_OFFICE_LOCATION = "入新地點2";
@@ -223,4 +224,9 @@ List<DropdownMenuItem<String>> getDropDownMenuItems(List<String> labelList, bool
       ));
     }
     return items;
+  }
+
+  void fieldFocusChange(BuildContext context, FocusNode currentFocus,FocusNode nextFocus) {
+      currentFocus.unfocus();
+      FocusScope.of(context).requestFocus(nextFocus);  
   }
