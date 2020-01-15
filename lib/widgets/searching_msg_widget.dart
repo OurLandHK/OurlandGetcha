@@ -20,6 +20,7 @@ class SearchingMsgWidget extends StatelessWidget {
   final Function getCurrentLocation;
   final GeoPoint messageLocation;
   final bool locationPermissionGranted;
+  bool pending = false;
 
   SearchingMsgWidget(
       {Key key,
@@ -27,7 +28,8 @@ class SearchingMsgWidget extends StatelessWidget {
       @required this.user,
       @required this.getCurrentLocation,
       @required this.locationPermissionGranted,
-      @required this.messageLocation})
+      @required this.messageLocation,
+      this.pending})
       : super(key: key);
 
   Widget build(BuildContext context) {
@@ -37,13 +39,7 @@ class SearchingMsgWidget extends StatelessWidget {
     }
 
     void __onTap(Topic topic, String parentTitle, GeoPoint messageLocation) async {
-      //GeoPoint mapCenter = GeoHelper.boxCenter(topLeft, bottomRight);
       GeoPoint _messageLocation = messageLocation;
-  /*
-      if(_messageLocation == null && this.fixLocation != null) {
-        _messageLocation = this.fixLocation;
-      } 
-  */    
       if(_messageLocation == null && this.messageLocation != null) {
         _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
       }

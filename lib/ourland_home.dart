@@ -364,8 +364,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           break; 
         case 2:
           setState(() {
-            //this._isFabShow = true;
-            this._isFabShow = false;
+            this._isFabShow = true;
+            //this._isFabShow = false;
           });
           break;
         default:

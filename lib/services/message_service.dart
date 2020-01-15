@@ -25,6 +25,9 @@ final CollectionReference _chatCollection =
 final CollectionReference _searchingMsgCollection =
     Firestore.instance.collection('message');
 
+final CollectionReference _pendingSearchingMsgCollection =
+    Firestore.instance.collection('pendingmessage');
+
 class MessageService {
   User _user;
 
@@ -35,6 +38,14 @@ class MessageService {
   Stream<List<SearchingMsg>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
     Stream<List<SearchingMsg>> rv;
 */
+
+ Stream<QuerySnapshot> getPendingSearchingMsgSnap() {
+   Query sourceQuery = _pendingSearchingMsgCollection;
+   if(!_user.sendBroadcastRight) {
+     sourceQuery = sourceQuery.where("uid", isEqualTo: _user.uuid);
+   }
+   return sourceQuery.snapshots();
+ }
  Stream<List<Map>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
     Stream<List<Map>> rv;
      if(position != null) {
@@ -176,13 +187,33 @@ class MessageService {
     return rv;
   }  
 
+  Future sendPendingSearchingMessage(SearchingMsg searchingMsg, File imageFile) async {
+    Map imageUrls;
+    String downloadUrl;
+    String serverUrl;
+    if(imageFile != null) {
+      imageUrls = await this.uploadSearchingImage(imageFile);
+    }
+    var indexData = searchingMsg.toMap();
+    if(imageUrls != null) {
+      downloadUrl = imageUrls['downloadUrl'];
+      serverUrl = imageUrls['serverUrl'];
+      indexData['imageUrl'] = serverUrl;
+      indexData['publicImageURL'] = downloadUrl;
+    }
+    try {
+      return _pendingSearchingMsgCollection.add(indexData);        
+    } catch (exception) {
+      print(exception);
+    }
+  }
 
   Future sendTopicMessage(GeoPoint position, Topic topic, File imageFile) async {
     var chatReference;
     var indexReference;
     String imageUrl;
     if(imageFile != null) {
-      imageUrl = await uploadImage(imageFile);
+      imageUrl = await uploadGetchaImage(imageFile);
     }
     
     var indexData = topic.toMap();
@@ -225,7 +256,7 @@ class MessageService {
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
       String imageUrl; 
       if(imageFile != null) {
-        imageUrl = await uploadImage(imageFile);
+        imageUrl = await uploadGetchaImage(imageFile);
       }
       DocumentReference chatReference;
       DocumentReference indexReference;
@@ -299,7 +330,21 @@ class MessageService {
       });
   }
 
-  Future<String> uploadImage(File imageFile) async {
+  Future<Map> uploadSearchingImage(File imageFile) async {
+    String fileName = 'photo/' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+    Map uploadImageMap = await this.uploadImage(imageFile, fileName);
+    return uploadImageMap;
+
+  } 
+
+  Future<String> uploadGetchaImage(File imageFile) async {
+    String fileName = 'getCha//' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+    Map uploadImageMap = await this.uploadImage(imageFile, fileName);
+    String downloadUrl = uploadImageMap["downloadUrl"];
+    return downloadUrl;
+  } 
+
+  Future<Map> uploadImage(File imageFile, String fileName) async {
     File uploadImage = imageFile;
     List<int> blob = uploadImage.readAsBytesSync();
     
@@ -323,11 +368,15 @@ class MessageService {
 //      blob = new Img.PngEncoder({level: 3}).encodeImage(image);
       blob = new Img.JpegEncoder(quality: 75).encodeImage(image);
     }
-    String fileName = 'getCha//' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
     StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
     StorageUploadTask uploadTask = reference.putData(blob);
     StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
     String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
-    return downloadUrl;
+    String serverPath = await storageTaskSnapshot.ref.getPath();
+    String bucketPath = await storageTaskSnapshot.ref.getBucket();
+    Map rv = Map();
+    rv['downloadUrl'] = downloadUrl;
+    rv['serverUrl'] = "gs://" + bucketPath + "/" + serverPath;
+    return rv;
   } 
 }

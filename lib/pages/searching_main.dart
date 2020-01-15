@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ourland_native/models/constant.dart';
@@ -8,6 +9,7 @@ import 'package:ourland_native/widgets/searching_msg_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:ourland_native/models/searching_msg_model.dart';
 
 // ----------------------------------------
 // SETTING SCREEN LANDING SCREEN
@@ -33,6 +35,8 @@ class _SearchingMainState extends State<SearchingMain>{
   List<String> _tagList = [];
   Geolocator _geolocator = new Geolocator();
   Topic _recentTopic;
+  bool isLoading = true;
+  List<SearchingMsg> _searchingMsgs;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
@@ -63,7 +67,84 @@ class _SearchingMainState extends State<SearchingMain>{
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { 
+    Widget buildLoading() {
+      return Positioned(
+        child: isLoading
+            ? Container(
+                child: Center(
+                  child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)),
+                ),
+                color: Colors.white.withOpacity(0.8),
+              )
+            :  new Container()
+      );
+    }    
+    void buildSearchingMsgs(List<DocumentSnapshot> documents) {
+      _searchingMsgs = [];
+      //_tagCountMap = new Map<String, int>();
+//      for (SearchingMsg searchingMsg in documents) {
+      for (DocumentSnapshot doc in documents) {
+        Map data = doc.data;
+        SearchingMsg searchingMsg = SearchingMsg.fromMap(data); 
+        /*
+        if(_firstTag.length == 0 || searchingMsg.tagfilter.contains(_firstTag)) {
+          updateTagCount(searchingMsg);
+        */
+        _searchingMsgs.add(searchingMsg);
+        //} 
+      }
+    }
+    Widget buildItem(String messageId, SearchingMsg searchingMsg, BuildContext context) {
+      Widget rv; 
+      rv = new SearchingMsgWidget(user: widget.user, searchingMsg: searchingMsg, getCurrentLocation:  widget.getCurrentLocation, messageLocation: searchingMsg.geolocation, locationPermissionGranted: false, pending: true,);
+      return rv;
+    }    
+
+    List<Widget> buildGrid(List<SearchingMsg> documents, BuildContext context) {
+      List<Widget> _gridItems = [Text(LABEL_PENDING_MESSAGE, textAlign: TextAlign.center,
+      )];
+      for (SearchingMsg searchingMsg in documents) {
+        if(widget.user == null || !widget.user.blockUsers.contains(searchingMsg.uid)) {
+          _gridItems.add(buildItem(searchingMsg.key, searchingMsg, context));
+        }
+      }
+      return _gridItems;
+    }  
+
+
+    Widget buildListView(BuildContext context) {
+      bool canViewHide = false;
+      if(widget.user != null && widget.user.globalHideRight) {
+        canViewHide = true;
+      }
+        return new StreamBuilder<QuerySnapshot>(
+        stream: this._messageService.getPendingSearchingMsgSnap(),
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) {
+            //print("StreamBuilder No Data ${snapshot.data}");
+            isLoading = false;
+            return new Center(child: new CircularProgressIndicator());
+          } else {
+            if(snapshot.data.documents.length > 0) {
+              //print("snapshot.data.length ${snapshot.data.documents.length}");
+              buildSearchingMsgs(snapshot.data.documents);
+              List<Widget> children = buildGrid(_searchingMsgs, context);
+              isLoading = false;
+              return ListView(
+                padding: EdgeInsets.symmetric(vertical: 8.0), 
+                children: children);
+            } else {
+              isLoading = false;
+              return new Container(child: Text(LABEL_NO_PENDING_MESSAGE,
+              style: Theme.of(context).textTheme.headline));
+            }
+            //staggeredTiles: generateRandomTiles(snapshot.data.length),
+          }
+        },
+      );
+    }       
+
     void onPressed(context, tag)  {
       GeoPoint newLocation; 
       if(_streetAddress != null && _streetAddress.length > 0) {
@@ -144,12 +225,13 @@ class _SearchingMainState extends State<SearchingMain>{
                 .toList();
       return(Row(children: widgets));
     }
-    List<Widget> widgetList = [];
+    List<Widget> widgetList = [renderLocationField()];
 
     if(_tagList != null && _tagList.length > 0) {
       List<String> firstButtonRow = _tagList.sublist(0, (_tagList.length/2).round());
       List<String> secondButtonRow = _tagList.sublist((_tagList.length/2).round(), _tagList.length);
       widgetList = [
+        renderLocationField(),
         renderTagButtons(firstButtonRow),
         renderTagButtons(secondButtonRow)];
     }
@@ -163,15 +245,24 @@ class _SearchingMainState extends State<SearchingMain>{
         locationPermissionGranted: !widget.disableLocation));
     }
 
+
     return Scaffold(
         key: _scaffoldKey,
-        appBar: renderLocationField(),
-        body: ListView(
-          padding: EdgeInsets.symmetric(vertical: 8.0),
-          children: widgetList
-        ));
-/*        body: Column(children: widgetList
-          ));
-          */
+        //appBar: renderLocationField(),
+        appBar: PreferredSize(
+                preferredSize: Size.fromHeight(270),
+                child:Column(
+            children: widgetList)),
+        body: Container(
+          color: Colors.white,
+          child: Stack(
+                children: <Widget>[
+              // buildScrollView(_onTap, context),
+                  buildListView(context),
+                  buildLoading(),
+                ],
+              )
+        ), 
+      );
   } 
 }

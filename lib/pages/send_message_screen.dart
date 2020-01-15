@@ -204,16 +204,19 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
 
   void onPressed()  {
     if(_location != null && _location.length > 1) {
+      print("Pressed" + _location);
       _geolocator.placemarkFromAddress(_location).then(
           (List<Placemark> placemark) {
         Position pos = placemark[0].position;
         String markerLabel = placemark[0].name;
+        print(markerLabel);
         setState(() {
           this._messageLocation= new GeoPoint(pos.latitude, pos.longitude);
         });
         //updateMap();
         refreshMarker(markerLabel);
       }, onError: (e) {
+        print(e.toString());
         // PlatformException thrown by the Geolocation if the address cannot be translate
         // DO NOTHING
       });
@@ -342,16 +345,19 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     if (_formKey.currentState.validate()) {
 //    If all data are correct then save data to out variables
       _formKey.currentState.save();
+      
       List<String> tags = [this._firstTag];
       // TODO pass this_desc to extract the hash tag
       // Find the geo box
       var destBox = GeoHelper.findBoxGeo(this._messageLocation, 1000.0);
-      /*
-      Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
-            null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
-      messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
-      userService.addRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
-      */
+      SearchingMsg searchingMsg = SearchingMsg("", this._messageLocation, this._location, this._parentTitle, 
+      widget.user.username, widget.user.avatarUrl, widget.user.uuid, widget.user.uuid,
+      tags, this._desc, null /*this._link*/,
+      null, null, null, null, /*this._imageUrl, this._publicImageURL, this._thumbnailImageURL, this._thumbnailPublicImageURL, */
+      null, null, null, null, null, /*this._start, this._startTime, this._duration, this._interval, this._endDate,*/
+      null, null, null, /*this._everydayOpenning, this._weekdaysOpennings, this._polling,*/
+      null);
+      messageService.sendPendingSearchingMessage(searchingMsg, imageFile);
       onBackPress();
     }
   }

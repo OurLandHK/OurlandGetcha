@@ -142,6 +142,9 @@ const String LABEL_RANKING_UPDATE_MESSAGE = "更新評價: ";
 
 const String LABEL_GO_TO_OURLAND_SEARCH_LINK = "前住我地.市正了解詳情";
 
+const String LABEL_PENDING_MESSAGE = "等待審批";
+const String LABEL_NO_PENDING_MESSAGE = "";
+
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;
 const double CREATE_TOPIC_MAP_HEIGHT = 150.0;
