@@ -86,6 +86,7 @@ class _SearchingMainState extends State<SearchingMain>{
 //      for (SearchingMsg searchingMsg in documents) {
       for (DocumentSnapshot doc in documents) {
         Map data = doc.data;
+        data['key'] = doc.documentID;
         SearchingMsg searchingMsg = SearchingMsg.fromMap(data); 
         /*
         if(_firstTag.length == 0 || searchingMsg.tagfilter.contains(_firstTag)) {

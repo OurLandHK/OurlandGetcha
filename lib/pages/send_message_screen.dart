@@ -404,8 +404,10 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
             break;        
         }
       }
+      /*
       print(label + " " + value + " " + _isSubmitDisable.toString() + " " + _pendingIsSubmitDisable.toString()
       + " " + _buttonText  + " " + _pendingButtonText);
+      */
       if(_isSubmitDisable != _pendingIsSubmitDisable || _buttonText != _pendingButtonText) {
         _isSubmitDisable = _pendingIsSubmitDisable;
         _buttonText = _pendingButtonText;  

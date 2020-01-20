@@ -88,7 +88,6 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   bool _enableSendButton = false;
   var listMessage;
 
-  String groupChatId;
   SharedPreferences prefs;
   bool isLoading;
 

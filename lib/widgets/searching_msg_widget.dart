@@ -12,6 +12,7 @@ import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/searching_widget.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
+import 'package:ourland_native/pages/searching_msg_approval_screen.dart';
 import 'package:geodesy/geodesy.dart';
 
 class SearchingMsgWidget extends StatelessWidget {
@@ -38,7 +39,8 @@ class SearchingMsgWidget extends StatelessWidget {
       return Container();
     }
 
-    void __onTap(Topic topic, String parentTitle, GeoPoint messageLocation) async {
+    
+    void __onTapForChat(Topic topic, String parentTitle, GeoPoint messageLocation) async {
       GeoPoint _messageLocation = messageLocation;
       if(_messageLocation == null && this.messageLocation != null) {
         _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
@@ -78,18 +80,32 @@ class SearchingMsgWidget extends StatelessWidget {
         ),
       );
     }
+
+    void __onTapForApproval(SearchingMsg searchingMsg, User user) async {
+      Navigator.of(context).push(
+        new MaterialPageRoute<void>(
+          builder: (BuildContext context) {
+            return SearchingMsgApprovalScreen(user : user, searchingMsg: searchingMsg);
+          },
+        ),
+      );
+    }
     //String title = this.searchingMsg.text;
     void _onTap() {
-      MessageService messageService = new MessageService(this.user);
-      messageService.getTopic(this.searchingMsg.key).then((topic) {
-        if(topic == null) {
-          topic = Topic.fromSearchingMsg(this.searchingMsg);
-        } else {
-          topic.searchingMsg = this.searchingMsg;
-        }
-        //return this.onTap(topic, searchingMsg.text, this.messageLocation);
-        return __onTap(topic, searchingMsg.text, this.messageLocation);
-      });
+      if(pending) {
+        return __onTapForApproval(this.searchingMsg, this.user);
+      } else {
+        MessageService messageService = new MessageService(this.user);
+        messageService.getTopic(this.searchingMsg.key).then((topic) {
+          if(topic == null) {
+            topic = Topic.fromSearchingMsg(this.searchingMsg);
+          } else {
+            topic.searchingMsg = this.searchingMsg;
+          }
+          //return this.onTap(topic, searchingMsg.text, this.messageLocation);
+          return __onTapForChat(topic, searchingMsg.text, this.messageLocation);
+        });
+      }
     }
 
     Widget rv = new Container();

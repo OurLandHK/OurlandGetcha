@@ -28,7 +28,8 @@ import 'package:intl/intl.dart';
     MAP_MODE,
     USER_MODE,
     MEDIA_MODE,
-    COMMENT_MODE  
+    COMMENT_MODE,
+    APPROVE_MODE
   }
 
 class ChatSummary extends StatefulWidget {
@@ -102,9 +103,10 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
     super.initState();
     _rankingService = new RankingService(widget.user);
     messageList = new List<String>();
-    print("initState()");
-    messageService = new MessageService(widget.user);
-    chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
+    if(widget.chatMode != Chat_Mode.APPROVE_MODE) {
+      messageService = new MessageService(widget.user);
+      chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
+    }
       _tabController = new TabController(vsync: this, initialIndex: 0, length: 5);
       _tabController.addListener(() {
         switch(_tabController.index) {
@@ -176,11 +178,16 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
         _galleryImageUrlList[entry.caption] = entry.publicImageURL;
       }
     }
-    if(widget.topic.searchingMsg != null) {
+    if(widget.topic.searchingMsg != null && widget.chatMode != Chat_Mode.APPROVE_MODE) {
       getReportValue();
     }
-    buildMessageSummaryWidget();
-    
+    if(widget.chatMode != Chat_Mode.APPROVE_MODE) {
+      buildMessageSummaryWidget();
+    } else {
+      setState(() {
+          _progressBarActive = false;
+      });
+    }
   }
 
   void getReportValue() {
@@ -561,7 +568,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
       broadcastIcon = Icon(Icons.location_city);
       //broadcastIconButton = Icon(Icons.location_on);
     }
-    Widget visibilityStatus = (widget.user != null && widget.user.globalHideRight == true) ? Material(child: new Container(
+    Widget visibilityStatus = (widget.user != null && widget.user.globalHideRight == true && widget.chatMode != Chat_Mode.APPROVE_MODE) ? Material(child: new Container(
         margin: new EdgeInsets.symmetric(horizontal: 8.0),
         child: new IconButton(
           iconSize: 18,
@@ -571,7 +578,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
         ),
       ),
       color: TOPIC_COLORS[widget.topic.color]) : Container();
-    Widget broadcastStatus = (widget.user != null && widget.user.sendBroadcastRight == true) ? Material(child: new Container(
+    Widget broadcastStatus = (widget.user != null && widget.user.sendBroadcastRight == true && widget.chatMode != Chat_Mode.APPROVE_MODE) ? Material(child: new Container(
         margin: new EdgeInsets.symmetric(horizontal: 8.0),
         child: new IconButton(
           iconSize: 18,
@@ -587,7 +594,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
                 widget.topic.lastUpdate.microsecondsSinceEpoch)),
         style: Theme.of(context).textTheme.subtitle);
     Widget _ourlandLaunch = Container();
-    if(widget.topic.searchingId != null) {
+    if(widget.topic.searchingId != null && widget.chatMode != Chat_Mode.APPROVE_MODE) {
       TextStyle _style = Theme.of(context).textTheme.body2.apply(color: Colors.blue, decoration: TextDecoration.underline);
       //_ourlandLaunch = GestureDetector(child: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH, width: 64.0), onTap: () => {launch(OURLAND_SEARCH_HOST + "/detail/" + widget.topic.searchingId)});
       _ourlandLaunch = GestureDetector(child: Text(LABEL_GO_TO_OURLAND_SEARCH_LINK, style: _style), onTap: () => {launch(OURLAND_SEARCH_HOST + "/detail/" + widget.topic.searchingId)});
@@ -596,7 +603,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
     widget.topic.tags.forEach((tag) {
       tagList += "#" + tag + " ";
     });
-    Widget bookmarkWidget = (widget.user != null) ? Material(
+    Widget bookmarkWidget = (widget.user != null && widget.chatMode != Chat_Mode.APPROVE_MODE) ? Material(
             child: new Container(
               margin: new EdgeInsets.symmetric(horizontal: 8.0),
               child: new IconButton(
@@ -657,21 +664,31 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
       }
     } else {
       SearchingMsg msg = widget.topic.searchingMsg;
-      widgetList.add(_buildStatus(context, msg));
-      widgetList.add(_buildStreetAddress(context, msg));
-      widgetList.add(_toolBar);      
-      if(widget.chatMode == Chat_Mode.INFO_MODE) {
-        if(_summaryImageWidget != null) {
-        {
-            widgetList.add(_summaryImageWidget);
+      if(widget.chatMode != Chat_Mode.APPROVE_MODE) {
+        widgetList.add(_buildStatus(context, msg));
+        widgetList.add(_buildStreetAddress(context, msg));
+        widgetList.add(_toolBar);      
+        if(widget.chatMode == Chat_Mode.INFO_MODE) {
+          if(_summaryImageWidget != null) {
+              widgetList.add(_summaryImageWidget);
           }
+          widgetList.add(_buildProperties(context, msg));
+          widgetList.add(_buildDesc(context, msg));
+          widgetList.add(_buildLink(context, msg));
+          widgetList.add(_buildTimingInfo(context, msg));
+          widgetList.add(_buildPolling(context, msg));
+        }      
+      } else {
+        if(_summaryImageWidget != null) {
+          widgetList.add(_summaryImageWidget);
         }
-        widgetList.add(_buildProperties(context, msg));
+        widgetList.add(_buildStreetAddress(context, msg));
+        //widgetList.add(_buildProperties(context, msg));
         widgetList.add(_buildDesc(context, msg));
         widgetList.add(_buildLink(context, msg));
         widgetList.add(_buildTimingInfo(context, msg));
-        widgetList.add(_buildPolling(context, msg));
-      }      
+        widgetList.add(_buildPolling(context, msg)); 
+      }
       //msg.distance             
     }
 

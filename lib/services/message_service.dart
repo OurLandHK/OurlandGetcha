@@ -208,6 +208,17 @@ class MessageService {
     }
   }
 
+  Future approveSearchingMessage(SearchingMsg searchingMsg) async {
+    var indexData = searchingMsg.toMap();
+    try {
+      return _searchingMsgCollection.document(searchingMsg.key).setData(indexData).then((data) {
+        return _pendingSearchingMsgCollection.document(searchingMsg.key).delete();
+      });        
+    } catch (exception) {
+      print(exception);
+    }    
+  }
+
   Future sendTopicMessage(GeoPoint position, Topic topic, File imageFile) async {
     var chatReference;
     var indexReference;
