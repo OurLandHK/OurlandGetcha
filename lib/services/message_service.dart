@@ -39,8 +39,9 @@ class MessageService {
     Stream<List<SearchingMsg>> rv;
 */
 
- Stream<QuerySnapshot> getPendingSearchingMsgSnap() {
+ Stream<QuerySnapshot> getPendingSearchingMsgSnap(String status) {
    Query sourceQuery = _pendingSearchingMsgCollection;
+   sourceQuery = sourceQuery.where("status", isEqualTo: status);
    if(!_user.sendBroadcastRight) {
      sourceQuery = sourceQuery.where("uid", isEqualTo: _user.uuid);
    }
@@ -200,6 +201,7 @@ class MessageService {
       serverUrl = imageUrls['serverUrl'];
       indexData['imageUrl'] = serverUrl;
       indexData['publicImageURL'] = downloadUrl;
+      indexData['status']= SEARCHING_STATUS_OPTIONS[0];
     }
     try {
       return _pendingSearchingMsgCollection.add(indexData);        
@@ -210,6 +212,7 @@ class MessageService {
 
   Future approveSearchingMessage(SearchingMsg searchingMsg) async {
     var indexData = searchingMsg.toMap();
+    indexData['status'] = SEARCHING_STATUS_OPTIONS[5];
     try {
       return _searchingMsgCollection.document(searchingMsg.key).setData(indexData).then((data) {
         return _pendingSearchingMsgCollection.document(searchingMsg.key).delete();
@@ -218,6 +221,16 @@ class MessageService {
       print(exception);
     }    
   }
+
+  Future rejectSearchingMessage(SearchingMsg searchingMsg) async {
+    var indexData = searchingMsg.toMap();
+    indexData['status'] = SEARCHING_STATUS_OPTIONS[6];
+    try {
+      return _pendingSearchingMsgCollection.document(searchingMsg.key).setData(indexData);
+    } catch (exception) {
+      print(exception);
+    }    
+  }  
 
   Future sendTopicMessage(GeoPoint position, Topic topic, File imageFile) async {
     var chatReference;

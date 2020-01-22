@@ -36,11 +36,15 @@ class _SearchingMainState extends State<SearchingMain>{
   Geolocator _geolocator = new Geolocator();
   Topic _recentTopic;
   bool isLoading = true;
+  String _messageStatus = "";
+  String _pendingMessageStatus = SEARCHING_STATUS_OPTIONS[5];
   List<SearchingMsg> _searchingMsgs;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  List<DropdownMenuItem<String>> _dropDownMenuItems; 
 
   @override
   void initState() {
+    _dropDownMenuItems = getDropDownMenuItems(SEARCHING_STATUS_OPTIONS.sublist(5, 7) ,false);
     if(widget.disableLocation) {
       _isSubmitDisable = true;
     } else {
@@ -66,8 +70,32 @@ class _SearchingMainState extends State<SearchingMain>{
     });
   }
 
+  void _swapValuable(BuildContext context) {
+    print("swap ${this._messageStatus.length} " + this._pendingMessageStatus);
+    if(this._messageStatus.length == 0) {
+      this._messageService.getPendingSearchingMsgSnap(this._pendingMessageStatus).listen((onData) {
+        List<SearchingMsg> searchingMsgs = [];
+        if(onData.documents.length > 0) {          
+          for (DocumentSnapshot doc in onData.documents) {
+            Map data = doc.data;
+            data['key'] = doc.documentID;
+            SearchingMsg searchingMsg = SearchingMsg.fromMap(data); 
+            searchingMsgs.add(searchingMsg);
+          }
+        }
+        print("${searchingMsgs}");
+        setState(() {
+          this._searchingMsgs = searchingMsgs;
+          this._messageStatus = _pendingMessageStatus;
+        });
+      });
+    }
+  }
+
   @override
-  Widget build(BuildContext context) { 
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance
+      .addPostFrameCallback((_) => _swapValuable(context));
     Widget buildLoading() {
       return Positioned(
         child: isLoading
@@ -102,9 +130,21 @@ class _SearchingMainState extends State<SearchingMain>{
       return rv;
     }    
 
+    void onChangedStatus(String status) {
+      setState(() {
+        _messageStatus = "";
+        _pendingMessageStatus = status;
+      });
+    }
+
     List<Widget> buildGrid(List<SearchingMsg> documents, BuildContext context) {
-      List<Widget> _gridItems = [Text(LABEL_PENDING_MESSAGE, textAlign: TextAlign.center,
-      )];
+      List<Widget> _gridItems = [Row(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: [Text(LABEL_PENDING_MESSAGE, textAlign: TextAlign.center,
+      ), DropdownButton(
+                  value: _messageStatus,
+                  items: _dropDownMenuItems,
+                  onChanged: (value) => onChangedStatus(value),
+                  style: Theme.of(context).textTheme.subhead
+                )])];
       for (SearchingMsg searchingMsg in documents) {
         if(widget.user == null || !widget.user.blockUsers.contains(searchingMsg.uid)) {
           _gridItems.add(buildItem(searchingMsg.key, searchingMsg, context));
@@ -113,39 +153,24 @@ class _SearchingMainState extends State<SearchingMain>{
       return _gridItems;
     }  
 
-
     Widget buildListView(BuildContext context) {
-      bool canViewHide = false;
-      if(widget.user != null && widget.user.globalHideRight) {
-        canViewHide = true;
+      if(this._messageStatus.length == 0)  {
+        isLoading = false;
+        return new Center(child: new CircularProgressIndicator());
+      } else {
+        if(_searchingMsgs.length > 0) {
+          List<Widget> children = buildGrid(_searchingMsgs, context);
+          isLoading = false;
+          return ListView(
+            padding: EdgeInsets.symmetric(vertical: 8.0), 
+            children: children);
+        } else {
+          isLoading = false;
+          return new Container(child: Text(LABEL_NO_PENDING_MESSAGE,
+          style: Theme.of(context).textTheme.headline));
+        }
       }
-        return new StreamBuilder<QuerySnapshot>(
-        stream: this._messageService.getPendingSearchingMsgSnap(),
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) {
-            //print("StreamBuilder No Data ${snapshot.data}");
-            isLoading = false;
-            return new Center(child: new CircularProgressIndicator());
-          } else {
-            if(snapshot.data.documents.length > 0) {
-              //print("snapshot.data.length ${snapshot.data.documents.length}");
-              buildSearchingMsgs(snapshot.data.documents);
-              List<Widget> children = buildGrid(_searchingMsgs, context);
-              isLoading = false;
-              return ListView(
-                padding: EdgeInsets.symmetric(vertical: 8.0), 
-                children: children);
-            } else {
-              isLoading = false;
-              return new Container(child: Text(LABEL_NO_PENDING_MESSAGE,
-              style: Theme.of(context).textTheme.headline));
-            }
-            //staggeredTiles: generateRandomTiles(snapshot.data.length),
-          }
-        },
-      );
-    }       
-
+    }     
     void onPressed(context, tag)  {
       GeoPoint newLocation; 
       if(_streetAddress != null && _streetAddress.length > 0) {

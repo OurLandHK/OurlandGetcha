@@ -70,7 +70,7 @@ const String CHAT_MENU_ITEM_RANK = "我要帶風向";
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
-const List<String> SEARCHING_STATUS_OPTIONS = ['開緊', '完結', '政府跟進中', '流料', '不恰當訊息'];
+const List<String> SEARCHING_STATUS_OPTIONS = ['開放', '完結', '政府跟進中', '流料', '不恰當訊息', "等待審批", "撤回"];
 const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠/美食", "投票", "秘境", "維修/求助", "交換", "我地.市正"];
 const String LABEL_TOPIC = "Memo";
 const String LABEL_NEW_TOPIC = "新Memo";
@@ -142,8 +142,10 @@ const String LABEL_RANKING_UPDATE_MESSAGE = "更新評價: ";
 
 const String LABEL_GO_TO_OURLAND_SEARCH_LINK = "前住我地.市正了解詳情";
 
-const String LABEL_PENDING_MESSAGE = "等待審批";
-const String LABEL_NO_PENDING_MESSAGE = "";
+const String LABEL_PENDING_MESSAGE = "未審批正料: ";
+const String LABEL_APPROVE = "審批";
+const String LABEL_REJECT= "撤回";
+const String LABEL_NO_PENDING_MESSAGE = "沒有等待審批";
 
 const double MAP_HEIGHT = 200.0;
 const double TOOLBAR_HEIGHT = 25.0;

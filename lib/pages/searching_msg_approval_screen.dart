@@ -85,17 +85,32 @@ class SearchingMsgApprovalBodyState extends State<SearchingMsgApprovalScreenBody
   void approveMessage() {
     messageService.approveSearchingMessage(widget.searchingMsg);
   }
+
+  void rejectMessage() {
+    messageService.rejectSearchingMessage(widget.searchingMsg);
+  }
   @override
   Widget build(BuildContext context) {
     Topic topic = Topic.fromSearchingMsg(widget.searchingMsg);
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(topic.geoTopLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(topic.geoBottomRight);
     RaisedButton approveButton = RaisedButton(
-              child: Text("Approve"),
+              child: Text(LABEL_APPROVE),
               onPressed: approveMessage,
             );
+    RaisedButton rejectButton = RaisedButton(
+              child: Text(LABEL_REJECT),
+              onPressed: rejectMessage,
+            );        
     ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: topic.imageUrl, topic: topic, messageLocation: topic.geoCenter, chatMode: Chat_Mode.APPROVE_MODE, toggleComment: null, updateUser: null, getUserName: null, getAllUserList: null, getColor: null);
-    ButtonBar bar = ButtonBar(children: <Widget>[approveButton]);
+    List<Widget> buttonList = [];
+    if(widget.user != null && (widget.user.globalHideRight || widget.user.uuid == widget.searchingMsg.uid)) {
+      buttonList.add(rejectButton);
+    }
+    if(widget.user != null && widget.user.globalHideRight) {
+      buttonList.add(approveButton);
+    }
+    ButtonBar bar = ButtonBar(children: buttonList);
     List<Widget> _widgetList = [chatSummary, bar];
     Widget _bodyWidget =  Column(children: _widgetList);
     _bodyWidget = SingleChildScrollView(child: _bodyWidget);

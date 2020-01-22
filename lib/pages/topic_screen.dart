@@ -79,7 +79,8 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
   bool _locationPermissionGranted = false;
   List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
 
-  String _firstTag = "";
+  String _firstTag;
+  String _pendingTag = "";
   List<Widget> _children =[];
 
 //  Geolocator _geolocator = new Geolocator();
@@ -264,7 +265,9 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
                     style: Theme.of(context).textTheme.subhead,
                     onChanged: (String value) {setState(() {
                       _children =[];
-                      _firstTag = value;
+                      _firstTag = null;
+                      _pendingTag = value;
+                      this._pendingMarkerList = [];
                     });
                   },
                 )),
@@ -316,7 +319,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
           child: new Stack(
             children: <Widget>[
             // buildScrollView(_onTap, context),
-              buildListView(_onTap, context),
+              buildListView(context),
               buildLoading(),
             ],
           ),
@@ -336,21 +339,66 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
     );
   }
 
+  void _onTap(Topic topic, String parentTitle, GeoPoint messageLocation) async {
+    
+    GeoPoint _messageLocation = messageLocation;
+    if(_messageLocation == null && this.fixLocation != null) {
+      _messageLocation = this.fixLocation;
+    } 
+    if(_messageLocation == null && this.messageLocation != null) {
+      _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
+    }
+    Navigator.of(context).push(
+      new MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          Key chatKey = new Key(topic.id);
+          return ChatScreen(/*key: chatKey,*/ user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+        },
+      ),
+    );
+  }
+
   void _swapValuable(BuildContext context) {
-//    print("Marker Length 2 ${this._markerList.length} ${this._pendingMarkerList.length}");
-    if(this._markerList.length != this._pendingMarkerList.length) {
-      List<OurlandMarker> tempList = new List<OurlandMarker>();
-      for(int i = 0; i <  this._pendingMarkerList.length; i++) {
-        tempList.add(this._pendingMarkerList[i]);
+    if (this._firstTag == null) {
+      bool canViewHide = false;
+      if(widget.user != null && widget.user.globalHideRight) {
+        canViewHide = true;
       }
-      setState(() {
-        this._markerList = tempList;
-      });      
+      this.messageService.getTopicSnap(this.messageLocation, 1300, this._pendingTag, canViewHide).listen((onData) {
+        List<Widget> widgets= buildGrid(onData, _onTap, context);
+        List<OurlandMarker> tempList = [];
+        for(int i = 0; i <  this._pendingMarkerList.length; i++) {
+          tempList.add(this._pendingMarkerList[i]);
+        }
+        setState(() {
+          this._children = widgets;
+          this._firstTag = this._pendingTag;
+          this._markerList = tempList;
+        }); 
+      });
+    }  
+  }
+
+  Widget buildListView(BuildContext context) {
+    if (this._firstTag == null) {
+      return new Center(child: new CircularProgressIndicator());
+    } else {
+      if(_children.length > 0) {
+        return StaggeredGridView.count(
+          physics: new BouncingScrollPhysics(),
+          crossAxisCount: 4,
+          children: _children, 
+          staggeredTiles: staggeredTileBuilder(_children),
+        );
+      } else {
+        return new Container(child: Text(LABEL_CHOICE_OTHER_TAG,
+        style: Theme.of(context).textTheme.headline));
+      }
+      //staggeredTiles: generateRandomTiles(snapshot.data.length),
     }
   }
 
-
-
+  /*
   Widget buildListView(Function _onTap, BuildContext context) {
     this._pendingMarkerList.clear();
     bool canViewHide = false;
@@ -380,6 +428,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       },
     );
   }
+  */
 
   List<StaggeredTile> staggeredTileBuilder(List<Widget> widgets) {
     List<StaggeredTile> _staggeredTiles = [];
