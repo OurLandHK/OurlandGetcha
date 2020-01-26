@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ourland_native/helper/string_helper.dart';
 
 //import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -65,15 +66,13 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
   final ScrollController listScrollController = new ScrollController();
   final FocusNode focusNode = new FocusNode();
 
-  List<DropdownMenuItem<String>> _tagDropDownMenuItems;
-  List<DropdownMenuItem<String>> _locationDropDownMenuItems;
+  //List<DropdownMenuItem<String>> _tagDropDownMenuItems;
 
   String _parentTitle;
   String _newTopicLabel;
   String _desc;
-  String _firstTag;
-  int _type;
-  String _currentLocationSelection;
+  List<String> _tags = [];
+  //String _firstTag;
   String _location;
   String _label ;
   ChatMap map;
@@ -101,8 +100,8 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
     userService = new UserService();
-    _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION, false);
-    _firstTag = _tagDropDownMenuItems[0].value;
+    //_tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION, false);
+    //_firstTag = _tagDropDownMenuItems[0].value;
     
     _newTopicLabel = LABEL_NEW_TOPIC;
     _buttonText = LOCATION_NOT_VALIDATE;
@@ -111,7 +110,6 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     _color = rng.nextInt(TOPIC_COLORS.length);
     _desc = "";
     _parentTitle = "";
-    _type = 0;
     _isSubmitDisable = true;
     List<String> dropDownList = [LABEL_NEARBY];
     if(widget.user.homeAddress != null) {
@@ -120,8 +118,6 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     if(widget.user.officeAddress != null) {
       dropDownList.add(LABEL_REGION1);
     }    
-    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList, false);
-    _currentLocationSelection = _locationDropDownMenuItems[0].value;
 
     //Map map = widget.getCurrentLocation();
     //this._messageLocation = map['GeoPoint'];
@@ -239,22 +235,45 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     //scheduleMicrotask(() => _swapValuable(context));
   }
 
+  void searchForKeywords(String desc) {
+    this._desc = desc;
+    String parseText = desc.replaceAll("\n", " ");
+    List<String> tempTags = StringHelper.keywordSearch(parseText, "#");
+    List<String> revisedTags = [];
+    tempTags.forEach((tag) {
+      if(tag.length > 0) {
+        revisedTags.add(tag);
+      }
+    });
+    setState(() {
+      _tags = revisedTags;
+    });
+    /*
+    rv = StringHelper.keywordSearch(desc, "地點:");
+    print(rv);
+    rv = StringHelper.keywordSearch(desc, "地點：");
+    print(rv);
+    rv = StringHelper.keywordSearch(desc, "地點 ");
+    print(rv);
+    rv = StringHelper.keywordSearch(desc, "地址：");
+    print(rv);
+    rv = StringHelper.keywordSearch(desc, "地址:");
+    print(rv);
+    rv = StringHelper.keywordSearch(desc, "地址");
+    print(rv);
+    */
+  }
+
   @override
   Widget build(BuildContext context) {
     scheduleMicrotask(() => _swapValuable(context));
 
     Widget body = new WillPopScope(
-      child: Column(
-        children: <Widget>[    
-          renderMap(),
-          renderLocationField(),        
-          new Form(
-             key: _formKey,
-             autovalidate: true,
+      child: Form(
+          key: _formKey,
+          autovalidate: true,
 //           onWillPop: _warnUserAboutInvalidData,
-            child: formUI(context)
-          )
-        ],
+        child: formUI(context)
       ),
       onWillPop: onBackPress,
     );
@@ -345,14 +364,12 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     if (_formKey.currentState.validate()) {
 //    If all data are correct then save data to out variables
       _formKey.currentState.save();
-      
-      List<String> tags = [this._firstTag];
       // TODO pass this_desc to extract the hash tag
       // Find the geo box
       var destBox = GeoHelper.findBoxGeo(this._messageLocation, 1000.0);
       SearchingMsg searchingMsg = SearchingMsg("", this._messageLocation, this._location, this._parentTitle, 
       widget.user.username, widget.user.avatarUrl, widget.user.uuid, widget.user.uuid,
-      tags, this._desc, null /*this._link*/,
+      _tags, this._desc, null /*this._link*/,
       null, null, null, null, /*this._imageUrl, this._publicImageURL, this._thumbnailImageURL, this._thumbnailPublicImageURL, */
       null, null, null, null, null, /*this._start, this._startTime, this._duration, this._interval, this._endDate,*/
       null, null, null, /*this._everydayOpenning, this._weekdaysOpennings, this._polling,*/
@@ -361,6 +378,15 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
       onBackPress();
     }
   }
+
+  Widget tagUI(BuildContext context) {
+    List<Chip> chips = [];
+    this._tags.forEach((tag) {
+      chips.add(Chip(label: Text(tag)));
+    });
+    return Wrap(runSpacing: 4.0, spacing: 8.0, children: chips);
+  }
+
   Widget formUI(BuildContext context) {
     String validation(String label, String value) {
       String rv;
@@ -459,6 +485,8 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
             onSaved: (String value) {this._parentTitle = value;},
           ),
           const SizedBox(height: 12.0),
+          tagUI(context),
+          const SizedBox(height: 12.0),
           topicImageUI(context), 
           const SizedBox(height: 12.0),
           TextFormField(
@@ -477,9 +505,11 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
             validator: (value) {
               return validation(LABEL_DETAIL, value);
             },
-            onChanged: (String value) {this._desc = value;},
+            onChanged: (String value) {searchForKeywords(value);},
             onSaved: (String value) {this._desc = value;},
           ),
+          renderLocationField(), 
+          renderMap(), 
           _sendButton
         ],
       )

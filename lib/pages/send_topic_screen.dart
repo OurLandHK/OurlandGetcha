@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 //import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
+import 'package:ourland_native/helper/string_helper.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
@@ -72,6 +73,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   String _desc;
   String _firstTag;
   int _type;
+  List<String> _tags = [];
   String _currentLocationSelection;
   bool _isShowName;
   bool _isSubmitDisable;
@@ -260,6 +262,14 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     }
   }
 
+  Widget tagUI(BuildContext context) {
+    List<Chip> chips = [];
+    this._tags.forEach((tag) {
+      chips.add(Chip(label: Text(tag)));
+    });
+    return Wrap(runSpacing: 4.0, spacing: 8.0, children: chips);
+  }
+
   Widget topicImageUI(BuildContext context) {
     return 
       Column(children: <Widget>[
@@ -297,6 +307,20 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   }
 
   void removeImage() {setState((){imageFile = null;});}
+
+  void searchForKeywords(String desc) {
+    String parseText = desc.replaceAll("\n", " ");
+    List<String> tempTags = StringHelper.keywordSearch(parseText, "#");
+    List<String> revisedTags = [];
+    tempTags.forEach((tag) {
+      if(tag.length > 0) {
+        revisedTags.add(tag);
+      }
+    });
+    setState(() {
+      _tags = revisedTags;
+    });
+  }
 
   Widget formUI(BuildContext context) {
     String validation(String label, String value) {
@@ -338,6 +362,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   //    If all data are correct then save data to out variables
         _formKey.currentState.save();
         List<String> tags = [this._firstTag];
+        tags.addAll(_tags);
         // TODO pass this_desc to extract the hash tag
         // Find the geo box
         var destBox = GeoHelper.findBoxGeo(this.messageLocation, 1000.0);
@@ -399,9 +424,12 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         // validator: _validateName,
           ),
           const SizedBox(height: 12.0),
+          tagUI(context),
+          const SizedBox(height: 12.0),
           topicImageUI(context), 
           const SizedBox(height: 12.0),
           TextFormField(
+            initialValue: "",
             focusNode: _descFocus,
             onFieldSubmitted: (term) {
               fieldFocusChange(context, _descFocus, _showNameFocus);
@@ -417,6 +445,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             validator: (value) {
               validation(LABEL_DETAIL, value);
             },
+            onChanged: (value) {searchForKeywords(value);},
             onSaved: (String value) {this._desc = value;},
           ),
           Row(
