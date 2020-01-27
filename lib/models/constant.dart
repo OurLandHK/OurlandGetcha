@@ -42,9 +42,9 @@ const String MESSAGE_BROADCAST = "推上香港·主牆";
 const String MESSAGE_LOCAL = "回到地區";
 
 const String LABEL_NEARBY = "附近";
-const String LABEL_REGION = "地點: ";
-const String LABEL_REGION0 = LABEL_REGION + "1";
-const String LABEL_REGION1 = LABEL_REGION + "2";
+const String LABEL_REGION = "地點";
+const String LABEL_REGION0 = LABEL_REGION + ": 1";
+const String LABEL_REGION1 = LABEL_REGION + ": 2";
 const LABEL_SEARCHING_STATUS = "現況: ";
 
 const String LABEL_BROADCAST = "香港·主牆";

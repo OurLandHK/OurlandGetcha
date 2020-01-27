@@ -8,8 +8,11 @@ class StringHelper {
     List<String> words = value.split(" ");
     print(words);
     words.forEach((word) {
-      if(word.startsWith(keyword)) {
-        rv.add(word.substring(keyword.length));
+      if(word.startsWith(keyword) && word.length > 1) {
+        String rest = word.substring(keyword.length);
+        if(!rest.startsWith(" ") && !rv.contains(rest)) {
+          rv.add(rest);
+        }
       }
     });
     return rv;

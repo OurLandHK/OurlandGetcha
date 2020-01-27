@@ -226,7 +226,7 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
 
   void onPressed()  {
     if(_location != null && _location.length > 1) {
-      _geolocator.placemarkFromAddress(_location).then(
+      _geolocator.placemarkFromAddress(_location,localeIdentifier: "zh_HK").then(
           (List<Placemark> placemark) {
         Position pos = placemark[0].position;
         String markerLabel = placemark[0].name;
@@ -236,8 +236,19 @@ class _UpdateLocationScreenState extends State<UpdateLocationScreen> {
         //updateMap();
         refreshMarker(markerLabel);
       }, onError: (e) {
-        // PlatformException thrown by the Geolocation if the address cannot be translate
-        // DO NOTHING
+        _geolocator.placemarkFromAddress(_location,localeIdentifier: "en_HK").then(
+            (List<Placemark> placemark) {
+          Position pos = placemark[0].position;
+          String markerLabel = placemark[0].name;
+          setState(() {
+            this._currentLocation = new GeoPoint(pos.latitude, pos.longitude);
+          });
+          //updateMap();
+          refreshMarker(markerLabel);
+        }, onError: (e) {
+          _scaffoldKey.currentState.showSnackBar(
+              new SnackBar(content: new Text(NO_PLACE_CALLED + _location)));
+        });
       });
     }
   }

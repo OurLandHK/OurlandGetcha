@@ -83,6 +83,8 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
   Widget _pendingButton;
   int _color;
   String _buttonText;
+  Widget _locationField;
+  TextEditingController _txt = TextEditingController();
 
   final FocusNode _locationFocus = FocusNode();  
   final FocusNode _titleFocus = FocusNode();  
@@ -93,10 +95,22 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
   void initState() {
     super.initState();
     if(widget.searchingMsg == null) {
-      _label = LABEL_REGION;
+      _label = LABEL_REGION + ": ";
     } else {
       _label = widget.searchingMsg.text;
     }
+    _locationField = TextField(
+        controller: _txt,
+        focusNode: _locationFocus,
+        decoration: InputDecoration(
+            hintText: LABEL_REGION0),
+        keyboardType: TextInputType.text,
+        onChanged: (value) {
+          setState(() {
+            _location = value;
+            _messageLocation = null;
+          });},
+        onSubmitted: onSubmittedLocation);
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
     userService = new UserService();
@@ -111,6 +125,7 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     _desc = "";
     _parentTitle = "";
     _isSubmitDisable = true;
+    /*
     List<String> dropDownList = [LABEL_NEARBY];
     if(widget.user.homeAddress != null) {
       dropDownList.add(LABEL_REGION0);
@@ -118,7 +133,7 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     if(widget.user.officeAddress != null) {
       dropDownList.add(LABEL_REGION1);
     }    
-
+    */
     //Map map = widget.getCurrentLocation();
     //this._messageLocation = map['GeoPoint'];
     //_locationPermissionGranted = map['LocationPermissionGranted'];
@@ -153,17 +168,7 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
 
   Widget renderLocationField() {
     return Row(children: [SizedBox(width: 12.0), Expanded(child: 
-      TextField(
-        focusNode: _locationFocus,
-        decoration: InputDecoration(
-            hintText: LABEL_REGION0),
-        keyboardType: TextInputType.text,
-        onChanged: (value) {
-          setState(() {
-            _location = value;
-            _messageLocation = null;
-          });},
-        onSubmitted: onSubmitted)), 
+      _locationField), 
         Material(child: Container(
           decoration: BoxDecoration(
                 border: Border.all(width: 0.5, color: Colors.grey),
@@ -182,8 +187,8 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
         SizedBox(width: 12.0)]);
   }
 
-  void onSubmitted(String dummy) {
-    fieldFocusChange(context, _locationFocus, _titleFocus);
+  void onSubmittedLocation(String dummy) {
+    //fieldFocusChange(context, _locationFocus, _titleFocus);
     onPressed();
   }
 
@@ -201,7 +206,7 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
   void onPressed()  {
     if(_location != null && _location.length > 1) {
       print("Pressed" + _location);
-      _geolocator.placemarkFromAddress(_location).then(
+      _geolocator.placemarkFromAddress(_location, localeIdentifier: "zh_HK").then(
           (List<Placemark> placemark) {
         Position pos = placemark[0].position;
         String markerLabel = placemark[0].name;
@@ -212,9 +217,20 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
         //updateMap();
         refreshMarker(markerLabel);
       }, onError: (e) {
-        print(e.toString());
-        // PlatformException thrown by the Geolocation if the address cannot be translate
-        // DO NOTHING
+        _geolocator.placemarkFromAddress(_location, localeIdentifier: "en_HK").then(
+            (List<Placemark> placemark) {
+          Position pos = placemark[0].position;
+          String markerLabel = placemark[0].name;
+          print(markerLabel);
+          setState(() {
+            this._messageLocation= new GeoPoint(pos.latitude, pos.longitude);
+          });
+          //updateMap();
+          refreshMarker(markerLabel);
+        }, onError: (e) {
+          _scaffoldKey.currentState.showSnackBar(
+            new SnackBar(content: new Text(NO_PLACE_CALLED + _location)));
+        });
       });
     }
   }
@@ -239,14 +255,23 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     this._desc = desc;
     String parseText = desc.replaceAll("\n", " ");
     List<String> tempTags = StringHelper.keywordSearch(parseText, "#");
-    List<String> revisedTags = [];
-    tempTags.forEach((tag) {
-      if(tag.length > 0) {
-        revisedTags.add(tag);
-      }
-    });
+    if(tempTags.length == 0) {
+      tempTags = StringHelper.keywordSearch(parseText, "＃");
+    }
+    List<String> locations = StringHelper.keywordSearch(parseText, LABEL_REGION);
+    if(locations.length > 0 && locations[0].length >0) {
+       locations = StringHelper.keywordSearch(parseText, LABEL_REGION+ ":");
+       if(locations.length == 0) {
+         locations = StringHelper.keywordSearch(parseText, LABEL_REGION+ "：");
+       }
+    }   
     setState(() {
-      _tags = revisedTags;
+      _tags = tempTags;
+      if(locations.length > 0 && locations[0].length >0) {
+        _location = locations[0];
+        _txt.text = _location;
+        _messageLocation = null;
+      }
     });
     /*
     rv = StringHelper.keywordSearch(desc, "地點:");
@@ -382,6 +407,7 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
   Widget tagUI(BuildContext context) {
     List<Chip> chips = [];
     this._tags.forEach((tag) {
+      print(tag.length);
       chips.add(Chip(label: Text(tag)));
     });
     return Wrap(runSpacing: 4.0, spacing: 8.0, children: chips);
@@ -492,7 +518,7 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
           TextFormField(
             focusNode: _descFocus,
             onFieldSubmitted: (term) {
-              fieldFocusChange(context, _titleFocus, _descFocus);
+              fieldFocusChange(context, _descFocus, _locationFocus);
             },
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(

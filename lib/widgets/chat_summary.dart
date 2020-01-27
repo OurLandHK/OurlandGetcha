@@ -418,7 +418,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
   }
   Widget _buildStreetAddress(BuildContext context, SearchingMsg _sMsg) {
     if (_sMsg != null && _sMsg.streetAddress != null && _sMsg.streetAddress.length > 0) {
-      String text = LABEL_REGION;
+      String text = LABEL_REGION + ": ";
       if(_sMsg.streetAddress != null) {
         text += _sMsg.streetAddress;
       }

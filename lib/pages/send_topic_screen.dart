@@ -311,14 +311,8 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   void searchForKeywords(String desc) {
     String parseText = desc.replaceAll("\n", " ");
     List<String> tempTags = StringHelper.keywordSearch(parseText, "#");
-    List<String> revisedTags = [];
-    tempTags.forEach((tag) {
-      if(tag.length > 0) {
-        revisedTags.add(tag);
-      }
-    });
     setState(() {
-      _tags = revisedTags;
+      _tags = tempTags;
     });
   }
 

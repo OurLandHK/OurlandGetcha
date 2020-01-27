@@ -174,20 +174,32 @@ class _SearchingMainState extends State<SearchingMain>{
     void onPressed(context, tag)  {
       GeoPoint newLocation; 
       if(_streetAddress != null && _streetAddress.length > 0) {
-      _geolocator.placemarkFromAddress(_streetAddress).then((List<Placemark> placemark) {
-        Position pos = placemark[0].position;
-        newLocation = new GeoPoint(pos.latitude, pos.longitude);
-        Navigator.of(context).push(
-          new MaterialPageRoute<void>(
-            builder: (BuildContext context) {
-              return new SearchingScreen(user: widget.user, getCurrentLocation: widget.getCurrentLocation, preferences: widget.preferences, fixLocation: newLocation, streetAddress: _streetAddress, tag: tag);
-            },
-          ),
-        );
-      }, onError: (e) {
-              _scaffoldKey.currentState.showSnackBar(
-          new SnackBar(content: new Text(NO_PLACE_CALLED + _streetAddress)));
-      });
+        _geolocator.placemarkFromAddress(_streetAddress,localeIdentifier: "zh_HK").then((List<Placemark> placemark) {
+          Position pos = placemark[0].position;
+          newLocation = new GeoPoint(pos.latitude, pos.longitude);
+          Navigator.of(context).push(
+            new MaterialPageRoute<void>(
+              builder: (BuildContext context) {
+                return new SearchingScreen(user: widget.user, getCurrentLocation: widget.getCurrentLocation, preferences: widget.preferences, fixLocation: newLocation, streetAddress: _streetAddress, tag: tag);
+              },
+            ),
+          );
+        }, onError: (e) {
+          _geolocator.placemarkFromAddress(_streetAddress,localeIdentifier: "en_HK").then((List<Placemark> placemark) {
+            Position pos = placemark[0].position;
+            newLocation = new GeoPoint(pos.latitude, pos.longitude);
+            Navigator.of(context).push(
+              new MaterialPageRoute<void>(
+                builder: (BuildContext context) {
+                  return new SearchingScreen(user: widget.user, getCurrentLocation: widget.getCurrentLocation, preferences: widget.preferences, fixLocation: newLocation, streetAddress: _streetAddress, tag: tag);
+                },
+              ),
+            );
+          }, onError: (e) {
+                  _scaffoldKey.currentState.showSnackBar(
+              new SnackBar(content: new Text(NO_PLACE_CALLED + _streetAddress)));
+          });
+        });
       } else {
         Navigator.of(context).push(
           new MaterialPageRoute<void>(
