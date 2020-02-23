@@ -280,7 +280,8 @@ class _SearchingMainState extends State<SearchingMain>{
         searchingMsg: _recentTopic.searchingMsg,
         messageLocation: _recentTopic.geoCenter,
         getCurrentLocation: widget.getCurrentLocation,
-        locationPermissionGranted: !widget.disableLocation));
+        locationPermissionGranted: !widget.disableLocation,
+        pending: false,));
     }
 
 

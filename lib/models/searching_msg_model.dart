@@ -274,6 +274,9 @@ class SearchingMsg {
       map['weekdaysOpennings'] = entryList;
     }
     map['link'] = _link;
+    if(_polling != null) {
+      map['polling'] = _polling.toMap();
+    }
     //List<dynamic> get polling => _polling;
     return map;
   }

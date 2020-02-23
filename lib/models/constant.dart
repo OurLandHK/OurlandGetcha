@@ -72,8 +72,10 @@ const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
 const List<String> SEARCHING_STATUS_OPTIONS = ['開放', '完結', '政府跟進中', '流料', '不恰當訊息', "等待審批", "撤回"];
 const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠/美食", "投票", "秘境", "維修/求助", "交換", "我地.市正"];
+const List<String> MESSAGE_TYPE_SELECTION =  ["料","活動","投票"];
 const String LABEL_TOPIC = "Memo";
 const String LABEL_NEW_TOPIC = "新Memo";
+const String LABEL_NEW_MESSAGE = "新 ";
 const String LABEL_NEW_BROADCAST_TOPIC = "新廣播";
 const String LABEL_UPDATE_TOPIC = " 有變";
 const String LABEL_SHOW = "開來見我";
@@ -95,6 +97,14 @@ const String PERM_LOCATION_NOT_GRANTED = "唔該俾我用 GPS";
 const String PERM_LOCATION_GRANT_BTN_TEXT = "俾";
 const String PERM_LOCATION_NOT_GRANT_BTN_TEXT = "唔俾";
 const String LOCATION_NOT_VALIDATE = '地點未入';
+
+const String LABEL_POLLING_END_DATE = '';
+const String LABEL_POLLING_START_DATE = '';
+const String LABEL_POLLING_TITLE = '';
+const String LABEL_POLLING_OPTION = '';
+const String HINT_POLLING_END_DATE = '';
+const String HINT_POLLING_START_DATE = '';
+const String HINT_POLLING_TITLE = '';
 
 const String NEW_HOME_LOCATION = "入新地點1";
 const String NEW_OFFICE_LOCATION = "入新地點2";
@@ -147,7 +157,7 @@ const String LABEL_APPROVE = "審批";
 const String LABEL_REJECT= "撤回";
 const String LABEL_NO_PENDING_MESSAGE = "沒有等待審批";
 
-const double MAP_HEIGHT = 200.0;
+const double MAP_HEIGHT = 180.0;
 const double TOOLBAR_HEIGHT = 25.0;
 const double CREATE_TOPIC_MAP_HEIGHT = 150.0;
 

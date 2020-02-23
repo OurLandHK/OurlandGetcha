@@ -201,7 +201,7 @@ class MessageService {
       serverUrl = imageUrls['serverUrl'];
       indexData['imageUrl'] = serverUrl;
       indexData['publicImageURL'] = downloadUrl;
-      indexData['status']= SEARCHING_STATUS_OPTIONS[0];
+      indexData['status']= SEARCHING_STATUS_OPTIONS[5];
     }
     try {
       return _pendingSearchingMsgCollection.add(indexData);        
@@ -212,7 +212,7 @@ class MessageService {
 
   Future approveSearchingMessage(SearchingMsg searchingMsg) async {
     var indexData = searchingMsg.toMap();
-    indexData['status'] = SEARCHING_STATUS_OPTIONS[5];
+    indexData['status'] = SEARCHING_STATUS_OPTIONS[0];
     try {
       return _searchingMsgCollection.document(searchingMsg.key).setData(indexData).then((data) {
         return _pendingSearchingMsgCollection.document(searchingMsg.key).delete();
