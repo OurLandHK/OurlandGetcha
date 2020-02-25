@@ -73,6 +73,7 @@ const String TAG_ALL = "所有";
 const List<String> SEARCHING_STATUS_OPTIONS = ['開放', '完結', '政府跟進中', '流料', '不恰當訊息', "等待審批", "撤回"];
 const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠/美食", "投票", "秘境", "維修/求助", "交換", "我地.市正"];
 const List<String> MESSAGE_TYPE_SELECTION =  ["料","活動","投票"];
+const List<String> DURATION_SELECTION = ['0:30', '1:00', '1:30','2:00','3:00','4:00','6:00','8:00','10:00','12:00','18:00','一天','兩天','三天','四天','五天','六天','一週'];
 const String LABEL_TOPIC = "Memo";
 const String LABEL_NEW_TOPIC = "新Memo";
 const String LABEL_NEW_MESSAGE = "新 ";
@@ -98,13 +99,17 @@ const String PERM_LOCATION_GRANT_BTN_TEXT = "俾";
 const String PERM_LOCATION_NOT_GRANT_BTN_TEXT = "唔俾";
 const String LOCATION_NOT_VALIDATE = '地點未入';
 
-const String LABEL_POLLING_END_DATE = '';
-const String LABEL_POLLING_START_DATE = '';
-const String LABEL_POLLING_TITLE = '';
-const String LABEL_POLLING_OPTION = '';
-const String HINT_POLLING_END_DATE = '';
-const String HINT_POLLING_START_DATE = '';
-const String HINT_POLLING_TITLE = '';
+const String LABEL_POLLING_END_DATE = '投票結束日期';
+const String LABEL_POLLING_START_DATE = '投票開始日期';
+const String LABEL_POLLING_TITLE = '投票題目';
+const String LABEL_POLLING_OPTION = '投票選項';
+const String HINT_POLLING_END_DATE = '23：59 結束投票';
+const String HINT_POLLING_START_DATE = '00:00 開始投票 ';
+const String HINT_POLLING_TITLE = '最好以問題型式';
+
+const String LABEL_EVENT_START_DATE = 'Start Date';
+const String HINT_EVENT_START_DATE = 'Start Date Hint';
+const String LABEL_EVENT_DURATION = 'Duration';
 
 const String NEW_HOME_LOCATION = "入新地點1";
 const String NEW_OFFICE_LOCATION = "入新地點2";
@@ -121,7 +126,7 @@ const String NO_PLACE_CALLED = "找不到 -》";
 
 const String TOPIC_ROOT_ID = "";
 
-const String LABEL_TIME = "時間\n";
+const String LABEL_TIME = "時間:";
 const String LABEL_START_TIME = "開始: ";
 const String LABEL_DATE = "日期: ";
 const String LABEL_END_TIME = "完結: ";
@@ -132,7 +137,7 @@ const List<String> LABEL_RANKING_RANGE = ["所有", "近120日"];
 
 
 const String LABEL_CLOSED = "關閉";
-const String LABEL_DURATION = "為期";
+const String LABEL_DURATION = "為期: ";
 const String LABEL_VOTED = "閣下已投票 ";
 const String LABEL_VOTE = "我要投票"; 
 const String LABEL_KM = "km";

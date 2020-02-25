@@ -468,50 +468,72 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
   Widget _buildTimingInfo(BuildContext context, SearchingMsg _sMsg) {
     String text = "";
     if (_sMsg != null) {
-      // check any start time
-      if(_sMsg.start != null &&_sMsg.start.millisecondsSinceEpoch != 0) {
-        text += LABEL_DATE;
-        text += LABEL_START_TIME;
-        text += DateFormat('MMM dd').format(
-            new DateTime.fromMicrosecondsSinceEpoch(
-                _sMsg.start.microsecondsSinceEpoch));
-        if(_sMsg.startTime != null) {
-          text += _sMsg.startTime;
-        }
-        text += "\n";
-        if(_sMsg.endDate !=null && _sMsg.endDate.millisecondsSinceEpoch!= 0) {
-          text += LABEL_END_TIME;
-          text += DateFormat('MMM dd').format(
+      if(_sMsg.duration != null) { // For Activities (With Duration)
+        if(_sMsg.start != null &&_sMsg.start.millisecondsSinceEpoch != 0) {
+          text += LABEL_DATE;
+          text += DateFormat('yyyy MMM dd').format(
               new DateTime.fromMicrosecondsSinceEpoch(
-                  _sMsg.endDate.microsecondsSinceEpoch));
+                  _sMsg.start.microsecondsSinceEpoch));
           text += "\n";
         }
-        if(_sMsg.duration != null) {
-            text += LABEL_DURATION;
-            text += _sMsg.duration;
-            text += "\n";
+        if(_sMsg.startTime != null) {
+          text += LABEL_TIME;
+          text += " " + _sMsg.startTime;
+          text += "\n";
         }
-      }
-      // check any opening hour
-      if(_sMsg.everydayOpenning != null) {
-        text += LABEL_EVERYDAY;
-        text += _sMsg.everydayOpenning.toString();
+        text += LABEL_DURATION;
+        text += _sMsg.duration;
         text += "\n";
-      } else {
-        // check any weekly openninbg hour
-        //print("Open ${_sMsg.weekdaysOpennings.length}");
-        if(_sMsg.weekdaysOpennings != null) {
-          for(int i = 0; i < _sMsg.weekdaysOpennings.length; i++) {
-            text += LABEL_WEEKLY[i];
-            text += _sMsg.weekdaysOpennings[i].toString();
-            text += "\n";
+      } else if(_sMsg.endDate !=null && _sMsg.endDate.millisecondsSinceEpoch!= 0) { // For Voteing
+        if(_sMsg.start != null &&_sMsg.start.millisecondsSinceEpoch != 0) {
+          text += LABEL_START_TIME;
+          text += DateFormat('yyyy MMM dd').format(
+              new DateTime.fromMicrosecondsSinceEpoch(
+                  _sMsg.start.microsecondsSinceEpoch));
+          text += "\n";
+        }
+        text += LABEL_END_TIME;
+        text += DateFormat('yyyy MMM dd').format(
+            new DateTime.fromMicrosecondsSinceEpoch(
+                _sMsg.endDate.microsecondsSinceEpoch));
+              // check any opening hour
+        text += "\n";
+        if(_sMsg.everydayOpenning != null) {
+          text += LABEL_EVERYDAY;
+          text += _sMsg.everydayOpenning.toString();
+          text += "\n";
+        } else {
+          // check any weekly openninbg hour
+          //print("Open ${_sMsg.weekdaysOpennings.length}");
+          if(_sMsg.weekdaysOpennings != null) {
+            for(int i = 0; i < _sMsg.weekdaysOpennings.length; i++) {
+              text += LABEL_WEEKLY[i];
+              text += _sMsg.weekdaysOpennings[i].toString();
+              text += "\n";
+            }
+          }
+        }          
+      } else { // For Shop
+        // check any opening hour
+        if(_sMsg.everydayOpenning != null) {
+          text += LABEL_EVERYDAY;
+          text += _sMsg.everydayOpenning.toString();
+          text += "\n";
+        } else {
+          // check any weekly openninbg hour
+          //print("Open ${_sMsg.weekdaysOpennings.length}");
+          if(_sMsg.weekdaysOpennings != null) {
+            for(int i = 0; i < _sMsg.weekdaysOpennings.length; i++) {
+              text += LABEL_WEEKLY[i];
+              text += _sMsg.weekdaysOpennings[i].toString();
+              text += "\n";
+            }
           }
         }
       }
     }
 
-    if(text.length != 0) {
-      text = LABEL_TIME + text;    
+    if(text.length != 0) {  
       return Padding(
           padding: EdgeInsets.all(2.0),
           child: new Text(text,

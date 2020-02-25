@@ -201,8 +201,8 @@ class MessageService {
       serverUrl = imageUrls['serverUrl'];
       indexData['imageUrl'] = serverUrl;
       indexData['publicImageURL'] = downloadUrl;
-      indexData['status']= SEARCHING_STATUS_OPTIONS[5];
     }
+    indexData['status']= SEARCHING_STATUS_OPTIONS[5];
     try {
       return _pendingSearchingMsgCollection.add(indexData);        
     } catch (exception) {
