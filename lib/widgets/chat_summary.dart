@@ -107,6 +107,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
       messageService = new MessageService(widget.user);
       chatStream = new ValueNotifier(this.messageService.getChatSnap(this.widget.topic.id));
     }
+    if(widget.topic.geoCenter != null) {
       _tabController = new TabController(vsync: this, initialIndex: 0, length: 5);
       _tabController.addListener(() {
         switch(_tabController.index) {
@@ -153,7 +154,49 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
                   Icon(Icons.comment, color: Colors.black),
             ),                                  // Button send message  
           ]
-        );      
+        ); 
+    } else {
+            _tabController = new TabController(vsync: this, initialIndex: 0, length: 5);
+      _tabController.addListener(() {
+        switch(_tabController.index) {
+          case 0:
+            widget.toggleComment(Chat_Mode.INFO_MODE);
+            break;
+          case 1:
+            widget.toggleComment(Chat_Mode.USER_MODE);
+            break;
+          case 2:
+            widget.toggleComment(Chat_Mode.MEDIA_MODE);
+            break;
+          default:
+            widget.toggleComment(Chat_Mode.COMMENT_MODE);
+        }
+      });
+      _tabBar = TabBar(
+          //color: TOPIC_COLORS[widget.topic.color],
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          tabs: <Widget>[
+            //  new Tab(icon: new Icon(Icons.camera_alt)),
+            new Tab(
+              child: 
+                  Icon(Icons.info, color: Colors.black),
+            ),
+            new Tab(
+              child: 
+                  Icon(Icons.people, color: Colors.black),
+            ),      
+            new Tab(
+              child: 
+                  Icon(Icons.photo_album, color: Colors.black),
+            ),
+            new Tab(
+              child: 
+                  Icon(Icons.comment, color: Colors.black),
+            ),                                  // Button send message  
+          ]
+        ); 
+    }
     if(widget.imageUrl != null && widget.imageUrl.length != 0) {
       if(isBeginWithLink(widget.topic.topic)) {
         _summaryImageWidget = new ImageWidget(width: (widget.width * 0.9), height: null, imageUrl: widget.imageUrl, link: widget.topic.topic);
@@ -678,6 +721,9 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
             widgetList.add(_summaryImageWidget);
           }
         }
+        if(_titleLink != null) {
+          widgetList.add(_titleLink);
+        }         
       }
       if(widget.topic.content != null && widget.topic.content.length != 0) {
           Widget _contentText = new Container(child: Text(widget.topic.content,
@@ -699,6 +745,9 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
           widgetList.add(_buildLink(context, msg));
           widgetList.add(_buildTimingInfo(context, msg));
           widgetList.add(_buildPolling(context, msg));
+          if(_titleLink != null) {
+            widgetList.add(_titleLink);
+          } 
         }      
       } else {
         if(_summaryImageWidget != null) {
@@ -737,36 +786,36 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
     int colorIndex = widget.topic.color;
     // Display all image in the chat.
     switch (widget.chatMode) {
-     case Chat_Mode.MEDIA_MODE:
-      List<String> _urlList = this._galleryImageUrlList.values.toList();
-      print("galleryImageUrlList ${_urlList.length}");
-      for(int i = 0; i< _urlList.length; i++) {
-        String imageUrl = _urlList[i];
-        colorIndex++;
-        colorIndex%=TOPIC_COLORS.length;
-        Widget _imageWidget =  new ImageWidget(width: (widget.width * 0.9), height: null, imageUrl: imageUrl);
-        Widget _imagePostit = Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Container(
-                padding: EdgeInsets.all(4.0),
-                decoration: BoxDecoration(
-                  color: TOPIC_COLORS[colorIndex],
-                  border: Border.all(width: 1, color: Colors.grey),
-                  boxShadow: [
-                    new BoxShadow(
-                      color: Colors.grey,
-                      offset: new Offset(0.0, 2.5),
-                      blurRadius: 4.0,
-                      spreadRadius: 0.0
-                    )
-                  ],
-                  //borderRadius: BorderRadius.circular(6.0)
-                  ),
-                child: _imageWidget
-              ));
-        finalWidgetList.add(_imagePostit);
-      }
-      break;
+      case Chat_Mode.MEDIA_MODE:
+        List<String> _urlList = this._galleryImageUrlList.values.toList();
+        print("galleryImageUrlList ${_urlList.length}");
+        for(int i = 0; i< _urlList.length; i++) {
+          String imageUrl = _urlList[i];
+          colorIndex++;
+          colorIndex%=TOPIC_COLORS.length;
+          Widget _imageWidget =  new ImageWidget(width: (widget.width * 0.9), height: null, imageUrl: imageUrl);
+          Widget _imagePostit = Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Container(
+                  padding: EdgeInsets.all(4.0),
+                  decoration: BoxDecoration(
+                    color: TOPIC_COLORS[colorIndex],
+                    border: Border.all(width: 1, color: Colors.grey),
+                    boxShadow: [
+                      new BoxShadow(
+                        color: Colors.grey,
+                        offset: new Offset(0.0, 2.5),
+                        blurRadius: 4.0,
+                        spreadRadius: 0.0
+                      )
+                    ],
+                    //borderRadius: BorderRadius.circular(6.0)
+                    ),
+                  child: _imageWidget
+                ));
+          finalWidgetList.add(_imagePostit);
+        }
+        break;
       case Chat_Mode.USER_MODE:   
         List<String> userIdList = widget.getAllUserList();
         print("userIdListt ${userIdList.length}");
@@ -804,10 +853,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
           widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._markerList, updateCenter: null,));
         } else {
           widgetList.add(ChatMap(topLeft: widget.topLeft.value, bottomRight:  widget.bottomRight.value, width: widget.width, height:  widget.height * 0.95, markerList: this._pendingMarkerList.values.toList(), updateCenter: null,));
-        }
-        if(_titleLink != null) {
-          widgetList.add(_titleLink);
-        }  
+        } 
         break; 
       default:
         break; 

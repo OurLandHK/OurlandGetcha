@@ -63,7 +63,7 @@ class Topic {
   int get color => _color;
   String get searchingId => _searchingId;
   String get blockReason => _blockReason;
-  GeoPoint get geoCenter => (this._geocenter != null)? this._geocenter: GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight);
+  GeoPoint get geoCenter => (this._geocenter != null)? this._geocenter: this.geoTopLeft != null ? GeoHelper.boxCenter(this.geoTopLeft, this.geoBottomRight) :null;
   
 
   bool isAddressWithin(GeoPoint address) {
@@ -71,6 +71,9 @@ class Topic {
     if(GeoHelper.isGeoPointInBoudingBox(address, geoTopLeft, geoBottomRight)) {
       rv = true;
     } else if(GeoHelper.isGeoPointInBoudingBox(address, geoBottomRight, geoTopLeft)){
+      rv = true;
+    }
+    if(geoCenter == null) {
       rv = true;
     }
     return rv;

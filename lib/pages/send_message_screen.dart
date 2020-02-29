@@ -314,7 +314,7 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
       appBar: new AppBar(
         backgroundColor: TOPIC_COLORS[_color],
         title: Row(children:[Text(
-          LABEL_NEW_MESSAGE,
+          LABEL_NEW,
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
         DropdownButton(

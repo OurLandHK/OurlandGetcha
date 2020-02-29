@@ -8,9 +8,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:ourland_native/pages/topic_screen.dart';
 import 'package:ourland_native/pages/searching_main.dart';
 import 'package:ourland_native/widgets/popup_menu.dart';
+import 'package:ourland_native/widgets/fab_bottom_app_bar.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/send_topic_screen.dart';
+import 'package:ourland_native/pages/broadcast_screen.dart';
 import 'package:ourland_native/pages/send_message_screen.dart';
 import 'package:ourland_native/pages/notification_screen.dart';
 import 'package:ourland_native/services/user_service.dart';
@@ -72,11 +74,11 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   TabController _tabController;
   String uid = '';
   bool _isFabShow = false;
+  String _fabText = '';
 //  List<CameraDescription> cameras;
   bool _locationPermissionGranted = true;
   bool _disableLocation = false;
   Widget _nearBySelection;
-  Widget _searchingMain;
   Widget _pendingWidget;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   UserService userService = new UserService();
@@ -101,19 +103,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   void initState() {
     this.uid = '';
     _nearBySelection = new CircularProgressIndicator();
-    _searchingMain = new CircularProgressIndicator();
     messageService = new MessageService(widget.user);
-    _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
-    /*
-    _webView = new WebView(
-                initialUrl: OURLAND_SEARCH_HOST,
-                onWebViewCreated: (WebViewController webViewController) {
-                  _controller = webViewController;
-                },
-                javascriptMode: JavascriptMode.unrestricted,
-              );
-    _webviewPlugin = new WebviewScaffold(url: OURLAND_SEARCH_HOST, geolocationEnabled: true, appCacheEnabled: true, supportMultipleWindows: true, withJavascript: true, withLocalStorage: true,);
-    */
+    _tabController = new TabController(vsync: this, initialIndex: 0, length: 4);
     super.initState();
     _geolocator.checkGeolocationPermissionStatus().then((geolocationStatus) {
       PermissionHandler()
@@ -131,7 +122,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
               print('initState Poisition ${position}');
               _currentLocation = new GeoPoint(position.latitude, position.longitude);
               _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
-              _searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences, disableLocation: _disableLocation);
+              //_searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences, disableLocation: _disableLocation);
             }
           });
         }
@@ -323,15 +314,22 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     return new NotificationScreen(user: widget.user);
   }
 
+  Widget showBroadcast() {
+    return new BroadcastScreen(user: widget.user);
+  }  
+
   void updateLocation() {
     Widget rv;
     bool isFabShow = false;
+    String fabText = "";
     if(widget.user != null) {
       isFabShow = true;
+      fabText = LABEL_NEW_MEMO;
     }
     rv = showNearby();
     setState((){
       this._isFabShow = isFabShow;
+      this._fabText = fabText;
       this._nearBySelection = rv;
     });
   }   
@@ -352,19 +350,23 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     _tabController.addListener(() {
       switch(_tabController.index) {
         case 0:
+        case 3:
           if(widget.user != null && widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
             setState(() {
               this._isFabShow = true;
+              this._fabText = LABEL_NEW_BROADCAST;
             });
           } else {
             setState(() {
               this._isFabShow = false;
+              this._fabText = "";
             });            
           }
           break; 
         case 2:
           setState(() {
             this._isFabShow = true;
+            this._fabText = LABEL_NEW_MESSAGE;
             //this._isFabShow = false;
           });
           break;
@@ -373,7 +375,6 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       }
     });
     void sendMessageClick() {
-      GeoPoint messageLocation;
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
@@ -382,7 +383,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
                 getCurrentLocation: getCurrentLocation, user: widget.user, searchingMsg: null);
             } else {
             return new SendTopicScreen(
-                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: (_tabController.index == 0),);
+                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: (_tabController.index != 1),);
             }
           },
         ),
@@ -395,30 +396,6 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
         appBar: new AppBar(
           title: new Text(_app_name),
           elevation: 0.7,
-          bottom: new TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.white,
-            tabs: <Widget>[
-              //  new Tab(icon: new Icon(Icons.camera_alt)),
-              new Tab(
-                child: Row(
-                  children: [
-                    Icon(Icons.public),
-                    new Text(LABEL_CARE),
-                  ])
-              ),
-              new Tab(
-                child: Row(
-                  children: [
-                    Icon(Icons.location_city),
-                    new Text(LABEL_DISTRICT),
-                  ])
-              ),
-              new Tab(
-                icon: new Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH)
-              ),
-            ],
-          ),
           actions: <Widget>[
             //new Icon(Icons.search),
             new Padding(
@@ -431,12 +408,14 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           physics: NeverScrollableScrollPhysics(),
           controller: _tabController,
           children: <Widget>[
-            showNotification(),
+            showBroadcast(),
             _nearBySelection,
             SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences, disableLocation: _disableLocation),
+            showNotification(),
             //new CircularProgressIndicator(),
           ],
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton:  new Opacity(
             opacity: _isFabShow ? 1.0 : 0.0,
             child: new FloatingActionButton(
@@ -447,6 +426,19 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
                 ),
               onPressed: () => sendMessageClick(),
             )
+        ),
+        bottomNavigationBar: FABBottomAppBar(
+          centerItemText: _fabText,
+          backgroundColor: Theme.of(context).primaryColor,
+          selectedColor: Theme.of(context).accentColor,
+          notchedShape: _isFabShow ? CircularNotchedRectangle() : null,
+          onTabSelected: (_selectedTab) => _tabController.index = _selectedTab,
+          items: [
+            FABBottomAppBarItem(iconData: Icons.layers, text: LABEL_CARE),
+            FABBottomAppBarItem(iconData: Icons.dashboard, text: LABEL_LENNON_WALL),
+            FABBottomAppBarItem(iconWidget: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH), text: ''),
+            FABBottomAppBarItem(iconData: Icons.bookmark, text: LABEL_BOOKMARK),
+          ],
         ),
       );
     } else {

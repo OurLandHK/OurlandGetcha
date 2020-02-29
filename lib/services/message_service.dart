@@ -34,10 +34,6 @@ class MessageService {
   User get user => _user;
 
   MessageService(this._user);
-/*
-  Stream<List<SearchingMsg>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
-    Stream<List<SearchingMsg>> rv;
-*/
 
  Stream<QuerySnapshot> getPendingSearchingMsgSnap(String status) {
    Query sourceQuery = _pendingSearchingMsgCollection;
@@ -171,10 +167,14 @@ class MessageService {
     });
   }
 
-  Stream<QuerySnapshot> getBroadcastSnap() {
+  Stream<QuerySnapshot> getBroadcastSnap(String firstTag) {
     Stream<QuerySnapshot> rv;
-    rv = _topicCollection.where("public", isEqualTo: true)
-          .orderBy('lastUpdate', descending: true)
+    Query query = _topicCollection.where("public", isEqualTo: true);
+    if(firstTag != null && firstTag.length != 0) {
+      query = query.where("tags", arrayContains: firstTag);
+    }
+    //QueryConstraint(field: "tag", arrayContains: firstTag)
+    rv = query.orderBy('lastUpdate', descending: true)
           .snapshots();
     return rv;
   }  
