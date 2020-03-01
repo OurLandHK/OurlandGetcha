@@ -68,13 +68,14 @@ class Topic {
 
   bool isAddressWithin(GeoPoint address) {
     bool rv = false;
-    if(GeoHelper.isGeoPointInBoudingBox(address, geoTopLeft, geoBottomRight)) {
-      rv = true;
-    } else if(GeoHelper.isGeoPointInBoudingBox(address, geoBottomRight, geoTopLeft)){
-      rv = true;
-    }
     if(geoCenter == null) {
       rv = true;
+    } else {
+      if(GeoHelper.isGeoPointInBoudingBox(address, geoTopLeft, geoBottomRight)) {
+        rv = true;
+      } else if(GeoHelper.isGeoPointInBoudingBox(address, geoBottomRight, geoTopLeft)){
+        rv = true;
+      }
     }
     return rv;
   }
@@ -172,11 +173,13 @@ class Topic {
     this._isShowName = map['isShowGeo'];
     this._geobottomright = map['geobottomright'];
     this._geotopleft = map['geotopleft'];
-    if(this._geobottomright.latitude == this._geotopleft.latitude && 
-        this._geobottomright.longitude == this._geotopleft.longitude) {
-      var destBox = GeoHelper.findBoxGeo(this._geobottomright, 1000.0);
-      this._geobottomright = destBox['bottomRight'];
-      this._geotopleft = destBox['topLeft'];
+    if(this._geobottomright != null && this._geotopleft != null) {
+      if(this._geobottomright.latitude == this._geotopleft.latitude && 
+          this._geobottomright.longitude == this._geotopleft.longitude) {
+        var destBox = GeoHelper.findBoxGeo(this._geobottomright, 1000.0);
+        this._geobottomright = destBox['bottomRight'];
+        this._geotopleft = destBox['topLeft'];
+      }
     }
 
     this._createdUser = User.fromBasicMap(map['createdUser']);

@@ -156,7 +156,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
           ]
         ); 
     } else {
-            _tabController = new TabController(vsync: this, initialIndex: 0, length: 5);
+      _tabController = new TabController(vsync: this, initialIndex: 0, length: 4);
       _tabController.addListener(() {
         switch(_tabController.index) {
           case 0:

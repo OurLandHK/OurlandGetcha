@@ -16,6 +16,9 @@ import 'package:ourland_native/models/searching_msg_model.dart';
 final CollectionReference _topicCollection =
     Firestore.instance.collection('topic');
 
+final CollectionReference _broadcastCollection =
+    Firestore.instance.collection('broadcast');
+
 final CollectionReference _ourlandCollection =
     Firestore.instance.collection('ourlandDB');
 
@@ -167,9 +170,28 @@ class MessageService {
     });
   }
 
+  Future<Map> getFirstPage() {
+    var ourlandReference = _ourlandCollection.document("FirstPage");
+    return ourlandReference.get().then((onValue0) {
+      return onValue0.data;
+    });
+  }  
+
+  Stream<QuerySnapshot> getPublicSnap(String firstTag) {
+    Stream<QuerySnapshot> rv;
+    Query query = _broadcastCollection.where("public", isEqualTo: true);
+    if(firstTag != null && firstTag.length != 0) {
+      query = query.where("tags", arrayContains: firstTag);
+    }
+    //QueryConstraint(field: "tag", arrayContains: firstTag)
+    rv = query.orderBy('lastUpdate', descending: true)
+          .snapshots();
+    return rv;
+  }  
+
   Stream<QuerySnapshot> getBroadcastSnap(String firstTag) {
     Stream<QuerySnapshot> rv;
-    Query query = _topicCollection.where("public", isEqualTo: true);
+    Query query = _broadcastCollection.where("public", isEqualTo: true);
     if(firstTag != null && firstTag.length != 0) {
       query = query.where("tags", arrayContains: firstTag);
     }
@@ -232,6 +254,42 @@ class MessageService {
     }    
   }  
 
+  Future sendBroadcastMessage(Topic topic, File imageFile) async {
+    var chatReference;
+    var indexReference;
+    String imageUrl;
+    if(imageFile != null) {
+      imageUrl = await uploadGetchaImage(imageFile);
+    }
+    
+    var indexData = topic.toMap();
+    if(imageUrl != null) {
+      indexData['imageUrl'] =  imageUrl;
+    }
+    //indexData['public'] = false;
+    String chatText = topic.content;
+    if(chatText == null || chatText.length == 0) {
+      chatText = topic.topic;
+    }
+    var chatData = {
+          'created': topic.created,
+          'id': topic.id,
+          'geo': null,
+          'content': chatText,
+          'type': 0,
+          'createdUser' : topic.createdUser.toBasicMap(),
+    };
+    indexReference = _broadcastCollection.document(topic.id);
+    chatReference = _chatCollection.document(topic.id).collection("messages").document(topic.id);
+    try {
+      return indexReference.setData(indexData).then(() {
+        return chatReference.setData(chatData);
+      });      
+    } catch (exception) {
+      print(exception);
+    }
+  }
+
   Future sendTopicMessage(GeoPoint position, Topic topic, File imageFile) async {
     var chatReference;
     var indexReference;
@@ -285,7 +343,11 @@ class MessageService {
       DocumentReference chatReference;
       DocumentReference indexReference;
       String parentID = topic.id;
-      indexReference = _topicCollection.document(parentID);
+      if(topic.geoTopLeft != null) {
+        indexReference = _topicCollection.document(parentID);
+      } else {
+        indexReference = _broadcastCollection.document(parentID);
+      }
       return indexReference.get().then((var indexDataSnap) {
         if(indexDataSnap.exists) {
           topic = Topic.fromMap(indexDataSnap.data);
@@ -306,13 +368,7 @@ class MessageService {
             content = BlockLevels[1] + ": " + content;
             break;
         }
-        GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
-
-        Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(topic.geoTopLeft, topic.geoBottomRight, dest, 1000);
         Map<String, dynamic> indexData = topic.toMap();
-        indexData['geotopleft'] = enlargeBox['topLeft'];
-        indexData['geobottomright'] = enlargeBox['bottomRight'];
-        indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
         indexData['lastUpdateUser'] = basicUserMap;
         indexData['lastUpdate'] = sendMessageTime;
         // for Hide and show
@@ -330,12 +386,20 @@ class MessageService {
             indexData['public'] = false;
             break;
         }
-
+        GeoPoint geo;
+        if(position != null && topic.geoTopLeft != null) {
+          GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
+          Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(topic.geoTopLeft, topic.geoBottomRight, dest, 1000);   
+          indexData['geotopleft'] = enlargeBox['topLeft'];
+          indexData['geobottomright'] = enlargeBox['bottomRight'];
+          indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
+          geo = GeoPoint(position.latitude, position.longitude);
+        }
 
         var chatData = {
               'created': sendMessageTime,
               'id': sendMessageTimeString,
-              'geo': new GeoPoint(position.latitude, position.longitude),
+              'geo': geo,
               'content': content,
               'type': type,
               'createdUser' : basicUserMap,

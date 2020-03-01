@@ -252,7 +252,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
     } 
     return new Container(
       child: StreamBuilder(
-        stream: this.messageService.getBroadcastSnap(null),
+        stream: this.messageService.getPublicSnap(null),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(

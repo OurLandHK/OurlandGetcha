@@ -28,9 +28,10 @@ import 'package:geodesy/geodesy.dart';
 class BroadcastScreen extends StatefulWidget {
   final User user;
   final SharedPreferences preferences;
+  List<String> youtubeChannelList = [];
   BroadcastScreenState _state;
 
-  BroadcastScreen({Key key, @required this.user, @required this.preferences}) : super(key: key);
+  BroadcastScreen({Key key, @required this.user, @required this.preferences, @required this.youtubeChannelList}) : super(key: key);
   @override
   State createState() {
     _state = new BroadcastScreenState();
@@ -39,11 +40,11 @@ class BroadcastScreen extends StatefulWidget {
 }
 class BroadcastScreenState extends State<BroadcastScreen> with TickerProviderStateMixin  {
   BroadcastScreenState({Key key});
-  MessageService messageService;
+  MessageService _messageService;
 
   var listMessage;
 
-  List<DropdownMenuItem<String>> _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION , true);
+  List<DropdownMenuItem<String>> _tagDropDownMenuItems;
 
   bool isLoading;
   bool expanded;
@@ -55,14 +56,25 @@ class BroadcastScreenState extends State<BroadcastScreen> with TickerProviderSta
   final TextEditingController textEditingController = new TextEditingController();
   final ScrollController listScrollController = new ScrollController();
   final FocusNode focusNode = new FocusNode();
-  Function _updateCenter;
+  Topic _recentTopic;
 
   @override
   void initState() {
     super.initState();
+    _tagDropDownMenuItems = getDropDownMenuItems(widget.youtubeChannelList , true);
     isLoading = false;
     focusNode.addListener(onFocusChange);
-    messageService = new MessageService(widget.user);
+    _messageService = new MessageService(widget.user);
+    initPlatformState();
+  }
+
+  initPlatformState() async {
+    _messageService.getLatestTopic().then((topic) {
+      //print("${topic.id}");
+      setState(() {
+        _recentTopic = topic;
+      });
+    });
   }
   void onFocusChange() {
     if (focusNode.hasFocus) {
@@ -82,8 +94,8 @@ class BroadcastScreenState extends State<BroadcastScreen> with TickerProviderSta
   Widget build(BuildContext context) {
     List<Widget> buildToolBar(BuildContext context) {
       return  <Widget> [
-                Expanded(flex: 1, child: Text(LABEL_HAS, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
-                Expanded(flex: 2, child: DropdownButton(
+                Expanded(flex: 1, child: Text(LABEL_PROGRAM, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
+                Expanded(flex: 3, child: DropdownButton(
                     value: _firstTag,
                     items: _tagDropDownMenuItems,
                     style: Theme.of(context).textTheme.subhead,
@@ -135,7 +147,7 @@ class BroadcastScreenState extends State<BroadcastScreen> with TickerProviderSta
         if(widget.user != null && widget.user.globalHideRight) {
           canViewHide = true;
         }
-        this.messageService.getBroadcastSnap(this._pendingTag).listen((onData) {
+        this._messageService.getBroadcastSnap(this._pendingTag).listen((onData) {
           List<Topic> topics = [];
           if(onData.documents.length > 0) {          
             for (DocumentSnapshot doc in onData.documents) {

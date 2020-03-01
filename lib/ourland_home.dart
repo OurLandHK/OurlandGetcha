@@ -72,6 +72,7 @@ const String _app_name = APP_NAME;
 
 class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin {
   TabController _tabController;
+  List<String> _youtubeChannelList;
   String uid = '';
   bool _isFabShow = false;
   String _fabText = '';
@@ -141,6 +142,13 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
   initPlatformState() async {
     Position location;
+    messageService.getFirstPage().then((firstPage){
+      setState(() {
+        _youtubeChannelList = firstPage['YoutubeChannel'].cast<String>();
+        print(firstPage['YoutubeChannel'].toString());
+        print(_youtubeChannelList);
+      });
+    });
     // Platform messages may fail, so we use a try/catch PlatformException.
     if(_locationPermissionGranted) {
       try {
@@ -315,7 +323,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   }
 
   Widget showBroadcast() {
-    return new BroadcastScreen(user: widget.user);
+    return new BroadcastScreen(user: widget.user, youtubeChannelList: _youtubeChannelList,);
   }  
 
   void updateLocation() {
@@ -378,12 +386,21 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            if(_tabController.index == 2) {
-              return new SendMessageScreen(
-                getCurrentLocation: getCurrentLocation, user: widget.user, searchingMsg: null);
-            } else {
-            return new SendTopicScreen(
-                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: (_tabController.index != 1),);
+            switch(_tabController.index) {
+              case 0:
+                return new SendTopicScreen(
+                  getCurrentLocation: null, user: widget.user, isBroadcast: true, dropdownList: _youtubeChannelList);
+                break;
+              case 1:
+                  return new SendTopicScreen(
+                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: false, dropdownList: TAG_SELECTION);
+              case 2:
+                return new SendMessageScreen(
+                  getCurrentLocation: getCurrentLocation, user: widget.user, searchingMsg: null);
+                break;
+              case 3:
+                return new SendTopicScreen(
+                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: true, dropdownList: TAG_SELECTION);
             }
           },
         ),

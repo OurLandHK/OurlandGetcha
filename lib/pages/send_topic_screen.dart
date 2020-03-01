@@ -33,8 +33,9 @@ final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 class SendTopicScreen extends StatefulWidget {
   final Function getCurrentLocation;
   final User user;
+  List<String> dropdownList = TAG_SELECTION;
   bool isBroadcast = false;
-  SendTopicScreen({Key key, @required this.getCurrentLocation, @required this.user, this.isBroadcast}) : super(key: key);
+  SendTopicScreen({Key key, @required this.getCurrentLocation, @required this.user, this.isBroadcast, this.dropdownList}) : super(key: key);
 
   @override
   State createState() => new SendTopicState();
@@ -80,6 +81,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   bool _locationPermissionGranted = true;
   int _color;
   Text _buttonText;
+  bool _isSendWithLocation; 
   final FocusNode _showNameFocus = FocusNode();  
   final FocusNode _titleFocus = FocusNode();  
   final FocusNode _descFocus = FocusNode();
@@ -87,10 +89,15 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   @override
   void initState() {
     super.initState();
+    if(widget.getCurrentLocation != null) {
+      _isSendWithLocation = true;
+    } else {
+      _isSendWithLocation = false;
+    }
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
     userService = new UserService();
-    _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION, false);
+    _tagDropDownMenuItems = getDropDownMenuItems(widget.dropdownList, false);
     _firstTag = _tagDropDownMenuItems[0].value;
     
     _newTopicLabel = widget.isBroadcast ? LABEL_NEW_BROADCAST_TOPIC : LABEL_NEW_TOPIC;
@@ -114,9 +121,14 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
 
     //initPlatformState();
     print("send topic 1");
-    Map map = widget.getCurrentLocation();
-    this.messageLocation = map['GeoPoint'];
-    _locationPermissionGranted = map['LocationPermissionGranted'];
+    if(_isSendWithLocation) {
+      Map map = widget.getCurrentLocation();
+      this.messageLocation = map['GeoPoint'];
+      _locationPermissionGranted = map['LocationPermissionGranted'];
+    } else {
+      _locationPermissionGranted = false;
+      this.messageLocation = null;
+    }
     print("send topic 2");
   }
 
@@ -196,16 +208,18 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
 
   @override
   Widget build(BuildContext context) {
-    Widget map =  ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: [], updateCenter: null);
-
+    Widget map =  null;
+    if(_isSendWithLocation) {
+      map = ChatMap(topLeft: this.messageLocation, bottomRight: this.messageLocation,  height: MAP_HEIGHT, markerList: [], updateCenter: null);
+    }
     Widget body = new WillPopScope(
       child: Column(
         children: <Widget>[            
-          new Container( 
+          (_isSendWithLocation) ? Container( 
             decoration: new BoxDecoration(
               color: Theme.of(context).cardColor),
             child: map,
-          ),
+          ) : Container(),
           new Form(
              key: _formKey,
              autovalidate: true,
@@ -319,7 +333,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   Widget formUI(BuildContext context) {
     String validation(String label, String value) {
       String rv;
-      if(_currentLocationSelection == LABEL_NEARBY && !_locationPermissionGranted) {
+      if(_currentLocationSelection == LABEL_NEARBY && !_locationPermissionGranted && _isSendWithLocation) {
         _isSubmitDisable = true;
         _buttonText = Text(PERM_LOCATION_NOT_GRANTED);
         rv = PERM_LOCATION_NOT_GRANTED;
@@ -357,45 +371,55 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
         _formKey.currentState.save();
         List<String> tags = [this._firstTag];
         tags.addAll(_tags);
+        tags = tags.toSet().toList();
         // TODO pass this_desc to extract the hash tag
         // Find the geo box
-        var destBox = GeoHelper.findBoxGeo(this.messageLocation, 1000.0);
-        Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
-              null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
-        messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
-        userService.addRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
+        if(_isSendWithLocation) {
+          var destBox = GeoHelper.findBoxGeo(this.messageLocation, 1000.0);
+          Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
+                null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
+          messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
+          userService.addRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
+        } else {
+          Topic topic = new Topic(widget.isBroadcast, widget.user, null, null, this.messageLocation,
+                null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
+          messageService.sendBroadcastMessage(topic, this.imageFile);
+        }
         onBackPress();
       }
     };
+    List<Widget> toolbarWidget = [];
+    if(_isSendWithLocation) {
+      toolbarWidget.add(Expanded(flex: 1, child: new Text(LABEL_IN)));
+      toolbarWidget.add(Expanded(flex: 2, child: new DropdownButton(
+                value: _currentLocationSelection,
+                items: _locationDropDownMenuItems,
+                onChanged: updateLocation,
+              )));
+      toolbarWidget.add(Expanded(flex: 1, child: new Text(LABEL_HAS)));
+    } else {
+      toolbarWidget.add(Expanded(flex: 1, child: new Text(LABEL_PROGRAM)));
+    }
+    toolbarWidget.add(Expanded(flex: 2, child: new DropdownButton(
+                value: _firstTag,
+                items: _tagDropDownMenuItems,
+                onChanged: (String value) {setState(() {_firstTag = value;});},
+              )));
+    Row toolbar = Row(children: toolbarWidget);
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Row(
-            children: <Widget> [
-              Expanded(child: new Text(LABEL_IN)),
-              Expanded(child: new DropdownButton(
-                value: _currentLocationSelection,
-                items: _locationDropDownMenuItems,
-                onChanged: updateLocation,
-              )),
-              Expanded(child: new Text(LABEL_HAS)),
-              Expanded(child: new DropdownButton(
-                value: _firstTag,
-                items: _tagDropDownMenuItems,
-                onChanged: (String value) {setState(() {_firstTag = value;});},
-              )),
-            ]
+          toolbar,
+          ColorPicker(
+            selectedIndex: _color,
+            onTap: (index) {
+              setState(() {
+                _color = index;
+              });
+            },
           ),
-                ColorPicker(
-                  selectedIndex: _color,
-                  onTap: (index) {
-                    setState(() {
-                      _color = index;
-                    });
-                  },
-                ),
           const SizedBox(height: 12.0),
           TextFormField(
             focusNode: _titleFocus,

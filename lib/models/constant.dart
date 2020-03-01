@@ -93,6 +93,7 @@ const String LABEL_MORE_DETAIL = "入D詳情先出Memo好D";
 const String LABEL_SEND = "出Memo";
 const String LABEL_NOBODY = "沒有人";
 const String LABEL_LENNON_WALL ="連儂牆";
+const String LABEL_PROGRAM = "節目";
 const String LABEL_CARE ="大台？";
 const String PERM_LOCATION_NOT_GRANTED = "唔該俾我用 GPS";
 const String PERM_LOCATION_GRANT_BTN_TEXT = "俾";
