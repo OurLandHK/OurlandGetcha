@@ -13,9 +13,10 @@ import 'package:ourland_native/widgets/searching_widget.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/pages/searching_msg_approval_screen.dart';
-import 'package:geodesy/geodesy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchingMsgWidget extends StatelessWidget {
+  final SharedPreferences preferences;
   final SearchingMsg searchingMsg;
   final User user;
   final Function getCurrentLocation;
@@ -25,6 +26,7 @@ class SearchingMsgWidget extends StatelessWidget {
 
   SearchingMsgWidget(
       {Key key,
+      @required this.preferences,
       @required this.searchingMsg,
       @required this.user,
       @required this.getCurrentLocation,
@@ -75,7 +77,7 @@ class SearchingMsgWidget extends StatelessWidget {
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             Key chatKey = new Key(topic.id);
-            return ChatScreen(/*key: chatKey,*/ user : user, topic: topic,  parentTitle: parentTitle, messageLocation: _messageLocation);
+            return ChatScreen(preferences: preferences, user : user, topic: topic,  parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );
@@ -85,7 +87,7 @@ class SearchingMsgWidget extends StatelessWidget {
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return SearchingMsgApprovalScreen(user : user, searchingMsg: searchingMsg);
+            return SearchingMsgApprovalScreen(preferences: preferences ,user : user, searchingMsg: searchingMsg);
           },
         ),
       );

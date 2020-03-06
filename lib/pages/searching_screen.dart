@@ -161,7 +161,6 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
 
   Widget buildItem(String messageId, SearchingMsg searchingMsg, BuildContext context) {
     Widget rv; 
-    int type = 0;
     GeoPoint location = searchingMsg.geolocation;
     this._pendingMarkerList.add(OurlandMarker(messageId, location, 0, searchingMsg.text, searchingMsg.name));
     GeoPoint _messageLocation;
@@ -172,7 +171,7 @@ class SearchingScreenState extends State<SearchingScreen> with TickerProviderSta
         _messageLocation = new GeoPoint(this.messageLocation.latitude, this.messageLocation.longitude);
       }
     }
-    rv = new SearchingMsgWidget(key: Key(searchingMsg.key), user: widget.user, searchingMsg: searchingMsg, getCurrentLocation:  widget.getCurrentLocation, messageLocation: _messageLocation, locationPermissionGranted: _locationPermissionGranted ,pending: false,);
+    rv = new SearchingMsgWidget(preferences: widget.preferences,key : Key(searchingMsg.key), user: widget.user, searchingMsg: searchingMsg, getCurrentLocation:  widget.getCurrentLocation, messageLocation: _messageLocation, locationPermissionGranted: _locationPermissionGranted ,pending: false,);
     return rv;
   }
 

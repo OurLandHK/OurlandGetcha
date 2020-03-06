@@ -211,7 +211,7 @@ class BroadcastScreenState extends State<BroadcastScreen> with TickerProviderSta
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return ChatScreen(user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: null);
+            return ChatScreen(preferences: widget.preferences ,user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: null);
           },
         ),
       );

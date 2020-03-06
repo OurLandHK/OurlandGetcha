@@ -202,6 +202,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       _fcmToken = token;
       SubscribeService sub = new SubscribeService();
       sub.updateLogin(token);
+      widget.preferences.setString('fcm', token);
       Map<String, String> field = new Map<String, String>();
       field['fcmToken'] = token;
       if(widget.user != null) {
@@ -284,7 +285,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     print('tid $tid bid $bid id $id getTopic $getTopic');
     if(getTopic != null) { 
       getTopic(id).then((topic) {
-        Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
+        Widget page = new ChatScreen(preferences: widget.preferences ,user: widget.user, topic: topic, parentTitle: topic.topic);
         final Item item = new Item(page: page, topic: topic.topic, topicID: id);
         if (!item.route.isCurrent) {
           Navigator.push(context, item.route);
@@ -331,11 +332,11 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   }
     // TODO for Real Notification Screen
   Widget showNotification() {
-    return new NotificationScreen(user: widget.user);
+    return new NotificationScreen(preferences: widget.preferences, user: widget.user);
   }
 
   Widget showBroadcast() {
-    return new BroadcastScreen(user: widget.user, youtubeChannelList: _youtubeChannelList, fcmToken: _fcmToken);
+    return new BroadcastScreen(preferences: widget.preferences, user: widget.user, youtubeChannelList: _youtubeChannelList, fcmToken: _fcmToken);
   }  
 
   void updateLocation() {

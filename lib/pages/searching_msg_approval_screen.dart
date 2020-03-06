@@ -28,8 +28,9 @@ final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class SearchingMsgApprovalScreen extends StatelessWidget {
   final SearchingMsg searchingMsg;
+  final SharedPreferences preferences;
   final User user;
-  SearchingMsgApprovalScreen({Key key, @required this.user, @required this.searchingMsg}) : super(key: key);
+  SearchingMsgApprovalScreen({Key key, @required this.preferences, @required this.user, @required this.searchingMsg}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +54,7 @@ class SearchingMsgApprovalScreen extends StatelessWidget {
             //color: TOPIC_COLORS[topic.color],
             child: SearchingMsgApprovalScreenBody(
               user: this.user,
+              preferences: preferences,
               searchingMsg: this.searchingMsg,
 
             ),
@@ -63,9 +65,10 @@ class SearchingMsgApprovalScreen extends StatelessWidget {
 
 class SearchingMsgApprovalScreenBody extends StatefulWidget {
   SearchingMsg searchingMsg;
+  final SharedPreferences preferences;
   final User user;
 
-  SearchingMsgApprovalScreenBody({Key key, @required this.user, @required this.searchingMsg}) : super(key: key);
+  SearchingMsgApprovalScreenBody({Key key, @required this.preferences, @required this.user, @required this.searchingMsg}) : super(key: key);
 
   @override
   State createState() => new SearchingMsgApprovalBodyState();
@@ -102,7 +105,7 @@ class SearchingMsgApprovalBodyState extends State<SearchingMsgApprovalScreenBody
               child: Text(LABEL_REJECT),
               onPressed: rejectMessage,
             );        
-    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: topic.imageUrl, topic: topic, messageLocation: topic.geoCenter, chatMode: Chat_Mode.APPROVE_MODE, toggleComment: null, updateUser: null, getUserName: null, getAllUserList: null, getColor: null);
+    ChatSummary chatSummary = ChatSummary(preferences: widget.preferences, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: topic.imageUrl, topic: topic, messageLocation: topic.geoCenter, chatMode: Chat_Mode.APPROVE_MODE, toggleComment: null, updateUser: null, getUserName: null, getAllUserList: null, getColor: null);
     List<Widget> buttonList = [];
     if(widget.user != null && (widget.user.globalHideRight || widget.user.uuid == widget.searchingMsg.uid)) {
       buttonList.add(rejectButton);

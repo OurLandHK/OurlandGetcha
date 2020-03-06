@@ -243,7 +243,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
             Key chatKey = new Key(topic.id);
-            return ChatScreen(/*key: chatKey,*/ user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+            return ChatScreen(/*key: chatKey,*/ preferences: widget.preferences, user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );
@@ -352,7 +352,7 @@ class TopicScreenState extends State<TopicScreen> with TickerProviderStateMixin 
       new MaterialPageRoute<void>(
         builder: (BuildContext context) {
           Key chatKey = new Key(topic.id);
-          return ChatScreen(/*key: chatKey,*/ user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+          return ChatScreen(/*key: chatKey,*/ preferences: widget.preferences, user : widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
         },
       ),
     );

@@ -17,10 +17,12 @@ import 'package:ourland_native/widgets/polling_widget.dart';
 import 'package:ourland_native/widgets/rich_link_preview.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/services/user_service.dart';
+import 'package:ourland_native/services/view_service.dart';
 import 'package:ourland_native/pages/ranking_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ourland_native/widgets/property_selector_widget.dart';
 import 'package:ourland_native/services/ranking_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
   enum Chat_Mode {
@@ -47,10 +49,11 @@ class ChatSummary extends StatefulWidget {
   final double height;
   final double width;
   final Chat_Mode chatMode;
+  final SharedPreferences preferences;
 //  final bool expand;
   _ChatSummaryState state;
 
-  ChatSummary({Key key, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.topic, @required this.messageLocation, @required this.chatMode, @required this.toggleComment, @required this.updateUser, @required this.getUserName, @required this.getAllUserList, @required this.getColor}) : super(key: key);
+  ChatSummary({Key key, @required this.preferences, @required this.topLeft, @required this.bottomRight, @required this.width, @required this.height, @required this.user, @required this.imageUrl, @required this.topic, @required this.messageLocation, @required this.chatMode, @required this.toggleComment, @required this.updateUser, @required this.getUserName, @required this.getAllUserList, @required this.getColor}) : super(key: key);
   @override
   _ChatSummaryState createState() { 
     state = new _ChatSummaryState();
@@ -70,6 +73,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
   ImageWidget _summaryImageWidget;
   bool _progressBarActive;
   bool _isBookmark = false;
+  int _viewCount = 0;
   MessageService messageService;
   ValueNotifier<Stream> chatStream;
   List<Property> _properties = [];
@@ -101,6 +105,11 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+    String fcmToken = widget.preferences.getString('fcm');
+    ViewService viewService = new ViewService();
+    viewService.updateViewRecord(widget.topic.id, fcmToken).then((value) {
+      setState(() {_viewCount = value.count;});
+    });
     _rankingService = new RankingService(widget.user);
     messageList = new List<String>();
     if(widget.chatMode != Chat_Mode.APPROVE_MODE) {
@@ -688,7 +697,8 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
           Text(LABEL_SHOW_RANDOM_NAME + ": " + (!widget.topic.isShowName).toString(), style: Theme.of(context).textTheme.subtitle),
           //Text(tagList, style: Theme.of(context).textTheme.subtitle),
           widget.topic.isPublic ? Text(LABEL_BROADCAST, style: Theme.of(context).textTheme.subtitle) : Container(),
-          widget.topic.isGlobalHide ? Text(MESSAGE_HIDE, style: Theme.of(context).textTheme.subtitle) : Container()
+          widget.topic.isGlobalHide ? Text(MESSAGE_HIDE, style: Theme.of(context).textTheme.subtitle) : Container(),
+          _viewCount != 0? Text(LABEL_VIEW_COUNT + _viewCount.toString(), style: Theme.of(context).textTheme.subtitle) : Container()
         ]),
       Expanded(child: Container()),       
       visibilityStatus,

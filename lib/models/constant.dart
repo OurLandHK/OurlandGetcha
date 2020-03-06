@@ -57,6 +57,7 @@ const String MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION = "收風地點2";
 const String MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE = "設定照片（實名Memo 先出）";
 const String MENU_ITEM_NOT_FOUND_ERR = "冇貨";
 
+const String LABEL_VIEW_COUNT = "觀看人次：";
 const String MENU_ITEM_ABOUT = "關於";
 const String MENU_ITEM_LOGOUT = "變CD-ROM";
 const String CHAT_MENU_ITEM_REPORT = "我要做撕紙🐶";

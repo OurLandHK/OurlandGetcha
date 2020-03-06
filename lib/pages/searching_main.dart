@@ -126,7 +126,7 @@ class _SearchingMainState extends State<SearchingMain>{
     }
     Widget buildItem(String messageId, SearchingMsg searchingMsg, BuildContext context) {
       Widget rv; 
-      rv = new SearchingMsgWidget(user: widget.user, searchingMsg: searchingMsg, getCurrentLocation:  widget.getCurrentLocation, messageLocation: searchingMsg.geolocation, locationPermissionGranted: false, pending: true,);
+      rv = new SearchingMsgWidget(preferences: widget.preferences, user: widget.user, searchingMsg: searchingMsg, getCurrentLocation:  widget.getCurrentLocation, messageLocation: searchingMsg.geolocation, locationPermissionGranted: false, pending: true,);
       return rv;
     }    
 
@@ -276,6 +276,7 @@ class _SearchingMainState extends State<SearchingMain>{
     if(_recentTopic != null) {
       widgetList.add(Text(LABEL_RECENT_SEARCHING));
       widgetList.add(new SearchingMsgWidget(
+        preferences: widget.preferences,
         user: widget.user,
         searchingMsg: _recentTopic.searchingMsg,
         messageLocation: _recentTopic.geoCenter,
