@@ -60,9 +60,12 @@ const String MENU_ITEM_NOT_FOUND_ERR = "冇貨";
 const String MENU_ITEM_ABOUT = "關於";
 const String MENU_ITEM_LOGOUT = "變CD-ROM";
 const String CHAT_MENU_ITEM_REPORT = "我要做撕紙🐶";
+const String BROADCAST_MENU_ITEM_SUBCRIBE = "我要退訂";
 const String REPORT_APPROVED = "真・撕紙🐶";
 const String REPORT_COVERD= "我幫你遮咗佢";
 const String REPORT_DESC = "啲Memo係冇咁易撕㗎！不過如果你唔想見到佢，俾個原因我哋就可以幫你遮咗佢。如果有好多人都遮咗，咁Admin會好大機會變成真・撕紙🐶㗎喇！";
+const String SUBSCRIBE_DESC = "所有新加入的節目都會有推播通知，如果唔想收到，退定就可，不過非節目既通知(如吹雞Memo) 就冇得退！";
+
 
 const String RANK_DESC = "冇咁易轉風向㗎！每人每星期帶一次";
 const String CHAT_MENU_ITEM_RANK = "我要帶風向";

@@ -144,6 +144,18 @@ class MessageService {
     });
   }
 
+  Future<Topic> getBroadcast(String topicID) {
+    var topicReference = _broadcastCollection
+            .document(topicID);
+    return topicReference.get().then((onValue) {
+      if(onValue.exists) {
+        return Topic.fromMap(onValue.data);
+      } else {
+        return null;
+      }
+    });
+  }
+
   Future<Topic> getLatestTopic() {
     var ourlandReference = _ourlandCollection.document("RecentMessage");
     return ourlandReference.get().then((onValue0) {

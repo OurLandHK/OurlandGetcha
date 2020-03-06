@@ -19,7 +19,6 @@ import 'package:ourland_native/widgets/chat_summary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/services/user_service.dart';
 
-import '../models/chat_model.dart';
 import '../widgets/send_message.dart';
 
 //final analytics = new FirebaseAnalytics();

@@ -258,7 +258,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
         this._properties = recentProperties;
         this._allProperties = allProperties;
         this._recentProperties = recentProperties;
-        this._rankWidget = PropertySelectorWidget([], this._properties, 1, null, true, true, true, false);
+        this._rankWidget = PropertySelectorWidget([], this._properties, 1, [], null, true, true, true, false);
       });
     });
   }
@@ -441,7 +441,6 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
     if (_sMsg != null) {
       List<String> defaultProperties = ["有罷工","捐錢","味道","員工"];
       if(this._properties.length != 0) {
-        //this._rankWidget = new PropertySelectorWidget([], this._properties, 1, null, true, true, true, false);
         rv = GestureDetector(child: this._rankWidget, onTap: () => {showRanking(context, defaultProperties)});
         List<String> dropDownList = LABEL_RANKING_RANGE;
         List<DropdownMenuItem<String>> _locationDropDownMenuItems;  
@@ -878,7 +877,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
       //print("update Rank ${this._pendingProperties[0].downValue}");
       setState(() {
         this._properties = this._pendingProperties;
-        this._rankWidget = PropertySelectorWidget([], this._pendingProperties, 1, null, true, true, true, false);
+        this._rankWidget = PropertySelectorWidget([], this._pendingProperties, 1, [], null, true, true, true, false);
       });
     }
   }   

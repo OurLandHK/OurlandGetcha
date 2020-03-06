@@ -17,6 +17,7 @@ import 'package:ourland_native/pages/send_message_screen.dart';
 import 'package:ourland_native/pages/notification_screen.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/services/message_service.dart';
+import 'package:ourland_native/services/subscribe_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:geolocator/geolocator.dart';
@@ -72,6 +73,7 @@ const String _app_name = APP_NAME;
 
 class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin {
   TabController _tabController;
+  String _fcmToken;
   List<String> _youtubeChannelList;
   String uid = '';
   bool _isFabShow = false;
@@ -196,8 +198,10 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
   void firebaseCloudMessaging_Listeners() {
   if (Platform.isIOS) iOS_Permission();
-
     _firebaseMessaging.getToken().then((token){
+      _fcmToken = token;
+      SubscribeService sub = new SubscribeService();
+      sub.updateLogin(token);
       Map<String, String> field = new Map<String, String>();
       field['fcmToken'] = token;
       if(widget.user != null) {
@@ -210,27 +214,32 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       onMessage: (Map<String, dynamic> message) async {
         var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
-        print('on message $message    data $data id $id');
-        _showItemDialog(data);
+        String bid = data['bid'];
+        String title = message['notification']['title'];
+        print('on message $message    data $data id $id bid $bid');
+        //_showItemDialog(data);
+        _showItemDialog(title, id, bid);
       },
       onResume: (Map<String, dynamic> message) async {
         var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
-        print('on resume $message    data $data id $id');
-        _navigateToItemDetail(data);
+        String bid = data['bid'];
+        print('onResume $message    data $data id $id bid $bid');
+        _navigateToItemDetail(id, bid);
       },
       onLaunch: (Map<String, dynamic> message) async {
         var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
-        print('on launch $message    data $data id $id');
-        _navigateToItemDetail(data);
+        String bid = data['bid'];
+        print('onLaunch $message    data $data id $id bid $bid');
+        _navigateToItemDetail(id, bid);
       },
     );
   }
 
-  Widget _buildDialog(BuildContext context, Item item) {
+  Widget _buildDialog(BuildContext context, String topic) {
     return AlertDialog(
-      content: Text(item.topic + LABEL_UPDATE_TOPIC),
+      content: Text(topic + LABEL_UPDATE_TOPIC),
       actions: <Widget>[
         FlatButton(
           child: const Text(LABEL_CLOSE),
@@ -248,37 +257,40 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     );
   }
 
-  void _showItemDialog(Map<String, dynamic> data) {
-    final String id = data['id'];
-    //GeoPoint messageLocation = _currentLocation;
-    this.messageService.getTopic(id).then((topic) {
-      Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
-      final Item item = new Item(page: page, topic: topic.topic, topicID: id);
-      showDialog<bool>(
-        context: context,
-        builder: (_) => _buildDialog(context, item),
-      ).then((bool shouldNavigate) {
-        if (shouldNavigate == true) {
-          Navigator.popUntil(context, (Route<dynamic> route) => route is PageRoute);
-          if (!item.route.isCurrent) {
-            Navigator.push(context, item.route);
-          }      
-        }
-      });
-    });
+  void _showItemDialog(String title, String tid, String bid) {  
+    showDialog<bool>(
+          context: context,
+          builder: (_) => _buildDialog(context, title),
+        ).then((bool shouldNavigate) {
+          if (shouldNavigate == true) {
+            _navigateToItemDetail(tid, bid);
+          }
+        });
   }
 
-  void _navigateToItemDetail(Map<String, dynamic> data) {
+  void _navigateToItemDetail(String tid, String bid) {
     // Clear away dialogs
     Navigator.popUntil(context, (Route<dynamic> route) => route is PageRoute);
-    final String id = data['id'];
-    this.messageService.getTopic(id).then((topic) {
-      Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
-      final Item item = new Item(page: page, topic: topic.topic, topicID: id);
-      if (!item.route.isCurrent) {
-        Navigator.push(context, item.route);
-      }      
-    });
+    String id;
+    Function getTopic;
+    if(tid != null) {
+      id = tid; 
+      getTopic = this.messageService.getTopic;
+    }
+    if(bid != null) {
+      id = bid;
+      getTopic = this.messageService.getBroadcast;
+    }
+    print('tid $tid bid $bid id $id getTopic $getTopic');
+    if(getTopic != null) { 
+      getTopic(id).then((topic) {
+        Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
+        final Item item = new Item(page: page, topic: topic.topic, topicID: id);
+        if (!item.route.isCurrent) {
+          Navigator.push(context, item.route);
+        }      
+      });
+    }
   }
 
 
@@ -323,7 +335,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   }
 
   Widget showBroadcast() {
-    return new BroadcastScreen(user: widget.user, youtubeChannelList: _youtubeChannelList,);
+    return new BroadcastScreen(user: widget.user, youtubeChannelList: _youtubeChannelList, fcmToken: _fcmToken);
   }  
 
   void updateLocation() {
@@ -382,7 +394,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           updateLocation();
       }
     });
-    void sendMessageClick() {
+    void sendMessageClick() { 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {

@@ -76,7 +76,7 @@ class _RankingScreenState extends State<RankingScreen> {
         setState(() {
           this._properties = properties;
           this._alreadyReport = alreadyReport;
-          _optionWidget = PropertySelectorWidget(widget.defaultProperties, properties, 1, selectField, true, true, alreadyReport || (widget.user == null), !alreadyReport &&(widget.user != null));
+          _optionWidget = PropertySelectorWidget(widget.defaultProperties, properties, 1, [], selectField, true, true, alreadyReport || (widget.user == null), !alreadyReport &&(widget.user != null));
         });
       });
     });

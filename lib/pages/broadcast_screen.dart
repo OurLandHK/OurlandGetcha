@@ -1,25 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:ourland_native/models/user_model.dart' as prefix0;
-import 'package:permission_handler/permission_handler.dart';
 
 //import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geolocator/geolocator.dart';
 
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/services/message_service.dart';
-import 'package:ourland_native/services/user_service.dart';
-import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/topic_message.dart';
-import 'package:ourland_native/pages/settings.dart';
+import 'package:ourland_native/pages/subscribe_screen.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geodesy/geodesy.dart';
@@ -27,11 +21,12 @@ import 'package:geodesy/geodesy.dart';
 
 class BroadcastScreen extends StatefulWidget {
   final User user;
+  final String fcmToken;
   final SharedPreferences preferences;
   List<String> youtubeChannelList = [];
   BroadcastScreenState _state;
 
-  BroadcastScreen({Key key, @required this.user, @required this.preferences, @required this.youtubeChannelList}) : super(key: key);
+  BroadcastScreen({Key key, @required this.user, @required this.preferences, @required this.youtubeChannelList, @required this.fcmToken}) : super(key: key);
   @override
   State createState() {
     _state = new BroadcastScreenState();
@@ -92,11 +87,20 @@ class BroadcastScreenState extends State<BroadcastScreen> with TickerProviderSta
 
   @override
   Widget build(BuildContext context) {
+    void subscribe() { 
+        Navigator.of(context).push(
+          new MaterialPageRoute<void>(
+            builder: (BuildContext context) {
+              return new SubscribeScreen(fcmToken: widget.fcmToken, youtubeChannelList: widget.youtubeChannelList);
+            },
+          )
+        );
+    }
     List<Widget> buildToolBar(BuildContext context) {
       return  <Widget> [
                 Expanded(flex: 1, child: Text(LABEL_PROGRAM, style: Theme.of(context).textTheme.subhead, textAlign: TextAlign.center)),
-                Expanded(flex: 3, child: DropdownButton(
-                    value: _firstTag,
+                Expanded(flex: 4, child: DropdownButton(
+                  value: _firstTag,
                     items: _tagDropDownMenuItems,
                     style: Theme.of(context).textTheme.subhead,
                     onChanged: (String value) {setState(() {
@@ -106,10 +110,12 @@ class BroadcastScreenState extends State<BroadcastScreen> with TickerProviderSta
                     });
                   },
                 )),
+                Expanded(flex: 1, child: IconButton(onPressed: subscribe, icon: Icon(Icons.subscriptions)))
               ];
     }
     PreferredSizeWidget appBar;
-    appBar = new AppBar(flexibleSpace: PreferredSize(
+    appBar = new AppBar(
+              flexibleSpace: PreferredSize(
               preferredSize: Size.fromHeight(TOOLBAR_HEIGHT),
               child: Row(children: buildToolBar(context))));
     WidgetsBinding.instance
