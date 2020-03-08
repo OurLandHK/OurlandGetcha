@@ -24,6 +24,7 @@ import 'package:ourland_native/widgets/property_selector_widget.dart';
 import 'package:ourland_native/services/ranking_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:ourland_native/widgets/ad_widget.dart';
 
   enum Chat_Mode {
     INFO_MODE,
@@ -732,7 +733,10 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
         }
         if(_titleLink != null) {
           widgetList.add(_titleLink);
-        }         
+          widgetList.add(AdWidget(false));
+        } else {
+          widgetList.add(AdWidget(true));
+        }       
       }
       if(widget.topic.content != null && widget.topic.content.length != 0) {
           Widget _contentText = new Container(child: Text(widget.topic.content,
