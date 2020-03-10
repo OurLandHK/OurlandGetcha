@@ -25,6 +25,7 @@ import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/models/topic_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/color_picker.dart';
+import 'package:ourland_native/helper/open_graph_parser.dart';
 
 //final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -73,6 +74,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
   String _newTopicLabel;
   String _desc;
   String _firstTag;
+  TextEditingController _descController = TextEditingController();
   int _type;
   List<String> _tags = [];
   String _currentLocationSelection;
@@ -330,6 +332,20 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
     });
   }
 
+  void checkforLink(String topic) {
+    if(topic.contains("http")) {
+      OpenGraphParser.getOpenGraphData(topic).then((Map data) {
+        if(data['title'] != null) {
+          String topicTitle = data['title'];
+          print("Desc: $topicTitle");
+          setState(() {
+            _descController.text = topicTitle;
+          });
+        }
+      });
+    }
+  }
+
   Widget formUI(BuildContext context) {
     String validation(String label, String value) {
       String rv;
@@ -438,6 +454,7 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
             validator: (value) {
               validation(LABEL_TOPIC, value);
             },
+            onChanged: (value) {checkforLink(value);},
             onSaved: (String value) {this._parentTitle = value;},
         // validator: _validateName,
           ),
@@ -447,7 +464,8 @@ class SendTopicState extends State<SendTopicScreen> with TickerProviderStateMixi
           topicImageUI(context), 
           const SizedBox(height: 12.0),
           TextFormField(
-            initialValue: "",
+            //initialValue: "",
+            controller: _descController,
             focusNode: _descFocus,
             onFieldSubmitted: (term) {
               fieldFocusChange(context, _descFocus, _showNameFocus);

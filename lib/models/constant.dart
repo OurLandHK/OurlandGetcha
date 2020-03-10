@@ -74,6 +74,7 @@ const String CHAT_MENU_ITEM_RANK = "我要帶風向";
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
+const List<String> RANKING_PROPERTIES = ["工作人員","環境","香港人優先","支持社運"];
 const List<String> SEARCHING_STATUS_OPTIONS = ['開放', '完結', '政府跟進中', '流料', '不恰當訊息', "等待審批", "撤回"];
 const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠/美食", "投票", "秘境", "維修/求助", "交換", "我地.市正"];
 const List<String> MESSAGE_TYPE_SELECTION =  ["料","活動","投票"];

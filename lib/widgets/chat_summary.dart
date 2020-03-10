@@ -449,7 +449,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
   Widget _buildProperties(BuildContext context, SearchingMsg _sMsg) {
     Widget rv = Container();
     if (_sMsg != null) {
-      List<String> defaultProperties = ["有罷工","捐錢","味道","員工"];
+      List<String> defaultProperties = RANKING_PROPERTIES;
       if(this._properties.length != 0) {
         rv = GestureDetector(child: this._rankWidget, onTap: () => {showRanking(context, defaultProperties)});
         List<String> dropDownList = LABEL_RANKING_RANGE;
