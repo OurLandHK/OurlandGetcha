@@ -15,14 +15,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "7572079733-568vusutq1733r62rdibgl9ne626tkpm.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "hk.ourland.wall",
-            "certificate_hash": "1234567890111213141516171819202122232425"
-          }
-        },
-        {
           "client_id": "7572079733-iomuocv5krdcd9bhinf3bnq27doev38d.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -33,29 +25,24 @@
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 2,
           "other_platform_oauth_client": [
             {
               "client_id": "7572079733-iomuocv5krdcd9bhinf3bnq27doev38d.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "7572079733-uevb39ptc2uhgm5rrvo0a5h44njie5m7.apps.googleusercontent.com",
+              "client_id": "7572079733-7uji7cabr4c97jbj1cgts9hfe9qf1kor.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "hk.ourland.post"
+                "bundle_id": "hk.ourland.wall",
+                "app_store_id": "1483312010"
               }
             }
           ]
-        },
-        "ads_service": {
-          "status": 2
         }
-      }
+      },
+      "admob_app_id": "ca-app-pub-7890979707970567~9764203327"
     }
   ],
   "configuration_version": "1"

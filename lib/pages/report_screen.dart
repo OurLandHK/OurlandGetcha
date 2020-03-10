@@ -64,7 +64,7 @@ class _ReportScreenState extends State<ReportScreen> {
         setState(() {
           this._properties = properties;
           this._alreadyReport = alreadyReport;
-          _optionWidget = PropertySelectorWidget(BlockReasons, properties, 1, selectField, true, false, false, false);
+          _optionWidget = PropertySelectorWidget(BlockReasons, properties, 1, [], selectField, true, false, false, false);
         });
       });
     });
@@ -132,7 +132,3 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 }
-
-// ----------------------------------------
-// TODO: UPDATE PROFILE IMAGE SCREEN
-// ----------------------------------------

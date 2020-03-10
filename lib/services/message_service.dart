@@ -16,6 +16,9 @@ import 'package:ourland_native/models/searching_msg_model.dart';
 final CollectionReference _topicCollection =
     Firestore.instance.collection('topic');
 
+final CollectionReference _broadcastCollection =
+    Firestore.instance.collection('broadcast');
+
 final CollectionReference _ourlandCollection =
     Firestore.instance.collection('ourlandDB');
 
@@ -25,16 +28,24 @@ final CollectionReference _chatCollection =
 final CollectionReference _searchingMsgCollection =
     Firestore.instance.collection('message');
 
+final CollectionReference _pendingSearchingMsgCollection =
+    Firestore.instance.collection('pendingmessage');
+
 class MessageService {
   User _user;
 
   User get user => _user;
 
   MessageService(this._user);
-/*
-  Stream<List<SearchingMsg>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
-    Stream<List<SearchingMsg>> rv;
-*/
+
+ Stream<QuerySnapshot> getPendingSearchingMsgSnap(String status) {
+   Query sourceQuery = _pendingSearchingMsgCollection;
+   sourceQuery = sourceQuery.where("status", isEqualTo: status);
+   if(!_user.sendBroadcastRight) {
+     sourceQuery = sourceQuery.where("uid", isEqualTo: _user.uuid);
+   }
+   return sourceQuery.snapshots();
+ }
  Stream<List<Map>> getSearchingMsgSnap(GeoPoint position, double distanceInMeter, String firstTag) {
     Stream<List<Map>> rv;
      if(position != null) {
@@ -133,6 +144,18 @@ class MessageService {
     });
   }
 
+  Future<Topic> getBroadcast(String topicID) {
+    var topicReference = _broadcastCollection
+            .document(topicID);
+    return topicReference.get().then((onValue) {
+      if(onValue.exists) {
+        return Topic.fromMap(onValue.data);
+      } else {
+        return null;
+      }
+    });
+  }
+
   Future<Topic> getLatestTopic() {
     var ourlandReference = _ourlandCollection.document("RecentMessage");
     return ourlandReference.get().then((onValue0) {
@@ -159,10 +182,33 @@ class MessageService {
     });
   }
 
-  Stream<QuerySnapshot> getBroadcastSnap() {
+  Future<Map> getFirstPage() {
+    var ourlandReference = _ourlandCollection.document("FirstPage");
+    return ourlandReference.get().then((onValue0) {
+      return onValue0.data;
+    });
+  }  
+
+  Stream<QuerySnapshot> getPublicSnap(String firstTag) {
     Stream<QuerySnapshot> rv;
-    rv = _topicCollection.where("public", isEqualTo: true)
-          .orderBy('lastUpdate', descending: true)
+    Query query = _broadcastCollection.where("public", isEqualTo: true);
+    if(firstTag != null && firstTag.length != 0) {
+      query = query.where("tags", arrayContains: firstTag);
+    }
+    //QueryConstraint(field: "tag", arrayContains: firstTag)
+    rv = query.orderBy('lastUpdate', descending: true)
+          .snapshots();
+    return rv;
+  }  
+
+  Stream<QuerySnapshot> getBroadcastSnap(String firstTag) {
+    Stream<QuerySnapshot> rv;
+    Query query = _broadcastCollection.where("public", isEqualTo: true);
+    if(firstTag != null && firstTag.length != 0) {
+      query = query.where("tags", arrayContains: firstTag);
+    }
+    //QueryConstraint(field: "tag", arrayContains: firstTag)
+    rv = query.orderBy('lastUpdate', descending: true)
           .snapshots();
     return rv;
   }  
@@ -176,13 +222,92 @@ class MessageService {
     return rv;
   }  
 
+  Future sendPendingSearchingMessage(SearchingMsg searchingMsg, File imageFile) async {
+    Map imageUrls;
+    String downloadUrl;
+    String serverUrl;
+    if(imageFile != null) {
+      imageUrls = await this.uploadSearchingImage(imageFile);
+    }
+    var indexData = searchingMsg.toMap();
+    if(imageUrls != null) {
+      downloadUrl = imageUrls['downloadUrl'];
+      serverUrl = imageUrls['serverUrl'];
+      indexData['imageUrl'] = serverUrl;
+      indexData['publicImageURL'] = downloadUrl;
+    }
+    indexData['status']= SEARCHING_STATUS_OPTIONS[5];
+    try {
+      return _pendingSearchingMsgCollection.add(indexData);        
+    } catch (exception) {
+      print(exception);
+    }
+  }
+
+  Future approveSearchingMessage(SearchingMsg searchingMsg) async {
+    var indexData = searchingMsg.toMap();
+    indexData['status'] = SEARCHING_STATUS_OPTIONS[0];
+    try {
+      return _searchingMsgCollection.document(searchingMsg.key).setData(indexData).then((data) {
+        return _pendingSearchingMsgCollection.document(searchingMsg.key).delete();
+      });        
+    } catch (exception) {
+      print(exception);
+    }    
+  }
+
+  Future rejectSearchingMessage(SearchingMsg searchingMsg) async {
+    var indexData = searchingMsg.toMap();
+    indexData['status'] = SEARCHING_STATUS_OPTIONS[6];
+    try {
+      return _pendingSearchingMsgCollection.document(searchingMsg.key).setData(indexData);
+    } catch (exception) {
+      print(exception);
+    }    
+  }  
+
+  Future sendBroadcastMessage(Topic topic, File imageFile) async {
+    var chatReference;
+    var indexReference;
+    String imageUrl;
+    if(imageFile != null) {
+      imageUrl = await uploadGetchaImage(imageFile);
+    }
+    
+    var indexData = topic.toMap();
+    if(imageUrl != null) {
+      indexData['imageUrl'] =  imageUrl;
+    }
+    //indexData['public'] = false;
+    String chatText = topic.content;
+    if(chatText == null || chatText.length == 0) {
+      chatText = topic.topic;
+    }
+    var chatData = {
+          'created': topic.created,
+          'id': topic.id,
+          'geo': null,
+          'content': chatText,
+          'type': 0,
+          'createdUser' : topic.createdUser.toBasicMap(),
+    };
+    indexReference = _broadcastCollection.document(topic.id);
+    chatReference = _chatCollection.document(topic.id).collection("messages").document(topic.id);
+    try {
+      return indexReference.setData(indexData).then(() {
+        return chatReference.setData(chatData);
+      });      
+    } catch (exception) {
+      print(exception);
+    }
+  }
 
   Future sendTopicMessage(GeoPoint position, Topic topic, File imageFile) async {
     var chatReference;
     var indexReference;
     String imageUrl;
     if(imageFile != null) {
-      imageUrl = await uploadImage(imageFile);
+      imageUrl = await uploadGetchaImage(imageFile);
     }
     
     var indexData = topic.toMap();
@@ -225,12 +350,16 @@ class MessageService {
       String sendMessageTimeString = sendMessageTime.millisecondsSinceEpoch.toString();
       String imageUrl; 
       if(imageFile != null) {
-        imageUrl = await uploadImage(imageFile);
+        imageUrl = await uploadGetchaImage(imageFile);
       }
       DocumentReference chatReference;
       DocumentReference indexReference;
       String parentID = topic.id;
-      indexReference = _topicCollection.document(parentID);
+      if(topic.geoTopLeft != null) {
+        indexReference = _topicCollection.document(parentID);
+      } else {
+        indexReference = _broadcastCollection.document(parentID);
+      }
       return indexReference.get().then((var indexDataSnap) {
         if(indexDataSnap.exists) {
           topic = Topic.fromMap(indexDataSnap.data);
@@ -251,13 +380,7 @@ class MessageService {
             content = BlockLevels[1] + ": " + content;
             break;
         }
-        GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
-
-        Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(topic.geoTopLeft, topic.geoBottomRight, dest, 1000);
         Map<String, dynamic> indexData = topic.toMap();
-        indexData['geotopleft'] = enlargeBox['topLeft'];
-        indexData['geobottomright'] = enlargeBox['bottomRight'];
-        indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
         indexData['lastUpdateUser'] = basicUserMap;
         indexData['lastUpdate'] = sendMessageTime;
         // for Hide and show
@@ -275,12 +398,20 @@ class MessageService {
             indexData['public'] = false;
             break;
         }
-
+        GeoPoint geo;
+        if(position != null && topic.geoTopLeft != null) {
+          GeoPoint dest = new GeoPoint(position.latitude, position.longitude);
+          Map<String, GeoPoint> enlargeBox = GeoHelper.enlargeBox(topic.geoTopLeft, topic.geoBottomRight, dest, 1000);   
+          indexData['geotopleft'] = enlargeBox['topLeft'];
+          indexData['geobottomright'] = enlargeBox['bottomRight'];
+          indexData['geocenter'] = GeoHelper.boxCenter(enlargeBox['topLeft'], enlargeBox['bottomRight']);
+          geo = GeoPoint(position.latitude, position.longitude);
+        }
 
         var chatData = {
               'created': sendMessageTime,
               'id': sendMessageTimeString,
-              'geo': new GeoPoint(position.latitude, position.longitude),
+              'geo': geo,
               'content': content,
               'type': type,
               'createdUser' : basicUserMap,
@@ -299,7 +430,21 @@ class MessageService {
       });
   }
 
-  Future<String> uploadImage(File imageFile) async {
+  Future<Map> uploadSearchingImage(File imageFile) async {
+    String fileName = 'photo/' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+    Map uploadImageMap = await this.uploadImage(imageFile, fileName);
+    return uploadImageMap;
+
+  } 
+
+  Future<String> uploadGetchaImage(File imageFile) async {
+    String fileName = 'getCha//' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+    Map uploadImageMap = await this.uploadImage(imageFile, fileName);
+    String downloadUrl = uploadImageMap["downloadUrl"];
+    return downloadUrl;
+  } 
+
+  Future<Map> uploadImage(File imageFile, String fileName) async {
     File uploadImage = imageFile;
     List<int> blob = uploadImage.readAsBytesSync();
     
@@ -323,11 +468,15 @@ class MessageService {
 //      blob = new Img.PngEncoder({level: 3}).encodeImage(image);
       blob = new Img.JpegEncoder(quality: 75).encodeImage(image);
     }
-    String fileName = 'getCha//' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
     StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
     StorageUploadTask uploadTask = reference.putData(blob);
     StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
     String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
-    return downloadUrl;
+    String serverPath = await storageTaskSnapshot.ref.getPath();
+    String bucketPath = await storageTaskSnapshot.ref.getBucket();
+    Map rv = Map();
+    rv['downloadUrl'] = downloadUrl;
+    rv['serverUrl'] = "gs://" + bucketPath + "/" + serverPath;
+    return rv;
   } 
 }

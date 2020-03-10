@@ -34,7 +34,7 @@ class PollingWidget extends StatefulWidget {
 
 
 class PollingView extends PollingModel {
-  PollingView(SearchingMsg searchingMsg, String pollingKey): super(searchingMsg, pollingKey);
+  PollingView(SearchingMsg searchingMsg, String pollingKey): super(searchingMsg.polling, pollingKey, searchingMsg.status);
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -49,7 +49,8 @@ abstract class PollingModel extends State<PollingWidget>
   PollingService pollingService; 
   AnimationController controller;
   Animation<Offset> position;
-  SearchingMsg _sMsg;
+  //SearchingMsg _sMsg;
+  String _pollingStatus;
   String _pollingKey;
   List<int> _upvote;
   int _totalUpvote = 0;
@@ -58,13 +59,11 @@ abstract class PollingModel extends State<PollingWidget>
   Polling _polling;
   PollingResult _result;
   PollingResult _userResult;
-  PollingModel(this._sMsg, this._pollingKey) {
-    _polling = _sMsg.polling;
-  }
+  PollingModel(this._polling, this._pollingKey, this._pollingStatus);
 
   void getPollingData() async {
-    pollingService.getUserResult(_sMsg.key, widget.user.uuid).then((PollingResult userResult) {
-      pollingService.getResult(_sMsg.key).then((result) {
+    pollingService.getUserResult(_pollingKey, widget.user.uuid).then((PollingResult userResult) {
+      pollingService.getResult(_pollingKey).then((result) {
         if(userResult != null) {
           setState(() {
             _userResult = userResult;
@@ -81,7 +80,7 @@ abstract class PollingModel extends State<PollingWidget>
   @override
   void initState() {
     pollingService = new PollingService(widget.user);
-    _upvote = new List<int>(_sMsg.polling.pollingOptionValues.length);
+    _upvote = new List<int>(_polling.pollingOptionValues.length);
     for(int i = 0; i< _upvote.length; i++) {
       _upvote[i] = 0;
     }
@@ -115,7 +114,7 @@ abstract class PollingModel extends State<PollingWidget>
             Expanded(flex: 8, child: _buildLoading(context)),
           ]);
     } else {
-        if(_sMsg.status == SEARCHING_STATUS_OPTIONS[1] || _userResult != null) {
+        if(_pollingStatus == SEARCHING_STATUS_OPTIONS[1] || _userResult != null) {
           return _buildPollingPreview(context, true);
         } else {
           return _buildPollingPreview(context, false);
@@ -152,7 +151,7 @@ abstract class PollingModel extends State<PollingWidget>
     return Padding(
         padding: EdgeInsets.all(1.0),
         child: new Text(
-          _sMsg.polling.pollingTitle,
+          _polling.pollingTitle,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(fontWeight: FontWeight.bold, color: widget.textColor),
         ));
@@ -181,7 +180,7 @@ abstract class PollingModel extends State<PollingWidget>
       _loading = true;
     });
     _userResult = new PollingResult(_upvote);
-    pollingService.sendUserPollingResult(_sMsg.key, _userResult).then((temp) {
+    pollingService.sendUserPollingResult(_pollingKey, _userResult).then((temp) {
       return getPollingData();
     });
   }
@@ -189,8 +188,8 @@ abstract class PollingModel extends State<PollingWidget>
   Widget _buildOptions(BuildContext context, bool displayResult) {
     List<Widget> listOfWidget = [];
     double optionWidth = MediaQuery.of(context).size.width;
-    String desc1 = LABEL_VOTE_RANGE + " " + _sMsg.polling.pollingRange.toString() + LABEL_KM;
-    String desc2 = LABEL_VOTE_MAX +_sMsg.polling.numOfMaxPolling.toString();
+    String desc1 = LABEL_VOTE_RANGE + " " + _polling.pollingRange.toString() + LABEL_KM;
+    String desc2 = LABEL_VOTE_MAX +_polling.numOfMaxPolling.toString();
     Text descText1 = new Text(desc1,
             overflow: TextOverflow.ellipsis,
             maxLines: 3,
@@ -208,7 +207,7 @@ abstract class PollingModel extends State<PollingWidget>
         totalUpvote += _result.upvote[i];
       }
     }
-    for(int i = 0; i < _sMsg.polling.pollingOptionValues.length; i++) {
+    for(int i = 0; i < _polling.pollingOptionValues.length; i++) {
       int upvoteResult = 0;
       if(displayResult) {
         upvoteResult = _result.upvote[i];
@@ -218,7 +217,7 @@ abstract class PollingModel extends State<PollingWidget>
         color = widget.textColor;
       }
       String resultText =  displayResult ? upvoteResult.toString() : " " ;
-      Widget textWidget = Text(_sMsg.polling.pollingOptionValues[i]);
+      Widget textWidget = Text(_polling.pollingOptionValues[i]);
       if(displayResult) {
         textWidget = Row(children: [
           textWidget,

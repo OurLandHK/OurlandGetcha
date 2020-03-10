@@ -42,9 +42,9 @@ const String MESSAGE_BROADCAST = "推上香港·主牆";
 const String MESSAGE_LOCAL = "回到地區";
 
 const String LABEL_NEARBY = "附近";
-const String LABEL_REGION = "地點: ";
-const String LABEL_REGION0 = LABEL_REGION + "1";
-const String LABEL_REGION1 = LABEL_REGION + "2";
+const String LABEL_REGION = "地點";
+const String LABEL_REGION0 = LABEL_REGION + ": 1";
+const String LABEL_REGION1 = LABEL_REGION + ": 2";
 const LABEL_SEARCHING_STATUS = "現況: ";
 
 const String LABEL_BROADCAST = "香港·主牆";
@@ -57,12 +57,16 @@ const String MENU_ITEM_SETTINGS_CHANGE_OFFICE_LOCATION = "收風地點2";
 const String MENU_ITEM_SETTINGS_CHANGE_PROFILE_IMAGE = "設定照片（實名Memo 先出）";
 const String MENU_ITEM_NOT_FOUND_ERR = "冇貨";
 
+const String LABEL_VIEW_COUNT = "觀看人次：";
 const String MENU_ITEM_ABOUT = "關於";
 const String MENU_ITEM_LOGOUT = "變CD-ROM";
 const String CHAT_MENU_ITEM_REPORT = "我要做撕紙🐶";
+const String BROADCAST_MENU_ITEM_SUBCRIBE = "我要退訂";
 const String REPORT_APPROVED = "真・撕紙🐶";
 const String REPORT_COVERD= "我幫你遮咗佢";
 const String REPORT_DESC = "啲Memo係冇咁易撕㗎！不過如果你唔想見到佢，俾個原因我哋就可以幫你遮咗佢。如果有好多人都遮咗，咁Admin會好大機會變成真・撕紙🐶㗎喇！";
+const String SUBSCRIBE_DESC = "所有新加入的節目都會有推播通知，如果唔想收到，退定就可，不過非節目既通知(如吹雞Memo) 就冇得退！";
+
 
 const String RANK_DESC = "冇咁易轉風向㗎！每人每星期帶一次";
 const String CHAT_MENU_ITEM_RANK = "我要帶風向";
@@ -70,10 +74,14 @@ const String CHAT_MENU_ITEM_RANK = "我要帶風向";
 const String LABEL_IN = "在";
 const String LABEL_HAS = "有";
 const String TAG_ALL = "所有";
-const List<String> SEARCHING_STATUS_OPTIONS = ['開緊', '完結', '政府跟進中', '流料', '不恰當訊息'];
+const List<String> RANKING_PROPERTIES = ["工作人員","環境","香港人優先","支持社運"];
+const List<String> SEARCHING_STATUS_OPTIONS = ['開放', '完結', '政府跟進中', '流料', '不恰當訊息', "等待審批", "撤回"];
 const List<String> TAG_SELECTION =  ["吹水", "突發","活動", "優惠/美食", "投票", "秘境", "維修/求助", "交換", "我地.市正"];
+const List<String> MESSAGE_TYPE_SELECTION =  ["料","活動","投票"];
+const List<String> DURATION_SELECTION = ['0:30', '1:00', '1:30','2:00','3:00','4:00','6:00','8:00','10:00','12:00','18:00','一天','兩天','三天','四天','五天','六天','一週'];
 const String LABEL_TOPIC = "Memo";
 const String LABEL_NEW_TOPIC = "新Memo";
+const String LABEL_NEW = "新 ";
 const String LABEL_NEW_BROADCAST_TOPIC = "新廣播";
 const String LABEL_UPDATE_TOPIC = " 有變";
 const String LABEL_SHOW = "開來見我";
@@ -89,12 +97,25 @@ const String LABEL_MISSING_TOPIC = "冇入標題";
 const String LABEL_MORE_DETAIL = "入D詳情先出Memo好D";
 const String LABEL_SEND = "出Memo";
 const String LABEL_NOBODY = "沒有人";
-const String LABEL_DISTRICT ="社區";
-const String LABEL_CARE ="關心";
+const String LABEL_LENNON_WALL ="連儂牆";
+const String LABEL_PROGRAM = "節目";
+const String LABEL_CARE ="大台？";
 const String PERM_LOCATION_NOT_GRANTED = "唔該俾我用 GPS";
 const String PERM_LOCATION_GRANT_BTN_TEXT = "俾";
 const String PERM_LOCATION_NOT_GRANT_BTN_TEXT = "唔俾";
 const String LOCATION_NOT_VALIDATE = '地點未入';
+
+const String LABEL_POLLING_END_DATE = '投票結束日期';
+const String LABEL_POLLING_START_DATE = '投票開始日期';
+const String LABEL_POLLING_TITLE = '投票題目';
+const String LABEL_POLLING_OPTION = '投票選項';
+const String HINT_POLLING_END_DATE = '23：59 結束投票';
+const String HINT_POLLING_START_DATE = '00:00 開始投票 ';
+const String HINT_POLLING_TITLE = '最好以問題型式';
+
+const String LABEL_EVENT_START_DATE = 'Start Date';
+const String HINT_EVENT_START_DATE = 'Start Date Hint';
+const String LABEL_EVENT_DURATION = 'Duration';
 
 const String NEW_HOME_LOCATION = "入新地點1";
 const String NEW_OFFICE_LOCATION = "入新地點2";
@@ -111,7 +132,7 @@ const String NO_PLACE_CALLED = "找不到 -》";
 
 const String TOPIC_ROOT_ID = "";
 
-const String LABEL_TIME = "時間\n";
+const String LABEL_TIME = "時間:";
 const String LABEL_START_TIME = "開始: ";
 const String LABEL_DATE = "日期: ";
 const String LABEL_END_TIME = "完結: ";
@@ -122,7 +143,7 @@ const List<String> LABEL_RANKING_RANGE = ["所有", "近120日"];
 
 
 const String LABEL_CLOSED = "關閉";
-const String LABEL_DURATION = "為期";
+const String LABEL_DURATION = "為期: ";
 const String LABEL_VOTED = "閣下已投票 ";
 const String LABEL_VOTE = "我要投票"; 
 const String LABEL_KM = "km";
@@ -134,6 +155,10 @@ const String LABEL_UNBLOCK ="我要見番佢";
 const String LABEL_ZERO_BLOCK = "好人一生平安，你一個人都冇Block！";
 const String LABEL_SHOW_RANDOM_NAME = "全隨機留名";
 
+const String LABEL_NEW_MEMO = "貼Memo";
+const String LABEL_NEW_BROADCAST = "地球Post";
+const String LABEL_NEW_MESSAGE = "報料";
+
 const String LABEL_NO_ONE_RANKNG = "仲未有人評價，你仲唔做第一個？";
 const String LABEL_RANKING ="評價: ";
 
@@ -142,7 +167,12 @@ const String LABEL_RANKING_UPDATE_MESSAGE = "更新評價: ";
 
 const String LABEL_GO_TO_OURLAND_SEARCH_LINK = "前住我地.市正了解詳情";
 
-const double MAP_HEIGHT = 200.0;
+const String LABEL_PENDING_MESSAGE = "未審批正料: ";
+const String LABEL_APPROVE = "審批";
+const String LABEL_REJECT= "撤回";
+const String LABEL_NO_PENDING_MESSAGE = "沒有等待審批";
+
+const double MAP_HEIGHT = 180.0;
 const double TOOLBAR_HEIGHT = 25.0;
 const double CREATE_TOPIC_MAP_HEIGHT = 150.0;
 

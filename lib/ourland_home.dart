@@ -8,13 +8,16 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:ourland_native/pages/topic_screen.dart';
 import 'package:ourland_native/pages/searching_main.dart';
 import 'package:ourland_native/widgets/popup_menu.dart';
+import 'package:ourland_native/widgets/fab_bottom_app_bar.dart';
 import 'package:ourland_native/models/constant.dart';
 import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/pages/send_topic_screen.dart';
+import 'package:ourland_native/pages/broadcast_screen.dart';
 import 'package:ourland_native/pages/send_message_screen.dart';
 import 'package:ourland_native/pages/notification_screen.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/services/message_service.dart';
+import 'package:ourland_native/services/subscribe_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:geolocator/geolocator.dart';
@@ -70,13 +73,15 @@ const String _app_name = APP_NAME;
 
 class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin {
   TabController _tabController;
+  String _fcmToken;
+  List<String> _youtubeChannelList;
   String uid = '';
   bool _isFabShow = false;
+  String _fabText = '';
 //  List<CameraDescription> cameras;
   bool _locationPermissionGranted = true;
   bool _disableLocation = false;
   Widget _nearBySelection;
-  Widget _searchingMain;
   Widget _pendingWidget;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   UserService userService = new UserService();
@@ -101,19 +106,8 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   void initState() {
     this.uid = '';
     _nearBySelection = new CircularProgressIndicator();
-    _searchingMain = new CircularProgressIndicator();
     messageService = new MessageService(widget.user);
-    _tabController = new TabController(vsync: this, initialIndex: 0, length: 3);
-    /*
-    _webView = new WebView(
-                initialUrl: OURLAND_SEARCH_HOST,
-                onWebViewCreated: (WebViewController webViewController) {
-                  _controller = webViewController;
-                },
-                javascriptMode: JavascriptMode.unrestricted,
-              );
-    _webviewPlugin = new WebviewScaffold(url: OURLAND_SEARCH_HOST, geolocationEnabled: true, appCacheEnabled: true, supportMultipleWindows: true, withJavascript: true, withLocalStorage: true,);
-    */
+    _tabController = new TabController(vsync: this, initialIndex: 0, length: 4);
     super.initState();
     _geolocator.checkGeolocationPermissionStatus().then((geolocationStatus) {
       PermissionHandler()
@@ -131,7 +125,7 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
               print('initState Poisition ${position}');
               _currentLocation = new GeoPoint(position.latitude, position.longitude);
               _nearBySelection = new TopicScreen(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences);
-              _searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences, disableLocation: _disableLocation);
+              //_searchingMain = new SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences, disableLocation: _disableLocation);
             }
           });
         }
@@ -150,6 +144,13 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
   initPlatformState() async {
     Position location;
+    messageService.getFirstPage().then((firstPage){
+      setState(() {
+        _youtubeChannelList = firstPage['YoutubeChannel'].cast<String>();
+        print(firstPage['YoutubeChannel'].toString());
+        print(_youtubeChannelList);
+      });
+    });
     // Platform messages may fail, so we use a try/catch PlatformException.
     if(_locationPermissionGranted) {
       try {
@@ -197,8 +198,11 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
 
   void firebaseCloudMessaging_Listeners() {
   if (Platform.isIOS) iOS_Permission();
-
     _firebaseMessaging.getToken().then((token){
+      _fcmToken = token;
+      SubscribeService sub = new SubscribeService();
+      sub.updateLogin(token);
+      widget.preferences.setString('fcm', token);
       Map<String, String> field = new Map<String, String>();
       field['fcmToken'] = token;
       if(widget.user != null) {
@@ -211,27 +215,32 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
       onMessage: (Map<String, dynamic> message) async {
         var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
-        print('on message $message    data $data id $id');
-        _showItemDialog(data);
+        String bid = data['bid'];
+        String title = message['notification']['title'];
+        print('on message $message    data $data id $id bid $bid');
+        //_showItemDialog(data);
+        _showItemDialog(title, id, bid);
       },
       onResume: (Map<String, dynamic> message) async {
         var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
-        print('on resume $message    data $data id $id');
-        _navigateToItemDetail(data);
+        String bid = data['bid'];
+        print('onResume $message    data $data id $id bid $bid');
+        _navigateToItemDetail(id, bid);
       },
       onLaunch: (Map<String, dynamic> message) async {
         var data = message['data'] == null ? message : message['data'];
         String id = data['id'];
-        print('on launch $message    data $data id $id');
-        _navigateToItemDetail(data);
+        String bid = data['bid'];
+        print('onLaunch $message    data $data id $id bid $bid');
+        _navigateToItemDetail(id, bid);
       },
     );
   }
 
-  Widget _buildDialog(BuildContext context, Item item) {
+  Widget _buildDialog(BuildContext context, String topic) {
     return AlertDialog(
-      content: Text(item.topic + LABEL_UPDATE_TOPIC),
+      content: Text(topic + LABEL_UPDATE_TOPIC),
       actions: <Widget>[
         FlatButton(
           child: const Text(LABEL_CLOSE),
@@ -249,37 +258,40 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     );
   }
 
-  void _showItemDialog(Map<String, dynamic> data) {
-    final String id = data['id'];
-    //GeoPoint messageLocation = _currentLocation;
-    this.messageService.getTopic(id).then((topic) {
-      Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
-      final Item item = new Item(page: page, topic: topic.topic, topicID: id);
-      showDialog<bool>(
-        context: context,
-        builder: (_) => _buildDialog(context, item),
-      ).then((bool shouldNavigate) {
-        if (shouldNavigate == true) {
-          Navigator.popUntil(context, (Route<dynamic> route) => route is PageRoute);
-          if (!item.route.isCurrent) {
-            Navigator.push(context, item.route);
-          }      
-        }
-      });
-    });
+  void _showItemDialog(String title, String tid, String bid) {  
+    showDialog<bool>(
+          context: context,
+          builder: (_) => _buildDialog(context, title),
+        ).then((bool shouldNavigate) {
+          if (shouldNavigate == true) {
+            _navigateToItemDetail(tid, bid);
+          }
+        });
   }
 
-  void _navigateToItemDetail(Map<String, dynamic> data) {
+  void _navigateToItemDetail(String tid, String bid) {
     // Clear away dialogs
     Navigator.popUntil(context, (Route<dynamic> route) => route is PageRoute);
-    final String id = data['id'];
-    this.messageService.getTopic(id).then((topic) {
-      Widget page = new ChatScreen(user: widget.user, topic: topic, parentTitle: topic.topic);
-      final Item item = new Item(page: page, topic: topic.topic, topicID: id);
-      if (!item.route.isCurrent) {
-        Navigator.push(context, item.route);
-      }      
-    });
+    String id;
+    Function getTopic;
+    if(tid != null) {
+      id = tid; 
+      getTopic = this.messageService.getTopic;
+    }
+    if(bid != null) {
+      id = bid;
+      getTopic = this.messageService.getBroadcast;
+    }
+    print('tid $tid bid $bid id $id getTopic $getTopic');
+    if(getTopic != null) { 
+      getTopic(id).then((topic) {
+        Widget page = new ChatScreen(preferences: widget.preferences ,user: widget.user, topic: topic, parentTitle: topic.topic);
+        final Item item = new Item(page: page, topic: topic.topic, topicID: id);
+        if (!item.route.isCurrent) {
+          Navigator.push(context, item.route);
+        }      
+      });
+    }
   }
 
 
@@ -320,18 +332,25 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
   }
     // TODO for Real Notification Screen
   Widget showNotification() {
-    return new NotificationScreen(user: widget.user);
+    return new NotificationScreen(preferences: widget.preferences, user: widget.user);
   }
+
+  Widget showBroadcast() {
+    return new BroadcastScreen(preferences: widget.preferences, user: widget.user, youtubeChannelList: _youtubeChannelList, fcmToken: _fcmToken);
+  }  
 
   void updateLocation() {
     Widget rv;
     bool isFabShow = false;
+    String fabText = "";
     if(widget.user != null) {
       isFabShow = true;
+      fabText = LABEL_NEW_MEMO;
     }
     rv = showNearby();
     setState((){
       this._isFabShow = isFabShow;
+      this._fabText = fabText;
       this._nearBySelection = rv;
     });
   }   
@@ -352,37 +371,49 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
     _tabController.addListener(() {
       switch(_tabController.index) {
         case 0:
+        case 3:
           if(widget.user != null && widget.user.sendBroadcastRight != null && widget.user.sendBroadcastRight) {
             setState(() {
               this._isFabShow = true;
+              this._fabText = LABEL_NEW_BROADCAST;
             });
           } else {
             setState(() {
               this._isFabShow = false;
+              this._fabText = "";
             });            
           }
           break; 
         case 2:
           setState(() {
-            //this._isFabShow = true;
-            this._isFabShow = false;
+            this._isFabShow = true;
+            this._fabText = LABEL_NEW_MESSAGE;
+            //this._isFabShow = false;
           });
           break;
         default:
           updateLocation();
       }
     });
-    void sendMessageClick() {
-      GeoPoint messageLocation;
+    void sendMessageClick() { 
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            if(_tabController.index == 2) {
-              return new SendMessageScreen(
-                getCurrentLocation: getCurrentLocation, user: widget.user, searchingMsg: null);
-            } else {
-            return new SendTopicScreen(
-                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: (_tabController.index == 0),);
+            switch(_tabController.index) {
+              case 0:
+                return new SendTopicScreen(
+                  getCurrentLocation: null, user: widget.user, isBroadcast: true, dropdownList: _youtubeChannelList);
+                break;
+              case 1:
+                  return new SendTopicScreen(
+                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: false, dropdownList: TAG_SELECTION);
+              case 2:
+                return new SendMessageScreen(
+                  getCurrentLocation: getCurrentLocation, user: widget.user, searchingMsg: null);
+                break;
+              case 3:
+                return new SendTopicScreen(
+                getCurrentLocation: getCurrentLocation, user: widget.user, isBroadcast: true, dropdownList: TAG_SELECTION);
             }
           },
         ),
@@ -395,30 +426,6 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
         appBar: new AppBar(
           title: new Text(_app_name),
           elevation: 0.7,
-          bottom: new TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.white,
-            tabs: <Widget>[
-              //  new Tab(icon: new Icon(Icons.camera_alt)),
-              new Tab(
-                child: Row(
-                  children: [
-                    Icon(Icons.public),
-                    new Text(LABEL_CARE),
-                  ])
-              ),
-              new Tab(
-                child: Row(
-                  children: [
-                    Icon(Icons.location_city),
-                    new Text(LABEL_DISTRICT),
-                  ])
-              ),
-              new Tab(
-                icon: new Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH)
-              ),
-            ],
-          ),
           actions: <Widget>[
             //new Icon(Icons.search),
             new Padding(
@@ -431,12 +438,14 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
           physics: NeverScrollableScrollPhysics(),
           controller: _tabController,
           children: <Widget>[
-            showNotification(),
+            showBroadcast(),
             _nearBySelection,
             SearchingMain(user: widget.user, getCurrentLocation: getCurrentLocation, preferences: widget.preferences, disableLocation: _disableLocation),
+            showNotification(),
             //new CircularProgressIndicator(),
           ],
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton:  new Opacity(
             opacity: _isFabShow ? 1.0 : 0.0,
             child: new FloatingActionButton(
@@ -447,6 +456,19 @@ class _OurlandHomeState extends State<OurlandHome> with TickerProviderStateMixin
                 ),
               onPressed: () => sendMessageClick(),
             )
+        ),
+        bottomNavigationBar: FABBottomAppBar(
+          centerItemText: _fabText,
+          backgroundColor: Theme.of(context).primaryColor,
+          selectedColor: Theme.of(context).accentColor,
+          notchedShape: _isFabShow ? CircularNotchedRectangle() : null,
+          onTabSelected: (_selectedTab) => _tabController.index = _selectedTab,
+          items: [
+            FABBottomAppBarItem(iconData: Icons.layers, text: LABEL_CARE),
+            FABBottomAppBarItem(iconData: Icons.dashboard, text: LABEL_LENNON_WALL),
+            FABBottomAppBarItem(iconWidget: Image.asset(SEARCHING_APP_LOGO_IMAGE_PATH), text: ''),
+            FABBottomAppBarItem(iconData: Icons.bookmark, text: LABEL_BOOKMARK),
+          ],
         ),
       );
     } else {

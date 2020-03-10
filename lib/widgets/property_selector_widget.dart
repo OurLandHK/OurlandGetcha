@@ -61,7 +61,8 @@ class PropertySelectorWidget extends StatefulWidget {
       @required this.defaultFields, 
       @required this.currentProperties, 
       @required this.totalSelect,
-      @required this.currentSelectProperties,
+      @required this.selectedFields,
+      @required this.currentSelectPropertiesCallback,
       this.showLastUpdate,
       this.updownProperty,
       this.readOnly,
@@ -70,7 +71,8 @@ class PropertySelectorWidget extends StatefulWidget {
 
   final List<String> defaultFields;
   final List<Property> currentProperties;
-  final Function currentSelectProperties;
+  List<String> selectedFields;
+  final Function currentSelectPropertiesCallback;
   final int totalSelect;
   bool showLastUpdate = false;
   bool readOnly = true;
@@ -95,7 +97,6 @@ class PropertySelectorView extends PropertySelectorModel {
 // RichLinkPreviewMode 
 abstract class PropertySelectorModel extends State<PropertySelectorWidget>
     with TickerProviderStateMixin {
-  List<String> selectedFields = [];
   List<String> selectedDownFields = [];
   String customField = "";
   Map<String, Property> _currentPropertiesMap;
@@ -122,16 +123,16 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
 
   void _onTap(field) {
     setState(() {
-      if(selectedFields.remove(field)) {
-        selectedFields.join(', ');
+      if(widget.selectedFields.remove(field)) {
+        widget.selectedFields.join(', ');
       } else {
-        if(selectedFields.length + selectedDownFields.length < widget.totalSelect) {
-          selectedFields.add(field);
+        if(widget.selectedFields.length + selectedDownFields.length < widget.totalSelect) {
+          widget.selectedFields.add(field);
         }
       }      
     });
-    if(widget.currentSelectProperties !=  null) {
-      widget.currentSelectProperties(selectedFields, true);
+    if(widget.currentSelectPropertiesCallback !=  null) {
+      widget.currentSelectPropertiesCallback(widget.selectedFields, true);
     }
   }
 
@@ -140,13 +141,13 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
       if(selectedDownFields.remove(field)) {
         selectedDownFields.join(', ');
       } else {
-        if(selectedDownFields.length + selectedFields.length< widget.totalSelect) {
+        if(selectedDownFields.length + widget.selectedFields.length< widget.totalSelect) {
           selectedDownFields.add(field);
         }
       }      
     });
-    if(widget.currentSelectProperties !=  null) {
-      widget.currentSelectProperties(selectedDownFields, false);
+    if(widget.currentSelectPropertiesCallback !=  null) {
+      widget.currentSelectPropertiesCallback(selectedDownFields, false);
     }
   }
   Widget buildOption(BuildContext context, String field, Property property, bool displayResult) {
@@ -191,7 +192,7 @@ abstract class PropertySelectorModel extends State<PropertySelectorWidget>
       }
 
       LinearGradient gradient;
-      if(selectedFields.contains(field)) {
+      if(widget.selectedFields.contains(field)) {
         value++;
         borderSize = 2;
         boxColor = Theme.of(context).accentColor;

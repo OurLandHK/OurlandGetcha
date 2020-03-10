@@ -18,14 +18,16 @@ import 'package:ourland_native/pages/chat_screen.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/widgets/topic_message.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class NotificationScreen extends StatefulWidget {
   final User user;
   NotificationScreenState _state;
+  final SharedPreferences preferences;
 
-  NotificationScreen({Key key, @required this.user}) : super(key: key);
+  NotificationScreen({Key key, @required this.preferences, @required this.user}) : super(key: key);
 
   @override
   State createState() {
@@ -114,7 +116,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+            return new ChatScreen(preferences: widget.preferences,user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );
@@ -210,7 +212,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return new ChatScreen(user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
+            return new ChatScreen(preferences: widget.preferences, user: widget.user, topic: topic, parentTitle: parentTitle, messageLocation: _messageLocation);
           },
         ),
       );
@@ -252,7 +254,7 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
     } 
     return new Container(
       child: StreamBuilder(
-        stream: this.messageService.getBroadcastSnap(),
+        stream: this.messageService.getPublicSnap(null),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(

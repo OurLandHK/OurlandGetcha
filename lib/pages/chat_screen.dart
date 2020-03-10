@@ -19,7 +19,6 @@ import 'package:ourland_native/widgets/chat_summary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ourland_native/services/user_service.dart';
 
-import '../models/chat_model.dart';
 import '../widgets/send_message.dart';
 
 //final analytics = new FirebaseAnalytics();
@@ -30,9 +29,10 @@ class ChatScreen extends StatelessWidget {
   final String parentTitle;
   final Topic topic;
   final GeoPoint messageLocation;
+  final SharedPreferences preferences;
 //  final bool enableSendButton;
   final User user;
-  ChatScreen({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
+  ChatScreen({Key key, @required this.preferences, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +56,7 @@ class ChatScreen extends StatelessWidget {
           body: Container(
             //color: TOPIC_COLORS[topic.color],
             child: new ChatScreenBody(
+              preferences: preferences,
               user: this.user,
               topic: this.topic,
               parentTitle: this.parentTitle,
@@ -71,9 +72,10 @@ class ChatScreenBody extends StatefulWidget {
   final GeoPoint messageLocation;
   final Topic topic;
   SearchingMsg _searchingMsg;
+  final SharedPreferences preferences;
   final User user;
 
-  ChatScreenBody({Key key, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
+  ChatScreenBody({Key key, @required this.preferences, @required this.user, @required this.topic, @required this.parentTitle, this.messageLocation}) : super(key: key);
 
   @override
   State createState() => new ChatScreenBodyState(messageLocation: this.messageLocation);
@@ -88,7 +90,6 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   bool _enableSendButton = false;
   var listMessage;
 
-  String groupChatId;
   SharedPreferences prefs;
   bool isLoading;
 
@@ -119,7 +120,7 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   Widget build(BuildContext context) {
     ValueNotifier<GeoPoint> summaryTopLeft = new ValueNotifier<GeoPoint>(widget.topic.geoTopLeft);
     ValueNotifier<GeoPoint> summaryBottomRight = new ValueNotifier<GeoPoint>(widget.topic.geoBottomRight);
-    ChatSummary chatSummary = ChatSummary(topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, messageLocation: widget.messageLocation, chatMode: _chatMode, toggleComment: this.toggleComment, updateUser: this.updateUser, getUserName: this.getUserName, getAllUserList: this.getAllUserId, getColor: this.getColor);
+    ChatSummary chatSummary = ChatSummary(preferences: widget.preferences, topLeft: summaryTopLeft, bottomRight: summaryBottomRight, width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height/4, user: widget.user, imageUrl: widget.topic.imageUrl, topic: widget.topic, messageLocation: widget.messageLocation, chatMode: _chatMode, toggleComment: this.toggleComment, updateUser: this.updateUser, getUserName: this.getUserName, getAllUserList: this.getAllUserId, getColor: this.getColor);
     List<Widget> _widgetList = [chatSummary];
     if(this._chatMode == Chat_Mode.COMMENT_MODE) {
       _widgetList.add(ChatList(chatStream: chatStream, parentId: widget.topic.id, user: widget.user, topic: widget.topic, listScrollController: this.listScrollController, updateUser: updateUser, getUserName: getUserName, getColor: getColor));

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ourland_native/helper/string_helper.dart';
 
 //import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,8 +25,10 @@ import 'package:ourland_native/models/user_model.dart';
 import 'package:ourland_native/services/message_service.dart';
 import 'package:ourland_native/services/user_service.dart';
 import 'package:ourland_native/models/searching_msg_model.dart';
+import 'package:ourland_native/models/polling_model.dart';
 import 'package:ourland_native/widgets/chat_map.dart';
 import 'package:ourland_native/widgets/color_picker.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 
 //final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
@@ -65,15 +69,16 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
   final ScrollController listScrollController = new ScrollController();
   final FocusNode focusNode = new FocusNode();
 
-  List<DropdownMenuItem<String>> _tagDropDownMenuItems;
-  List<DropdownMenuItem<String>> _locationDropDownMenuItems;
+  List<DropdownMenuItem<String>> _messageTypeDropDownMenuItems;
+  List<DropdownMenuItem<String>> _duationDropDownMenuItems;
+  
 
   String _parentTitle;
   String _newTopicLabel;
   String _desc;
-  String _firstTag;
-  int _type;
-  String _currentLocationSelection;
+  List<String> _tags = [];
+  String _messageType;
+  String _duration;
   String _location;
   String _label ;
   ChatMap map;
@@ -84,35 +89,64 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
   Widget _pendingButton;
   int _color;
   String _buttonText;
+  Widget _locationField;
+  Polling _polling;
+  DateTime _startDate;
+  DateTime _endDate;
+  TextEditingController _txt = TextEditingController();
 
   final FocusNode _locationFocus = FocusNode();  
   final FocusNode _titleFocus = FocusNode();  
   final FocusNode _descFocus = FocusNode();
+  final FocusNode _startDateFocus = FocusNode();
+  final FocusNode _endDateFocus = FocusNode();
+  final FocusNode _pollingTitleFocus = FocusNode();  
+  final FocusNode _pollingRangeFocus = FocusNode();
+  final FocusNode _pollingMaxPollingFocus = FocusNode();
+  final List<FocusNode> _pollingOptions = [];
+  final FocusNode _sendButtonFocus = FocusNode();
+
   
 
   @override
   void initState() {
     super.initState();
+    _pollingOptions.add(FocusNode());
     if(widget.searchingMsg == null) {
-      _label = LABEL_REGION;
+      _label = LABEL_REGION + ": ";
     } else {
       _label = widget.searchingMsg.text;
     }
+    _locationField = TextField(
+        controller: _txt,
+        focusNode: _locationFocus,
+        decoration: InputDecoration(
+            hintText: LABEL_REGION0),
+        keyboardType: TextInputType.text,
+        onChanged: (value) {
+          setState(() {
+            _location = value;
+            _messageLocation = null;
+          });},
+        onSubmitted: onSubmittedLocation);
     focusNode.addListener(onFocusChange);
     messageService = new MessageService(widget.user);
     userService = new UserService();
-    _tagDropDownMenuItems = getDropDownMenuItems(TAG_SELECTION, false);
-    _firstTag = _tagDropDownMenuItems[0].value;
+    _messageTypeDropDownMenuItems = getDropDownMenuItems(MESSAGE_TYPE_SELECTION, false);
+    _messageType = _messageTypeDropDownMenuItems[0].value;
+    _duationDropDownMenuItems = getDropDownMenuItems(DURATION_SELECTION, false);
+    _duration = _duationDropDownMenuItems[0].value;
     
-    _newTopicLabel = LABEL_NEW_TOPIC;
+    
     _buttonText = LOCATION_NOT_VALIDATE;
-    _sendButton = RaisedButton(child: Text(_buttonText), onPressed: null);
+    _sendButton = RaisedButton(focusNode: _sendButtonFocus, child: Text(_buttonText), onPressed: null);
     Random rng = new Random();
     _color = rng.nextInt(TOPIC_COLORS.length);
     _desc = "";
     _parentTitle = "";
-    _type = 0;
     _isSubmitDisable = true;
+    _polling = new Polling(pollingOptionValues: []);
+    /*
     List<String> dropDownList = [LABEL_NEARBY];
     if(widget.user.homeAddress != null) {
       dropDownList.add(LABEL_REGION0);
@@ -120,9 +154,7 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     if(widget.user.officeAddress != null) {
       dropDownList.add(LABEL_REGION1);
     }    
-    _locationDropDownMenuItems = getDropDownMenuItems(dropDownList, false);
-    _currentLocationSelection = _locationDropDownMenuItems[0].value;
-
+    */
     //Map map = widget.getCurrentLocation();
     //this._messageLocation = map['GeoPoint'];
     //_locationPermissionGranted = map['LocationPermissionGranted'];
@@ -142,9 +174,9 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     return Future.value(false);
   }
 
-  Widget renderMap() {
+  Widget renderMap(BuildContext context) {
     if(this._messageLocation == null) {
-      return SizedBox(height: MAP_HEIGHT);
+      return SizedBox(height: MAP_HEIGHT, child: Expanded(child: Text(LOCATION_NOT_VALIDATE, textAlign: TextAlign.center,)));
     } else {
       return ChatMap(
           topLeft: this._messageLocation,
@@ -155,19 +187,9 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
    }
   }
 
-  Widget renderLocationField() {
+  Widget renderLocationField(BuildContext context) {
     return Row(children: [SizedBox(width: 12.0), Expanded(child: 
-      TextField(
-        focusNode: _locationFocus,
-        decoration: InputDecoration(
-            hintText: LABEL_REGION0),
-        keyboardType: TextInputType.text,
-        onChanged: (value) {
-          setState(() {
-            _location = value;
-            _messageLocation = null;
-          });},
-        onSubmitted: onSubmitted)), 
+      _locationField), 
         Material(child: Container(
           decoration: BoxDecoration(
                 border: Border.all(width: 0.5, color: Colors.grey),
@@ -186,8 +208,8 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
         SizedBox(width: 12.0)]);
   }
 
-  void onSubmitted(String dummy) {
-    fieldFocusChange(context, _locationFocus, _titleFocus);
+  void onSubmittedLocation(String dummy) {
+    //fieldFocusChange(context, _locationFocus, _titleFocus);
     onPressed();
   }
 
@@ -204,18 +226,34 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
 
   void onPressed()  {
     if(_location != null && _location.length > 1) {
-      _geolocator.placemarkFromAddress(_location).then(
+      print("Pressed " + _location);
+      _geolocator.placemarkFromAddress(_location, localeIdentifier: "zh_HK").then(
           (List<Placemark> placemark) {
         Position pos = placemark[0].position;
         String markerLabel = placemark[0].name;
+        print(markerLabel);
         setState(() {
           this._messageLocation= new GeoPoint(pos.latitude, pos.longitude);
         });
         //updateMap();
         refreshMarker(markerLabel);
       }, onError: (e) {
-        // PlatformException thrown by the Geolocation if the address cannot be translate
-        // DO NOTHING
+        print(e.toString());
+        _geolocator.placemarkFromAddress(_location, localeIdentifier: "en_HK").then(
+            (List<Placemark> placemark) {
+          Position pos = placemark[0].position;
+          String markerLabel = placemark[0].name;
+          print(markerLabel);
+          setState(() {
+            this._messageLocation= new GeoPoint(pos.latitude, pos.longitude);
+          });
+          //updateMap();
+          refreshMarker(markerLabel);
+        }, onError: (e) {
+          print(e.toString());
+          _scaffoldKey.currentState.showSnackBar(
+            new SnackBar(content: new Text(NO_PLACE_CALLED + _location)));
+        });
       });
     }
   }
@@ -236,22 +274,38 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
     //scheduleMicrotask(() => _swapValuable(context));
   }
 
+  void searchForKeywords(String desc) {
+    this._desc = desc;
+    String parseText = desc.replaceAll("\n", " ");
+    List<String> tempTags = StringHelper.keywordSearch(parseText, "#");
+    if(tempTags.length == 0) {
+      tempTags = StringHelper.keywordSearch(parseText, "＃");
+    }
+    String tempLocation = "";
+
+    tempLocation = StringHelper.parseAddress(this._desc);
+    print(tempLocation);
+    
+    setState(() {
+      _tags = tempTags;
+      if(tempLocation != null && tempLocation.length >0) {
+        _location = tempLocation;
+        _txt.text = _location;
+        _messageLocation = null;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     scheduleMicrotask(() => _swapValuable(context));
 
     Widget body = new WillPopScope(
-      child: Column(
-        children: <Widget>[    
-          renderMap(),
-          renderLocationField(),        
-          new Form(
-             key: _formKey,
-             autovalidate: true,
+      child: Form(
+          key: _formKey,
+          autovalidate: true,
 //           onWillPop: _warnUserAboutInvalidData,
-            child: formUI(context)
-          )
-        ],
+        child: formUI(context)
       ),
       onWillPop: onBackPress,
     );
@@ -259,10 +313,16 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
       key: _scaffoldKey,
       appBar: new AppBar(
         backgroundColor: TOPIC_COLORS[_color],
-        title: new Text(
-          _newTopicLabel,
+        title: Row(children:[Text(
+          LABEL_NEW,
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
+        DropdownButton(
+                value: _messageType,
+                items: _messageTypeDropDownMenuItems,
+                onChanged: (String value) {setState(() {_messageType = value;});},
+                style: TextStyle(color: primaryColor, fontSize: 20.0, fontWeight: FontWeight.bold),
+              )]),
         centerTitle: true,
         elevation: 0.7,
         actionsIconTheme: Theme.of(context).primaryIconTheme,
@@ -339,22 +399,291 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
 
   void removeImage() {setState((){imageFile = null;});}
   void sendMessage() {
-    if (_formKey.currentState.validate()) {
-//    If all data are correct then save data to out variables
-      _formKey.currentState.save();
-      List<String> tags = [this._firstTag];
-      // TODO pass this_desc to extract the hash tag
-      // Find the geo box
-      var destBox = GeoHelper.findBoxGeo(this._messageLocation, 1000.0);
-      /*
-      Topic topic = new Topic(widget.isBroadcast, widget.user, destBox['topLeft'], destBox['bottomRight'], this.messageLocation,
-            null, this._isShowName, tags, this._parentTitle, this._desc, this._color);
-      messageService.sendTopicMessage(this.messageLocation, topic, this.imageFile);
-      userService.addRecentTopic(widget.user.uuid, topic.id, this.messageLocation);
-      */
-      onBackPress();
+    if (!_formKey.currentState.validate()) {
+      return;
     }
+//    If all data are correct then save data to out variables
+    _formKey.currentState.save();
+    if(_messageType != MESSAGE_TYPE_SELECTION[0]){
+      _tags.insert(0, _messageType);
+    }
+    _tags = _tags.toSet().toList();
+    Polling polling;
+    DateTime startDate;
+    DateTime endDate;
+    String startTime;
+    String duration;
+    if(_messageType == MESSAGE_TYPE_SELECTION[1]) {
+      duration = this._duration;
+      startDate = DateTime.parse(DateFormat("yyyy-MM-dd").format(this._startDate));
+      startTime = new DateFormat.Hm().format(this._startDate);
+    }    
+    if(_messageType == MESSAGE_TYPE_SELECTION[2]) {
+      if(_polling.valid() && this._endDate.isAfter(this._startDate)) { // polling type
+        polling = _polling;
+        startDate = this._startDate;
+        endDate = this._endDate;
+      } else {
+        polling = _polling;
+        return;
+      }
+    }
+    //var destBox = GeoHelper.findBoxGeo(this._messageLocation, 1000.0);
+    SearchingMsg searchingMsg = SearchingMsg("", this._messageLocation, this._location, this._parentTitle, 
+    widget.user.username, widget.user.avatarUrl, widget.user.uuid, widget.user.uuid,
+    _tags, this._desc, null /*this._link*/,
+    null, null, null, null, /*this._imageUrl, this._publicImageURL, this._thumbnailImageURL, this._thumbnailPublicImageURL, */
+    startDate, startTime, duration, null, endDate, /*this._start, this._startTime, this._duration, this._interval, this._endDate,*/
+    null, null, polling, /*this._everydayOpenning, this._weekdaysOpennings, this._polling,*/
+    null);
+    messageService.sendPendingSearchingMessage(searchingMsg, imageFile);
+    onBackPress();
   }
+
+  Widget tagUI(BuildContext context) {
+    List<Chip> chips = [];
+    this._tags.forEach((tag) {
+      print(tag.length);
+      chips.add(Chip(label: Text(tag)));
+    });
+    return Wrap(runSpacing: 4.0, spacing: 8.0, children: chips);
+  }
+
+  Widget renderExtendForm(BuildContext context) {
+    Widget rv = Container();
+    if(this._messageType == MESSAGE_TYPE_SELECTION[2]) { // polling
+      rv= renderPollingForm(context);
+    }
+    if(this._messageType == MESSAGE_TYPE_SELECTION[1]) { // Single Event
+      rv= renderSingleEventForm(context);
+    }    
+    return rv;
+  }
+
+  Widget renderSingleEventForm(BuildContext context) {
+    final format = DateFormat("yyyy-MM-dd HH:mm");
+    List<Widget> widgets = [
+      const SizedBox(height: 12.0),
+      Row(children: <Widget>[
+        Expanded(child: 
+          DateTimeField(
+          focusNode: _startDateFocus,
+          format: format,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+              border: UnderlineInputBorder(),
+              filled: true,
+              hintText: HINT_EVENT_START_DATE,
+              labelText: LABEL_EVENT_START_DATE,
+            ),
+          onFieldSubmitted: (term) {
+              fieldFocusChange(context, _startDateFocus, _endDateFocus);
+          },
+          onChanged: (dt) => this._startDate = dt,
+          onSaved: (dt) => this._startDate = dt,
+          onShowPicker: (context, currentValue) async {
+            final date = await showDatePicker(
+                context: context,
+                firstDate: DateTime(2020),
+                initialDate: currentValue ?? DateTime.now(),
+                lastDate: DateTime(2100));
+            if (date != null) {
+              final time = await showTimePicker(
+                context: context,
+                initialTime:
+                    TimeOfDay.fromDateTime(currentValue ?? DateTime.now()),
+              );
+              return DateTimeField.combine(date, time);
+            } else {
+              return currentValue;
+            }
+          },
+        )),       
+        Expanded(child: 
+          DropdownButtonFormField(
+            decoration: const InputDecoration(
+              border: UnderlineInputBorder(),
+              filled: true,
+              labelText: LABEL_EVENT_DURATION,
+            ),
+                value: _duration,
+                items: _duationDropDownMenuItems,
+                onChanged: (String value) {setState(() {_duration = value;});},
+                style: TextStyle(color: primaryColor, fontSize: 20.0, fontWeight: FontWeight.bold),
+          )), 
+      ],),
+    ];
+    return Column(children: widgets);
+  }  
+
+  Widget renderPollingForm(BuildContext context) {
+    void updatePollingOption(int i, String value) {
+      Polling tempPolling = _polling;
+      if(i< tempPolling.pollingOptionValues.length) {
+        tempPolling.pollingOptionValues[i] = value;
+      } else {
+        if(value.length > 0) {
+          tempPolling.pollingOptionValues.add(value);
+          _pollingOptions.add(FocusNode());
+        }
+      }
+      //setState(() {
+        this._polling = tempPolling;
+      //});
+    }
+    final format = DateFormat("yyyy-MM-dd");
+    List<Widget> widgets = [
+      const SizedBox(height: 12.0),
+      // Polling Title
+      TextFormField(
+        focusNode: _pollingTitleFocus,
+        onFieldSubmitted: (term) {
+          fieldFocusChange(context, _pollingTitleFocus, _startDateFocus);
+        },
+        textInputAction: TextInputAction.next,
+        decoration: const InputDecoration(
+          border: UnderlineInputBorder(),
+          filled: true,
+          hintText: HINT_POLLING_TITLE,
+          labelText: LABEL_POLLING_TITLE,
+        ),
+        /*
+        validator: (value) {
+          return validation(LABEL_TOPIC, value);
+        },
+        */
+        onChanged: (String value) {this._polling.pollingTitle = value;},
+        onSaved: (String value) {this._polling.pollingTitle = value;},
+      ),
+      const SizedBox(height: 12.0),
+      Row(children: <Widget>[
+        Expanded(child: 
+          DateTimeField(
+          focusNode: _startDateFocus,
+          format: format,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+              border: UnderlineInputBorder(),
+              filled: true,
+              hintText: HINT_POLLING_START_DATE,
+              labelText: LABEL_POLLING_START_DATE,
+            ),
+          onFieldSubmitted: (term) {
+              fieldFocusChange(context, _startDateFocus, _endDateFocus);
+          },
+          onChanged: (dt) => this._startDate = dt,
+          onSaved: (dt) => this._startDate = dt,
+          onShowPicker: (context, currentValue) {
+            return showDatePicker(
+                context: context,
+                firstDate: DateTime(2020),
+                initialDate: currentValue ?? DateTime.now(),
+                lastDate: DateTime(2100));
+          },
+        )),       
+        Expanded(child: 
+          DateTimeField(
+          focusNode: _endDateFocus,
+          format: format,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+              border: UnderlineInputBorder(),
+              filled: true,
+              hintText: HINT_POLLING_END_DATE,
+              labelText: LABEL_POLLING_END_DATE,
+            ),
+          onFieldSubmitted: (term) {
+              fieldFocusChange(context, _endDateFocus, _pollingRangeFocus);
+          },
+          onChanged: (dt) => this._endDate = dt,
+          onSaved: (dt) => this._endDate = dt,
+          onShowPicker: (context, currentValue) {
+            return showDatePicker(
+                context: context,
+                firstDate: DateTime(2020),
+                initialDate: currentValue ?? DateTime.now().add(Duration(days:14)),
+                lastDate: DateTime(2100));
+          },
+        )), 
+      ],),
+      const SizedBox(height: 12.0),
+      Row(children: <Widget>[
+        Expanded(child: TextFormField(
+          focusNode: _pollingRangeFocus,
+          onFieldSubmitted: (term) {
+            fieldFocusChange(context, _pollingRangeFocus, _pollingMaxPollingFocus);
+          },
+          keyboardType: TextInputType.number,
+          initialValue: '1',
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            border: UnderlineInputBorder(),
+            filled: true,
+            hintText: LABEL_KM,
+            labelText: LABEL_VOTE_RANGE,
+          ),
+          /*
+          validator: (value) {
+            return validation(LABEL_TOPIC, value);
+          },
+          */
+          onChanged: (String value) {this._polling.pollingRange = int.parse(value);},
+          onSaved: (String value) {this._polling.pollingRange = int.parse(value);},
+        )),
+        Expanded(child: TextFormField(
+          focusNode: _pollingMaxPollingFocus,
+          onFieldSubmitted: (term) {
+            fieldFocusChange(context, _pollingMaxPollingFocus, _pollingMaxPollingFocus);
+          },
+          keyboardType: TextInputType.number,
+          initialValue: '1',
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            border: UnderlineInputBorder(),
+            filled: true,
+            labelText: LABEL_VOTE_MAX,
+          ),
+          /*
+          validator: (value) {
+            return validation(LABEL_TOPIC, value);
+          },
+          */
+          onChanged: (String value) {this._polling.numOfMaxPolling = int.parse(value);},
+          onSaved: (String value) {this._polling.numOfMaxPolling = int.parse(value);},
+        )),
+      ],),
+    ];
+    int numberOfPolling = 1;
+    if(this._polling.pollingOptionValues != null) {
+      numberOfPolling = this._polling.pollingOptionValues.length + 1;
+    }
+    for(int i = 0; i < numberOfPolling; i++) {  
+      const String labelText = LABEL_POLLING_OPTION;
+      FocusNode nextFocus = _sendButtonFocus;
+      if(i + 1 != numberOfPolling) {
+        nextFocus = _pollingOptions[i + 1];
+      }
+      widgets.add(SizedBox(height: 12.0));
+      widgets.add(
+        TextFormField(
+          focusNode: _pollingOptions[i],
+          onFieldSubmitted: (term) {
+            fieldFocusChange(context, _pollingOptions[i], nextFocus);
+          },
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            border: UnderlineInputBorder(),
+            filled: true,
+            labelText: labelText,
+          ),
+          onChanged: (String value) {updatePollingOption(i, value);},
+          onSaved: (String value) {updatePollingOption(i, value);},
+        )
+      );   
+    }
+    return Column(children: widgets);
+  }
+
   Widget formUI(BuildContext context) {
     String validation(String label, String value) {
       String rv;
@@ -398,8 +727,10 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
             break;        
         }
       }
+      /*
       print(label + " " + value + " " + _isSubmitDisable.toString() + " " + _pendingIsSubmitDisable.toString()
       + " " + _buttonText  + " " + _pendingButtonText);
+      */
       if(_isSubmitDisable != _pendingIsSubmitDisable || _buttonText != _pendingButtonText) {
         _isSubmitDisable = _pendingIsSubmitDisable;
         _buttonText = _pendingButtonText;  
@@ -417,18 +748,6 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          /* // This should be row to display hash tag detect in desc
-          Row(
-            children: <Widget> [
-              Expanded(child: new Text(LABEL_HAS)),
-              Expanded(child: new DropdownButton(
-                value: _firstTag,
-                items: _tagDropDownMenuItems,
-                onChanged: (String value) {setState(() {_firstTag = value;});},
-              )),
-            ]
-          ),
-          */
           const SizedBox(height: 12.0),
           TextFormField(
             focusNode: _titleFocus,
@@ -440,7 +759,6 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
             decoration: const InputDecoration(
               border: UnderlineInputBorder(),
               filled: true,
-              icon: Icon(Icons.person),
               hintText: HINT_TOPIC,
               labelText: LABEL_TOPIC,
             ),
@@ -451,12 +769,14 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
             onSaved: (String value) {this._parentTitle = value;},
           ),
           const SizedBox(height: 12.0),
+          tagUI(context),
+          const SizedBox(height: 12.0),
           topicImageUI(context), 
           const SizedBox(height: 12.0),
           TextFormField(
             focusNode: _descFocus,
             onFieldSubmitted: (term) {
-              fieldFocusChange(context, _titleFocus, _descFocus);
+              fieldFocusChange(context, _descFocus, _locationFocus);
             },
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
@@ -469,9 +789,12 @@ class SendMessageState extends State<SendMessageScreen> with TickerProviderState
             validator: (value) {
               return validation(LABEL_DETAIL, value);
             },
-            onChanged: (String value) {this._desc = value;},
+            onChanged: (String value) {searchForKeywords(value);},
             onSaved: (String value) {this._desc = value;},
           ),
+          renderLocationField(context), 
+          renderMap(context),
+          renderExtendForm(context),
           _sendButton
         ],
       )
