@@ -408,7 +408,8 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
 
 
   Widget _buildPolling(BuildContext context, SearchingMsg _sMsg) {
-    if (_sMsg != null && _sMsg.polling != null && _sMsg.polling.numOfMaxPolling != null && _sMsg.polling.numOfMaxPolling != 0) {
+    if (_sMsg != null && _sMsg.polling != null && _sMsg.polling.valid()) {
+      print('_sMsg.polling.numOfMaxPolling ${_sMsg.polling.numOfMaxPolling}');
       return  PollingWidget(searchingMsg: _sMsg, 
         messageLocation: widget.messageLocation, 
         width: widget.width, 
@@ -760,7 +761,8 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
           widgetList.add(_buildPolling(context, msg));
           if(_titleLink != null) {
             widgetList.add(_titleLink);
-          } 
+          }
+          widgetList.add(AdWidget(true));
         }      
       } else {
         if(_summaryImageWidget != null) {

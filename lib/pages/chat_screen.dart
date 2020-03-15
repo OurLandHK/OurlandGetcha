@@ -228,9 +228,13 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
         _currentLocation = location;
         GeoPoint mapCenter = new GeoPoint(_currentLocation.latitude, _currentLocation.longitude);
         this.messageLocation = mapCenter;
+        // TODO send button always on
+        this._enableSendButton = true;
+        /*
         if(!_isSendButtonOn) {
           this._enableSendButton = widget.topic.isAddressWithin(this.messageLocation);
         }
+        */
       } else {
         this.messageLocation = _messageLocation;
       }
