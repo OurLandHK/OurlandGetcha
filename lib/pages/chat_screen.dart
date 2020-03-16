@@ -87,7 +87,8 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
   Map<String, User> _userList;
   UserService _userService;
   Chat_Mode _chatMode;
-  bool _enableSendButton = false;
+  // TODO
+  bool _enableSendButton = true;
   var listMessage;
 
   SharedPreferences prefs;
@@ -223,6 +224,8 @@ class ChatScreenBodyState extends State<ChatScreenBody> with TickerProviderState
       if(_isSendButtonOn) {
         this._enableSendButton = _isSendButtonOn;
       }
+      // TODO send button always on
+      this._enableSendButton = true;
       //print('initPlatformStateLocation: ${location}');
       if(location != null) {
         _currentLocation = location;

@@ -290,7 +290,7 @@ class _SearchingMainState extends State<SearchingMain>{
         key: _scaffoldKey,
         //appBar: renderLocationField(),
         appBar: PreferredSize(
-                preferredSize: Size.fromHeight(322),
+                preferredSize: Size.fromHeight(MediaQuery.of(context).size.height/2),
                 child:Column(
             children: widgetList)),
         body: Container(
