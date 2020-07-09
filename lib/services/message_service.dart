@@ -191,7 +191,7 @@ class MessageService {
 
   Stream<QuerySnapshot> getPublicSnap(String firstTag) {
     Stream<QuerySnapshot> rv;
-    Query query = _broadcastCollection.where("public", isEqualTo: true);
+    Query query = _topicCollection.where("public", isEqualTo: true);
     if(firstTag != null && firstTag.length != 0) {
       query = query.where("tags", arrayContains: firstTag);
     }

@@ -263,8 +263,13 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
   renderAccessAsNobody(content) {
     return OutlineButton(
       splashColor: Colors.grey,
+      onPressed: () {
+        _signInAnonymously();
+      },
+      /*
       onPressed:  () => Navigator.of(context).pushReplacement(
             new MaterialPageRoute(builder: (context) => OurlandHome(null ,widget.preferences))),
+      */
        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
       highlightElevation: 0,
       borderSide: BorderSide(color: Colors.grey),
@@ -334,6 +339,37 @@ class _PhoneAuthenticationScreenState extends State<PhoneAuthenticationScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _signInAnonymously() async {
+    final FirebaseUser fbuser = (await _auth.signInAnonymously()).user;
+
+    //assert(!fbuser.isAnonymous);
+    assert(await fbuser.getIdToken() != null);
+
+    final FirebaseUser currentUser = await _auth.currentUser();
+    assert(fbuser.uid == currentUser.uid);
+    return userService.getUser(fbuser.uid).then((user) {
+          if (user != null) {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
+          } else {
+            String name = userService.getSecretName(fbuser.uid, 0);
+            userService.register(
+                fbuser.uid, name, null).then((user) {
+                if (user == null) {
+                  _scaffoldKey.currentState.showSnackBar(
+                      new SnackBar(content: new Text(REG_FAILED_TO_CREATE_USER_TEXT)));
+                } else {
+                  Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => OurlandHome(user, widget.preferences)));
+                }
+            });
+          }
+        });
+
+//    return 'signInWithGoogle succeeded: $user';
   }
 
   Future<void> _signInWithGoogle() async {

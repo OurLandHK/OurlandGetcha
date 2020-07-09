@@ -734,9 +734,9 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
         }
         if(_titleLink != null) {
           widgetList.add(_titleLink);
-          widgetList.add(AdWidget(false));
+          //widgetList.add(AdWidget(false));
         } else {
-          widgetList.add(AdWidget(true));
+          //widgetList.add(AdWidget(true));
         }       
       }
       if(widget.topic.content != null && widget.topic.content.length != 0) {
@@ -762,7 +762,7 @@ class _ChatSummaryState extends State<ChatSummary> with TickerProviderStateMixin
           if(_titleLink != null) {
             widgetList.add(_titleLink);
           }
-          widgetList.add(AdWidget(true));
+          //widgetList.add(AdWidget(true));
         }      
       } else {
         if(_summaryImageWidget != null) {

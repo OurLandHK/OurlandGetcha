@@ -108,22 +108,7 @@ class _SearchingMainState extends State<SearchingMain>{
             :  new Container()
       );
     }    
-    void buildSearchingMsgs(List<DocumentSnapshot> documents) {
-      _searchingMsgs = [];
-      //_tagCountMap = new Map<String, int>();
-//      for (SearchingMsg searchingMsg in documents) {
-      for (DocumentSnapshot doc in documents) {
-        Map data = doc.data;
-        data['key'] = doc.documentID;
-        SearchingMsg searchingMsg = SearchingMsg.fromMap(data); 
-        /*
-        if(_firstTag.length == 0 || searchingMsg.tagfilter.contains(_firstTag)) {
-          updateTagCount(searchingMsg);
-        */
-        _searchingMsgs.add(searchingMsg);
-        //} 
-      }
-    }
+
     Widget buildItem(String messageId, SearchingMsg searchingMsg, BuildContext context) {
       Widget rv; 
       rv = new SearchingMsgWidget(preferences: widget.preferences, user: widget.user, searchingMsg: searchingMsg, getCurrentLocation:  widget.getCurrentLocation, messageLocation: searchingMsg.geolocation, locationPermissionGranted: false, pending: true,);
